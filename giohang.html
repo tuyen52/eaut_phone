@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="shortcut icon" href="img/favicon.ico" />
+
+    <title>Giỏ Hàng - Thế giới điện thoại</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+     crossorigin="anonymous">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/topnav.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/taikhoan.css">
+    <link rel="stylesheet" href="css/gioHang.css">
+    <link rel="stylesheet" href="css/footer.css">
+    
+    <script src="data/products.js"></script>
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/classes.js"></script>
+    <script src="js/core/database.js"></script>
+    <script src="js/core/auth.js"></script>
+
+    <script src="js/components/header.js"></script>
+    <script src="js/components/footer.js"></script>
+    <script src="js/core/init.js"></script>
+
+    <script src="js/pages/cart.js"></script>
+
+</head>
+
+<body>
+    <script> addTopNav(); </script>
+
+    <section style="min-height: 85vh">
+        <script> addHeader(); </script>
+
+        <table class="listSanPham"> </table>
+
+    </section> 
+    
+    <script>
+        addContainTaiKhoan();
+    </script>
+
+    <div class="footer"><script>addFooter();</script></div>
+
+    <i class="fa fa-arrow-up" id="goto-top-page" onclick="gotoTop()"></i>
+
+    <div id="paymentModal" style="display:none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6);">
+        <div style="background-color: #fff; margin: 2% auto; padding: 20px; border-radius: 10px; width: 95%; max-width: 700px; position: relative; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); animation: fadeIn 0.3s;">
+            
+            <span onclick="closePaymentModal()" style="position: absolute; right: 20px; top: 10px; font-size: 30px; cursor: pointer; color: #aaa;">&times;</span>
+            <h2 style="text-align: center; color: #f7941e; margin-bottom: 10px; text-transform: uppercase;">Xác nhận thanh toán</h2>
+            <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
+    
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                
+                <div style="flex: 1; min-width: 280px;">
+                    <h4 style="margin-bottom: 15px; color: #333; border-left: 4px solid #f7941e; padding-left: 10px;">
+                        <i class="fa fa-user"></i> Thông tin giao hàng
+                    </h4>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px;">Họ và tên <span style="color:red">*</span></label>
+                        <input type="text" id="hoTen" placeholder="Nhập họ tên người nhận" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px;">Số điện thoại <span style="color:red">*</span></label>
+                        <input type="text" id="soDienThoai" placeholder="Nhập số điện thoại (10 số)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                    </div>
+
+                    <div style="margin-bottom: 15px; position: relative;">
+                        <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px;">Địa chỉ nhận hàng <span style="color:red">*</span></label>
+                        <textarea id="diaChi" rows="3" placeholder="Số nhà, tên đường, xã/phường, quận/huyện..." style="width: 100%; padding: 10px; padding-right: 80px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; resize: vertical; font-family: sans-serif;"></textarea>
+                        
+                        <button onclick="getLocation()" title="Lấy vị trí hiện tại" style="position: absolute; bottom: 10px; right: 10px; background: white; border: 1px solid #288ad6; border-radius: 4px; cursor: pointer; color: #288ad6; padding: 5px 10px; font-size: 12px;">
+                            <i class="fa fa-map-marker"></i> Vị trí
+                        </button>
+                    </div>
+                </div>
+    
+                <div style="flex: 1; min-width: 280px; border-left: 1px solid #eee; padding-left: 20px;">
+                    <h4 style="margin-bottom: 15px; color: #333; border-left: 4px solid #28a745; padding-left: 10px;">
+                        <i class="fa fa-credit-card"></i> Hình thức thanh toán
+                    </h4>
+                    
+                    <div style="margin-bottom: 15px; background: #fdfdfd; padding: 10px; border: 1px solid #eee; border-radius: 5px;">
+                        <input type="radio" id="cod" name="paymentMethod" value="COD" checked onchange="togglePaymentMethod('COD')">
+                        <label for="cod" style="cursor: pointer; font-weight: bold; margin-left: 5px;">Thanh toán khi nhận hàng (COD)</label>
+                        <div style="font-size: 13px; color: #666; margin-left: 25px; margin-top: 5px;">
+                            <i class="fa fa-check-circle" style="color:green"></i> Được kiểm tra hàng trước khi nhận.
+                        </div>
+                    </div>
+    
+                    <div style="margin-bottom: 15px; background: #fdfdfd; padding: 10px; border: 1px solid #eee; border-radius: 5px;">
+                        <input type="radio" id="banking" name="paymentMethod" value="Banking" onchange="togglePaymentMethod('Banking')">
+                        <label for="banking" style="cursor: pointer; font-weight: bold; margin-left: 5px;">Chuyển khoản ngân hàng (QR)</label>
+                        
+                        <div id="qrInfo" style="display: none; margin-top: 10px; text-align: center; background: #fff; padding: 10px; border-radius: 5px; border: 1px dashed #28a745;">
+                            <p style="font-size: 13px; margin-bottom: 5px; color: #555;">Mở App Ngân hàng để quét mã:</p>
+                            
+                            <img id="qrImage" src="" alt="QR Code" style="width: 160px; height: 160px; object-fit: contain; border: 1px solid #ccc; margin-bottom: 5px;">
+                            
+                            <div style="text-align: left; font-size: 13px; padding-left: 10px; color: #333;">
+                                <p>Nội dung CK: <b id="qrContent" style="color: #d0021b; background: #fff0f0; padding: 2px 5px;">...</b></p>
+                                <p style="font-size: 11px; color: #777;"><i>(Hệ thống sẽ tự động đối soát)</i></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div style="text-align: right; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                <div style="font-size: 20px; margin-bottom: 15px;">
+                    Tổng thanh toán: <span id="paymentTotal" style="color: #d0021b; font-weight: bold;">0₫</span>
+                </div>
+                
+                <button onclick="closePaymentModal()" style="background: #eee; color: #333; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px; transition: 0.3s;">
+                    Quay lại
+                </button>
+                <button onclick="processPayment()" style="background: linear-gradient(to right, #f7941e, #f76b1c); color: white; padding: 12px 40px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 4px 6px rgba(247, 148, 30, 0.3); transition: 0.3s;">
+                    <i class="fa fa-paper-plane"></i> ĐẶT HÀNG NGAY
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

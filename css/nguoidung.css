@@ -1,0 +1,199 @@
+/* css/nguoidung.css - Dashboard chuyên nghiệp */
+
+/* 1. Thông tin User (Header của trang User) */
+.infoUser {
+    background: #fff;
+    margin: 20px auto;
+    max-width: 900px;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.infoUser h3 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Bảng thông tin nhỏ bên trong */
+.infoUser table {
+    width: 100%;
+    max-width: 600px;
+    border-spacing: 0 10px;
+}
+
+.infoUser table td {
+    padding: 10px;
+    font-size: 16px;
+}
+
+.infoUser table td:first-child {
+    font-weight: 600;
+    color: #666;
+    width: 120px;
+    text-align: right;
+    padding-right: 20px;
+}
+
+/* Input tên */
+.infoUser input[type="text"] {
+    width: 100%;
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    color: #333;
+    font-weight: bold;
+}
+.infoUser input[type="text"]:focus {
+    border-color: #288ad6;
+}
+
+/* Các nút bấm nhỏ (Cập nhật, đổi mật khẩu) */
+.infoUser button {
+    background: #f0f0f0;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    color: #333;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+.infoUser button:hover {
+    background: #288ad6;
+    color: white;
+}
+
+/* Form đổi mật khẩu */
+#passForm {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    margin-top: 15px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+#passForm input {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+#passForm button {
+    width: 100%;
+    background: #4CAF50; /* Màu xanh lá cho hành động xác nhận */
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+}
+#passForm button:hover {
+    background: #45a049;
+}
+
+
+/* 2. Lịch sử Đơn hàng (Layout dạng Cards) */
+.listDonHang {
+    max-width: 900px;
+    margin: 0 auto 50px auto;
+}
+
+.listDonHang h3 {
+    font-size: 22px;
+    color: #333;
+    margin: 30px 0 20px 0;
+    border-left: 5px solid #288ad6;
+    padding-left: 15px;
+}
+
+/* Từng thẻ đơn hàng */
+.donhang-item {
+    background: #fff;
+    border: 1px solid #eee; /* Viền mỏng thay vì style inline cũ */
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    transition: 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.donhang-item:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    border-color: #288ad6;
+}
+
+/* Header của đơn hàng (Mã đơn + Ngày) */
+.donhang-item > div:first-child {
+    border-bottom: 1px dashed #ddd;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.donhang-item b {
+    color: #288ad6;
+    font-size: 16px;
+}
+
+/* Danh sách sản phẩm trong đơn */
+.donhang-item p {
+    margin: 5px 0;
+    color: #555;
+    line-height: 1.5;
+}
+
+/* Cột bên phải (Tổng tiền + Trạng thái + Nút) */
+.donhang-item > div > div:last-child {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end; /* Căn phải */
+}
+
+/* Trạng thái đơn hàng */
+.donhang-item strong {
+    font-size: 20px;
+    color: #e10c00;
+}
+
+/* Nút hành động trong đơn hàng (Hủy / Đã nhận) */
+.btn-user-action {
+    margin-top: 10px;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+    outline: none;
+}
+
+.btn-user-action.cancel {
+    background: #fff;
+    border: 1px solid #ff4d4d;
+    color: #ff4d4d;
+}
+.btn-user-action.cancel:hover {
+    background: #ff4d4d;
+    color: #fff;
+}
+
+.btn-user-action.confirm {
+    background: #28a745;
+    color: white;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+.btn-user-action.confirm:hover {
+    background: #218838;
+}

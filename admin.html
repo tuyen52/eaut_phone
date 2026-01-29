@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>Admin - Thế giới điện thoại</title>
+    <link rel="shortcut icon" href="img/favicon.ico" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+        crossorigin="anonymous">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+
+    <link rel="stylesheet" href="css/admin/style.css">
+    <link rel="stylesheet" href="css/admin/progress.css"> <script src="data/products.js"></script>
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/classes.js"></script>
+    <script src="js/core/database.js"></script>
+
+    <script src="js/admin/dashboard.js"></script>
+    <script src="js/admin/products.js"></script>
+    <script src="js/admin/orders.js"></script>
+    <script src="js/admin/users.js"></script>
+    <script src="js/admin/reviews.js"></script>
+    <script src="js/admin/warehouse.js"></script>
+
+    <script src="js/admin/main.js"></script>
+</head>
+
+<body>
+    <header>
+        <h2>EAUT PHONE - Admin</h2>
+    </header>
+
+    <aside class="sidebar">
+        <ul class="nav">
+            <li class="nav-title">MENU</li>
+            <li class="nav-item"><a class="nav-link active"><i class="fa fa-home"></i> Trang Chủ</a></li>
+            <li class="nav-item"><a class="nav-link"><i class="fa fa-th-large"></i> Sản Phẩm</a></li>
+            <li class="nav-item"><a class="nav-link"><i class="fa fa-file-text-o"></i> Đơn Hàng</a></li>
+            <li class="nav-item"><a class="nav-link"><i class="fa fa-address-book-o"></i> Khách Hàng</a></li>
+            <li class="nav-item"><a class="nav-link"><i class="fa fa-comments-o"></i> Bình luận</a></li>
+            <li class="nav-item"><a class="nav-link"><i class="fa fa-cubes"></i> Kho Hàng</a></li>
+            <li class="nav-item">
+                <hr>
+            </li>
+            <li class="nav-item">
+                <a href="index.html" class="nav-link" onclick="logOutAdmin(); return true;">
+                    <i class="fa fa-arrow-left"></i>
+                    Đăng xuất (về Trang chủ)
+                </a>
+            </li>
+        </ul>
+    </aside>
+    <div class="main">
+        <div class="home">
+            <div class="canvasContainer">
+                <canvas id="myChart1"></canvas>
+            </div>
+            <div class="canvasContainer">
+                <canvas id="myChart2"></canvas>
+            </div>
+            </div>
+
+        <div class="sanpham" style="display: none;"> <table class="table-header">
+                <tr>
+                    <th title="Sắp xếp" style="width: 5%" onclick="sortProductsTable('stt')">Stt <i class="fa fa-sort"></i></th>
+                    <th title="Sắp xếp" style="width: 10%" onclick="sortProductsTable('masp')">Mã <i class="fa fa-sort"></i></th>
+                    <th title="Sắp xếp" style="width: 40%" onclick="sortProductsTable('ten')">Tên <i class="fa fa-sort"></i></th>
+                    <th title="Sắp xếp" style="width: 15%" onclick="sortProductsTable('gia')">Giá <i class="fa fa-sort"></i></th>
+                    <th title="Sắp xếp" style="width: 15%" onclick="sortProductsTable('khuyenmai')">Khuyến mãi <i class="fa fa-sort"></i></th>
+                    <th style="width: 15%">Hành động</th>
+                </tr>
+            </table>
+            <div class="table-content">
+                </div>
+            <div class="table-footer">
+                <select name="kieuTimSanPham">
+                    <option value="ma">Tìm theo mã</option>
+                    <option value="ten">Tìm theo tên</option>
+                </select>
+                <input type="text" placeholder="Tìm kiếm sản phẩm..." onkeyup="timKiemSanPham(this)">
+                <button onclick="document.getElementById('khungThemSanPham').style.transform = 'scale(1)'; autoMaSanPham()">
+                    <i class="fa fa-plus-square"></i>
+                    Thêm sản phẩm
+                </button>
+            </div>
+            <div id="khungThemSanPham" class="overlay">
+                 <span class="close" onclick="this.parentElement.style.transform = 'scale(0)';">&times;</span>
+                 <form> <table class="overlayTable table-outline table-content table-header">
+                        <tr> <th colspan="2">Thêm Sản Phẩm</th> </tr>
+                        <tr> <td>Mã sản phẩm:</td> <td><input type="text" id="maspThem" required></td> </tr>
+                        <tr> <td>Tên sản phẩm:</td> <td><input type="text" required></td> </tr>
+                        <tr> <td>Hãng:</td> <td> <select name="chonCompany" onchange="autoMaSanPham(this.value)"> <script> var company = ["Apple", "Samsung", "Oppo", "Nokia", "Huawei", "Xiaomi","Realme", "Vivo"]; company.forEach(c => document.writeln(`<option value="${c}">${c}</option>`)); </script> </select> </td> </tr>
+                        <tr> <td>Hình:</td> <td> <img class="hinhDaiDien" id="anhDaiDienSanPhamThem" src=""> <input type="file" accept="image/*" onchange="capNhatAnhSanPham(this.files, 'anhDaiDienSanPhamThem')"> </td> </tr>
+                        <tr> <td>Giá tiền:</td> <td><input type="number" min="0" required></td> </tr>
+                        <tr> <td>Tồn kho:</td> <td><input type="number" min="0" value="0"></td> </tr>
+                        <tr> <td>Khuyến mãi:</td> <td> <select> <option value="">Không</option> <option value="tragop">Trả góp</option> <option value="giamgia">Giảm giá</option> <option value="giareonline">Giá rẻ online</option> <option value="moiramat">Mới ra mắt</option> </select> </td> </tr>
+                        <tr> <td>Giá trị khuyến mãi:</td> <td><input type="text" placeholder="Số tiền, % hoặc để trống"></td> </tr>
+                        <tr> <th colspan="2">Thông số kĩ thuật</th> </tr>
+                        <tr> <td>Màn hình:</td> <td><input type="text"></td> </tr>
+                        <tr> <td>Hệ điều hành:</td> <td><input type="text"></td> </tr>
+                        <tr> <td>Camera sau:</td> <td><input type="text"></td> </tr>
+                        <tr> <td>Camera trước:</td> <td><input type="text"></td> </tr>
+                        <tr> <td>CPU:</td> <td><input type="text"></td> </tr>
+                        <tr> <td>RAM:</td> <td><input type="text"></td> </tr>
+                        <tr> <td>Bộ nhớ trong:</td> <td><input type="text"></td> </tr>
+                        <tr> <td>Thẻ nhớ:</td> <td><input type="text"></td> </tr>
+                        <tr> <td>Dung lượng Pin:</td> <td><input type="text"></td> </tr>
+                        <tr> <td colspan="2" class="table-footer"> <button type="button" onclick="themSanPham()">THÊM</button> </td> </tr>
+                    </table>
+                 </form>
+            </div>
+            <div id="khungSuaSanPham" class="overlay">
+                </div>
+        </div>
+
+        <div class="donhang" style="display: none;"> <table class="table-header"></table>
+             <div class="table-content">
+                 </div>
+             <div class="table-footer">
+                 <div class="timTheoNgay">
+                     Từ ngày: <input type="date" id="fromDate">
+                     Đến ngày: <input type="date" id="toDate">
+                     <button onclick="locDonHangTheoKhoangNgay()"><i class="fa fa-search"></i> Tìm</button>
+                 </div>
+                 <select name="kieuTimDonHang">
+                     <option value="ma">Tìm theo mã đơn</option>
+                     <option value="khachhang">Tìm theo tên khách hàng</option>
+                     <option value="trangThai">Tìm theo trạng thái</option>
+                 </select>
+                 <input type="text" placeholder="Tìm kiếm đơn hàng..." onkeyup="timKiemDonHang(this)">
+             </div>
+        </div>
+
+        <div class="khachhang" style="display: none;"> <table class="table-header"></table>
+            <div class="table-content">
+                 </div>
+            <div class="table-footer">
+                <select name="kieuTimKhachHang">
+                    <option value="ten">Tìm theo họ tên</option>
+                    <option value="email">Tìm theo email</option>
+                    <option value="taikhoan">Tìm theo tài khoản</option>
+                </select>
+                <input type="text" placeholder="Tìm kiếm người dùng..." onkeyup="timKiemNguoiDung(this)">
+                <button onclick="openThemNguoiDung()"><i class="fa fa-plus-square"></i> Thêm người dùng</button>
+            </div>
+        </div>
+
+        <div class="binhluan" style="display: none;"> <h2 style="text-align: center; color: white; margin: 20px 0;">Quản lý Bình luận</h2>
+             <table class="table-header"> <tr>
+                    <th style="width: 15%;">Sản phẩm</th>
+                    <th style="width: 10%;">Người dùng</th>
+                    <th style="width: 10%;">Sao</th> <th style="width: 40%;">Nội dung bình luận</th> <th style="width: 15%;">Thời gian</th>
+                    <th style="width: 10%;">Hành động</th>
+                </tr>
+            </table>
+            <div class="table-content">
+                </div>
+        </div>
+        
+        <div class="khohang" style="display: none;">
+            <h2 style="text-align: center; color: white; margin: 20px 0;">Quản lý Tồn Kho</h2>
+             <table class="table-header">
+                <tr>
+                    <th style="width: 10%;">STT</th>
+                    <th style="width: 15%;">Mã SP</th>
+                    <th style="width: 40%;">Tên Sản phẩm</th>
+                    <th style="width: 20%;">Tồn kho</th>
+                    <th style="width: 15%;">Hành động</th>
+                </tr>
+            </table>
+            <div class="table-content">
+                </div>
+            <div class="table-footer">
+                <input type="text" placeholder="Tìm kiếm sản phẩm..." onkeyup="timKiemKhoHang(this)">
+            </div>
+        </div>
+        </div> <footer>
+        </footer>
+</body>
+
+</html>

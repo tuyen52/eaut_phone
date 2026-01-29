@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Thế giới điện thoại</title>
+    <link rel="shortcut icon" href="img/favicon.ico" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+        crossorigin="anonymous">
+
+	<link rel="stylesheet" href="js/owlcarousel/owl.carousel.min.css">
+	<link rel="stylesheet" href="js/owlcarousel/owl.theme.default.min.css">
+	<script src="js/Jquery/Jquery.min.js"></script>
+    <script src="js/owlcarousel/owl.carousel.min.js"></script>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/topnav.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/taikhoan.css">
+    <link rel="stylesheet" href="css/trangchu.css"> <link rel="stylesheet" href="css/home_products.css"> <link rel="stylesheet" href="css/chitietsanpham.css">
+    <link rel="stylesheet" href="css/footer.css">
+ <script src="data/products.js"></script>
+
+<script src="js/core/utils.js"></script>
+<script src="js/core/classes.js"></script>
+<script src="js/core/database.js"></script>
+<script src="js/core/auth.js"></script>
+<script src="js/core/cart.js"></script>
+
+<script src="js/components/header.js"></script>
+<script src="js/components/footer.js"></script>
+<script src="js/components/product-card.js"></script>
+
+<script src="js/core/init.js"></script>
+
+<script src="js/pages/product-detail.js"></script>
+</head>
+
+<body>
+
+    <script> addTopNav(); </script>
+
+    <section>
+        <script> addHeader(); </script>
+
+        <div id="productNotFound" style="min-height: 50vh; text-align: center; margin: 50px; display: none;">
+            <h1 style="color: red; margin-bottom: 10px;">Không tìm thấy sản phẩm</h1>
+            <a href="index.html" style="text-decoration: underline;">Quay lại trang chủ</a>
+        </div>
+
+        <div class="chitietSanpham" style="margin-bottom: 100px">
+            <h1>Điện thoại </h1> <div class="rating"></div> <div class="rowdetail group">
+                <div class="picture">
+                    <img src="" onclick="opencertain()"> </div>
+                <div class="price_sale">
+                    <div class="area_price"> </div> <div class="ship" style="display: none;"> <img src="img/chitietsanpham/clock-152067_960_720.png">
+                        <div>NHẬN HÀNG TRONG 1 GIỜ</div>
+                    </div>
+                    <div class="area_promo">
+                        <strong>khuyến mãi</strong>
+                        <div class="promo">
+                            <img src="img/chitietsanpham/icon-tick.png">
+                            <div id="detailPromo"> </div> </div>
+                    </div>
+                    <div class="policy">
+                        <div>
+                            <img src="img/chitietsanpham/box.png">
+                            <p>Trong hộp có: Sạc, Tai nghe, Sách hướng dẫn, Cây lấy sim, Ốp lưng </p>
+                        </div>
+                        <div>
+                            <img src="img/chitietsanpham/icon-baohanh.png">
+                            <p>Bảo hành chính hãng 12 tháng.</p>
+                        </div>
+                        <div class="last">
+                            <img src="img/chitietsanpham/1-1.jpg">
+                            <p>1 đổi 1 trong 1 tháng nếu lỗi, đổi sản phẩm tại nhà trong 1 ngày.</p>
+                        </div>
+                    </div>
+
+                    <div class="stock_status">
+                        </div>
+                    <div class="area_order">
+                        <a id="buyButton" class="buy_now" onclick="themVaoGioHang(maProduct, nameProduct);">
+                            <b><i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng</b>
+                            <p>Giao trong 1 giờ hoặc nhận tại cửa hàng</p>
+                        </a>
+                    </div>
+                </div>
+                <div class="info_product">
+                    <h2>Thông số kỹ thuật</h2>
+                    <ul class="info">
+                        </ul>
+                </div>
+            </div>
+            <div id="overlaycertainimg" class="overlaycertainimg">
+                <div class="close" onclick="closecertain()">&times;</div>
+                <div class="overlaycertainimg-content">
+                    <img id="bigimg" class="bigimg" src=""> <div class="div_smallimg owl-carousel">
+                        </div>
+                </div>
+            </div>
+        </div> <div class="reviews-section">
+            <h2 id="review-product-name">Đánh giá & Nhận xét về [Tên Sản Phẩm]</h2>
+
+            <div id="reviews-list">
+                <p id="no-reviews" style="display: none;">Chưa có đánh giá nào cho sản phẩm này.</p>
+            </div>
+
+            <div id="review-form-section">
+                <div id="write-review" style="display: none;">
+                    <h3>Viết đánh giá của bạn</h3>
+                    <div class="star-rating">
+                        <i class="fa fa-star-o" data-value="1" onmouseover="hoverStars(1)" onmouseout="resetStars()" onclick="selectStar(1)"></i>
+                        <i class="fa fa-star-o" data-value="2" onmouseover="hoverStars(2)" onmouseout="resetStars()" onclick="selectStar(2)"></i>
+                        <i class="fa fa-star-o" data-value="3" onmouseover="hoverStars(3)" onmouseout="resetStars()" onclick="selectStar(3)"></i>
+                        <i class="fa fa-star-o" data-value="4" onmouseover="hoverStars(4)" onmouseout="resetStars()" onclick="selectStar(4)"></i>
+                        <i class="fa fa-star-o" data-value="5" onmouseover="hoverStars(5)" onmouseout="resetStars()" onclick="selectStar(5)"></i>
+                        <input type="hidden" id="starRatingInput" value="0"> </div>
+                    <br>
+                    <textarea id="commentText" placeholder="Nhập nhận xét của bạn về sản phẩm... (tối thiểu 10 ký tự)" minlength="10"></textarea>
+                    <br>
+                    <button id="submitReviewBtn" onclick="handleReviewSubmit()">Gửi đánh giá</button>
+                </div>
+
+                <p id="loginToReview" style="display: none;">
+                    Vui lòng <a href="javascript:showTaiKhoan(true);" style="text-decoration: underline; color: blue;">đăng nhập</a> để viết đánh giá.
+                </p>
+            </div>
+        </div>
+        <div id="goiYSanPham"></div> </section>
+
+    <script>addContainTaiKhoan();</script>
+
+    <div class="footer"><script>addFooter();</script></div>
+
+</body>
+
+</html>

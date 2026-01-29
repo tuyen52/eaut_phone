@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quên mật khẩu - EAUT Phone</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            background-color: #f1f1f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        .forgot-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 400px;
+            text-align: center;
+        }
+        .forgot-box h2 { color: #333; margin-bottom: 20px; }
+        .forgot-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .forgot-box button {
+            width: 100%;
+            padding: 12px;
+            background-color: #f7941e; /* Màu cam chủ đạo */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .forgot-box button:hover { background-color: #e68a1c; }
+        .back-link {
+            display: block;
+            margin-top: 15px;
+            color: #666;
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="forgot-box">
+        <h2>QUÊN MẬT KHẨU</h2>
+        <p>Vui lòng nhập tên tài khoản và email đăng ký để xác minh.</p>
+        
+        <input type="text" id="userInput" placeholder="Nhập tên tài khoản..." required>
+        
+        <input type="email" id="emailInput" placeholder="Nhập email của bạn..." required>
+        
+        <button onclick="guiYeuCau()" id="btnGui">GỬI YÊU CẦU</button>
+        
+        <a href="index.html" class="back-link">Quay lại trang chủ</a>
+    </div>
+
+    <script>
+        function guiYeuCau() {
+            var username = document.getElementById('userInput').value.trim();
+            var email = document.getElementById('emailInput').value.trim();
+            var btn = document.getElementById('btnGui');
+
+            // Kiểm tra phải nhập cả 2 ô
+            if(username === "" || email === "") {
+                alert("Vui lòng nhập đầy đủ Tên tài khoản và Email!");
+                return;
+            }
+
+            // Hiệu ứng loading
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang xử lý...';
+            btn.disabled = true;
+            btn.style.background = "#ccc";
+
+            fetch('php/forgot-password.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    username: username, 
+                    email: email 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status) {
+                    alert("THÀNH CÔNG: " + data.message);
+                    window.location.href = 'index.html'; // Về trang chủ để đăng nhập
+                } else {
+                    alert("LỖI: " + data.message);
+                    // Reset nút bấm
+                    btn.innerHTML = 'GỬI YÊU CẦU';
+                    btn.disabled = false;
+                    btn.style.background = "#f7941e";
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi kết nối Server!");
+                btn.innerHTML = 'GỬI YÊU CẦU';
+                btn.disabled = false;
+                btn.style.background = "#f7941e";
+            });
+        }
+    </script>
+
+</body>
+</html>
