@@ -2,7 +2,6 @@
 
 // Hàm này nhận vào object Product và trả về chuỗi HTML
 function renderProductCardHTML(p) {
-    // 1. Xử lý sao đánh giá
     var rating = "";
     if (p.rateCount > 0) {
         for (var i = 1; i <= 5; i++) {
@@ -11,19 +10,14 @@ function renderProductCardHTML(p) {
         rating += `<span>${p.rateCount} đánh giá</span>`;
     }
 
-    // 2. Xử lý giá tiền
     var price = `<strong>${p.price}&#8363;</strong>`;
     if (p.promo && p.promo.name == "giareonline") {
         price = `<strong>${p.promo.value}&#8363;</strong><span>${p.price}&#8363;</span>`;
     }
 
-    // 3. Tạo link chi tiết (Thay khoảng trắng bằng dấu -)
     var chitietSp = 'chitietsanpham.html?' + (p.name ? p.name.split(' ').join('-') : '');
-
-    // 4. Tạo Promo Label (Dùng class Promo trong core/classes.js)
     var promoObj = new Promo(p.promo.name, p.promo.value);
-    
-    // 5. Kết hợp thành HTML
+
     return `
     <li class="sanPham">
         <a href="${chitietSp}">
@@ -33,8 +27,8 @@ function renderProductCardHTML(p) {
             <div class="ratingresult">${rating}</div>
             ${promoObj.toWeb()}
             <div class="tooltip">
-                <button class="themvaogio" onclick="themVaoGioHang('${p.masp}', '${p.name}'); return false;">
-                    <span class="tooltiptext" style="font-size: 15px;">Thêm vào giỏ</span>
+                <button class="themvaogio" onclick="window.location.href='${chitietSp}'; return false;">
+                    <span class="tooltiptext" style="font-size: 15px;">Chọn màu để mua</span>
                     +
                 </button>
             </div>

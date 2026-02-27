@@ -1,10 +1,9 @@
 // js/core/cart.js
-
 // Thêm sản phẩm vào giỏ (Có kiểm tra tồn kho Real-time)
-async function themVaoGioHang(masp, tensp) {
+// Thêm sản phẩm vào giỏ (chuẩn variant theo màu)
+async function themVaoGioHang(masp, tensp, variant_id, mau_sac) {
     var user = getCurrentUser();
-    
-    // 1. Kiểm tra đăng nhập
+
     if (!user) {
         alert('Bạn cần đăng nhập để mua hàng!');
         showTaiKhoan(true);
@@ -15,51 +14,68 @@ async function themVaoGioHang(masp, tensp) {
         return;
     }
 
-    // 2. GỌI API KIỂM TRA TỒN KHO THỰC TẾ (Không dùng dữ liệu local cũ nữa)
+    // Nếu sản phẩm có variants thì bắt buộc chọn
+    if (variant_id && !mau_sac) {
+        alert('Vui lòng chọn màu trước khi thêm vào giỏ!');
+        return;
+    }
+
     try {
-        let response = await fetch('php/check-stock.php?masp=' + masp);
+        let url = '';
+        if (variant_id) url = 'php/check-stock.php?variant_id=' + encodeURIComponent(variant_id);
+        else url = 'php/check-stock.php?masp=' + encodeURIComponent(masp);
+
+        let response = await fetch(url);
         let data = await response.json();
-        
-        var realStock = 0;
-        if(data.status) {
-            realStock = parseInt(data.stock);
-        } else {
-            alert("Sản phẩm không còn tồn tại hoặc lỗi hệ thống!");
+
+        if (!data.status) {
+            alert("Sản phẩm/biến thể không còn tồn tại hoặc lỗi hệ thống!");
             return;
         }
 
-        // 3. Logic kiểm tra giỏ hàng
-        if (!user.products) user.products = [];
-
-        var existingItem = user.products.find(item => item.ma == masp);
-        var slHienTaiTrongGio = existingItem ? parseInt(existingItem.soluong) : 0;
-
-        // [QUAN TRỌNG] Kiểm tra: Số lượng định mua > Tồn kho thực tế
-        if (slHienTaiTrongGio + 1 > realStock) {
-            alert(`Rất tiếc, kho chỉ còn ${realStock} sản phẩm '${tensp}'. Bạn không thể mua thêm!`);
-            return; // Dừng ngay, không thêm vào giỏ
+        var realStock = parseInt(data.stock) || 0;
+        if (realStock <= 0) {
+            alert('Màu này hiện đang hết hàng!');
+            return;
         }
 
-        // 4. Nếu đủ hàng thì mới thêm
+        if (!user.products) user.products = [];
+
+        // Gộp theo variant_id (chuẩn)
+        var existingItem = null;
+        if (variant_id) {
+            existingItem = user.products.find(it => String(it.variant_id) === String(variant_id));
+        } else {
+            // fallback: gộp theo masp (cũ)
+            existingItem = user.products.find(it => it.ma == masp && !it.variant_id);
+        }
+
+        var slHienTai = existingItem ? parseInt(existingItem.soluong) : 0;
+        if (slHienTai + 1 > realStock) {
+            alert(`Rất tiếc, kho chỉ còn ${realStock} sản phẩm '${tensp}'${mau_sac ? " ("+mau_sac+")" : ""}.`);
+            return;
+        }
+
         if (existingItem) {
             existingItem.soluong++;
+            existingItem.ton_kho_variant = realStock;
         } else {
             user.products.push({
-                "ma": masp,
-                "soluong": 1,
-                "date": new Date().toISOString()
+                ma: masp,
+                variant_id: variant_id || null,
+                mau_sac: mau_sac || null,
+                ton_kho_variant: realStock, // để cart page giới hạn tăng số lượng
+                soluong: 1,
+                date: new Date().toISOString()
             });
         }
 
-        // 5. Lưu lại và cập nhật giao diện
         setCurrentUser(user);
         updateSingleUserInList(user);
         animateCartNumber();
         capNhat_ThongTin_CurrentUser();
-        
-        // Thông báo thành công
-        alert(`Đã thêm '${tensp}' vào giỏ hàng thành công!`);
 
+        alert(`Đã thêm '${tensp}'${mau_sac ? " ("+mau_sac+")" : ""} vào giỏ hàng!`);
     } catch (err) {
         console.error("Lỗi kiểm tra tồn kho:", err);
         alert("Lỗi kết nối Server, vui lòng thử lại!");

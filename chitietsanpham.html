@@ -80,10 +80,21 @@
                         </div>
                     </div>
 
-                    <div class="stock_status">
+                    <div class="stock_status"></div>
+                    <!-- Chọn màu (variants từ DB) -->
+                    <div class="variant_picker" style="margin:10px 0;">
+                        <label for="variantSelect" style="display:block; font-weight:600; margin-bottom:6px;">
+                            Chọn màu:
+                        </label>
+                        <select id="variantSelect" style="padding:8px; width: 260px;">
+                            <option value="">-- Vui lòng chọn màu --</option>
+                        </select>
+                        <div id="variantError" style="display:none; color:#e10c00; margin-top:6px; font-size:13px;">
+                            Vui lòng chọn màu trước khi thêm vào giỏ.
                         </div>
+                    </div>
                     <div class="area_order">
-                        <a id="buyButton" class="buy_now" onclick="themVaoGioHang(maProduct, nameProduct);">
+                        <a id="buyButton" class="buy_now" href="javascript:void(0)">
                             <b><i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng</b>
                             <p>Giao trong 1 giờ hoặc nhận tại cửa hàng</p>
                         </a>
