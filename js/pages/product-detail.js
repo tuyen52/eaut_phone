@@ -1,7 +1,11 @@
 // js/pages/product-detail.js
 
 var sanPhamHienTai = null;
-var selectedRating = 0; 
+var selectedRating = 0;
+
+// --- [MỚI] Biến thể màu (variant) ---
+var variantsHienTai = [];
+var selectedVariant = null;
 
 window.onload = function() {
     khoiTao(); // core/init.js
@@ -20,9 +24,12 @@ window.onload = function() {
     renderProductDetail(sanPhamHienTai);
     renderSuggestion(sanPhamHienTai, getListProducts());
 
+    // [MỚI] Load variants màu cho sản phẩm hiện tại
+    loadVariantsForProduct(sanPhamHienTai);
+
     // [MỚI] Gọi API tải bình luận từ Database
-    displayReviews(); 
-    
+    displayReviews();
+
     // Setup form
     setupReviewForm();
 }
@@ -34,26 +41,186 @@ function showNotFound() {
     if(detail) detail.style.display = 'none';
 }
 
+/* =========================================================
+   [MỚI] VARIANT MÀU (CHỌN MÀU TRƯỚC KHI MUA)
+   - API: php/get-product-variants.php?masp=...
+   - user phải chọn màu mới cho thêm vào giỏ
+   ========================================================= */
+
+function loadVariantsForProduct(p) {
+    var picker = document.getElementById('variantPicker');
+    var optionsDiv = document.getElementById('variantOptions');
+    var hintDiv = document.getElementById('variantHint');
+
+    if(!picker || !optionsDiv || !hintDiv) return;
+
+    // Hiện khu chọn màu
+    picker.style.display = 'block';
+    optionsDiv.innerHTML = '<span style="color:#777">Đang tải màu...</span>';
+    hintDiv.className = 'variant_hint';
+    hintDiv.innerText = 'Vui lòng chọn màu trước khi mua.';
+
+    fetch('php/get-product-variants.php?masp=' + encodeURIComponent(p.masp))
+    .then(res => res.json())
+    .then(list => {
+        if(!Array.isArray(list)) list = [];
+        variantsHienTai = list;
+        renderVariantOptions(p, list);
+    })
+    .catch(err => {
+        console.error(err);
+        optionsDiv.innerHTML = '<span style="color:red">Lỗi tải danh sách màu!</span>';
+    });
+}
+
+function renderVariantOptions(p, variants) {
+    var optionsDiv = document.getElementById('variantOptions');
+    var hintDiv = document.getElementById('variantHint');
+    if(!optionsDiv || !hintDiv) return;
+
+    if(!variants.length) {
+        optionsDiv.innerHTML = '<span style="color:#777">Chưa có màu cho sản phẩm này.</span>';
+        return;
+    }
+
+    // Render nút màu
+    optionsDiv.innerHTML = variants.map(v => {
+        var disabled = (parseInt(v.so_luong_ton) || 0) <= 0 ? 'disabled' : '';
+        var disabledClass = disabled ? 'disabled' : '';
+        var note = disabled ? ' (Hết)' : '';
+        var hex = v.ma_mau_hex || '#000000';
+
+        return `
+            <div class="variant_btn ${disabledClass}" 
+                 data-variant-id="${v.variant_id}" 
+                 data-disabled="${disabled ? 1 : 0}"
+                 title="${v.ten_mau}${note}">
+                <span class="swatch" style="background:${hex}"></span>
+                <span>${v.ten_mau}${note}</span>
+            </div>
+        `;
+    }).join('');
+
+    // Bind click
+    var btns = optionsDiv.querySelectorAll('.variant_btn');
+    btns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (btn.getAttribute('data-disabled') == '1') return;
+
+            var vid = parseInt(btn.getAttribute('data-variant-id'));
+            var v = variants.find(x => parseInt(x.variant_id) === vid);
+            if(!v) return;
+
+            // active UI
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            selectedVariant = v;
+
+            // Update hint + stock + button
+            hintDiv.className = 'variant_hint ok';
+            hintDiv.innerText = `Đã chọn màu: ${v.ten_mau}`;
+
+            updateStockAndBuyButton(p);
+        });
+    });
+
+    // Chưa chọn màu => disable nút mua
+    updateStockAndBuyButton(p);
+}
+
+function updateStockAndBuyButton(p) {
+    var btnMua = document.getElementById('buyButton');
+    var stockDiv = document.querySelector('.stock_status');
+    var hintDiv = document.getElementById('variantHint');
+    if(!btnMua || !stockDiv) return;
+
+    var totalStock = parseInt(p.inventory) || 0;
+
+    // Nếu hết tổng => luôn disable
+    if(totalStock <= 0) {
+        btnMua.classList.add('disabled');
+        btnMua.onclick = function(e){ if(e) e.preventDefault(); };
+        return;
+    }
+
+    if(!selectedVariant) {
+        // Chưa chọn màu
+        stockDiv.innerHTML = `Còn hàng: ${totalStock} (tổng)`;
+        stockDiv.className = 'stock_status available';
+
+        btnMua.classList.add('disabled');
+        btnMua.onclick = function(e) { if(e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Chọn màu để mua';
+
+        if(hintDiv) {
+            hintDiv.className = 'variant_hint';
+            hintDiv.innerText = 'Vui lòng chọn màu trước khi mua.';
+        }
+        return;
+    }
+
+    var variantStock = parseInt(selectedVariant.so_luong_ton) || 0;
+    stockDiv.innerHTML = `Còn hàng màu ${selectedVariant.ten_mau}: ${variantStock}`;
+    stockDiv.className = variantStock > 0 ? 'stock_status available' : 'stock_status unavailable';
+
+    if(variantStock > 0) {
+        btnMua.classList.remove('disabled');
+        btnMua.onclick = function(e) { if(e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng';
+    } else {
+        btnMua.classList.add('disabled');
+        btnMua.onclick = function(e) { if(e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.querySelector('b').innerText = 'Hết hàng (màu đã chọn)';
+    }
+}
+
+function handleAddToCart(p) {
+    // Bắt buộc chọn màu
+    if(!selectedVariant) {
+        alert('Bạn phải chọn màu trước khi thêm vào giỏ / mua.');
+        var picker = document.getElementById('variantPicker');
+        if(picker) picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    var variantStock = parseInt(selectedVariant.so_luong_ton) || 0;
+    if(variantStock <= 0) {
+        alert('Màu bạn chọn hiện đã hết hàng. Vui lòng chọn màu khác.');
+        return;
+    }
+
+    // Gọi hàm cart cũ, truyền thêm các tham số mới.
+    // (Nếu cart.js hiện tại chưa dùng các tham số này thì vẫn không lỗi)
+    themVaoGioHang(
+        p.masp,
+        p.name,
+        selectedVariant.variant_id,
+        selectedVariant.ten_mau,
+        selectedVariant.ma_mau_hex
+    );
+}
+
 function renderProductDetail(p) {
     document.title = p.name + ' - Thế giới điện thoại';
     var div = document.querySelector('.chitietSanpham');
-    
+
     div.querySelector('h1').innerText = 'Điện thoại ' + p.name;
     document.getElementById('review-product-name').innerText = 'Đánh giá & Nhận xét về ' + p.name;
-    
+
     // Hiển thị sao và số đánh giá lấy từ dữ liệu sản phẩm (đã được update từ DB)
     div.querySelector('.rating').innerHTML = generateStarHTML(p.star, p.rateCount);
 
     div.querySelector('.picture img').src = p.img;
     document.getElementById('bigimg').src = p.img;
-    
+
     var priceArea = div.querySelector('.area_price');
     if(p.promo.name !== 'giareonline') {
         priceArea.innerHTML = `<strong>${p.price}₫</strong>` + new Promo(p.promo.name, p.promo.value).toWeb();
     } else {
         priceArea.innerHTML = `<strong>${p.promo.value}₫</strong> <span>${p.price}₫</span>`;
     }
-    
+
     document.getElementById('detailPromo').innerText = getPromoDetailString(p);
 
     var infoUl = div.querySelector('.info');
@@ -66,17 +233,23 @@ function renderProductDetail(p) {
     var stockDiv = document.querySelector('.stock_status');
     var stock = parseInt(p.inventory) || 0;
 
+    // Reset chọn màu mỗi lần render
+    variantsHienTai = [];
+    selectedVariant = null;
+
     if(stock > 0) {
-        stockDiv.innerHTML = `Còn hàng: ${stock}`;
+        // Tạm thời disable nút mua cho tới khi user chọn màu
+        stockDiv.innerHTML = `Còn hàng: ${stock} (tổng)`;
         stockDiv.className = 'stock_status available';
-        btnMua.onclick = function() { themVaoGioHang(p.masp, p.name); };
-        btnMua.classList.remove('disabled');
-        btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng';
+
+        btnMua.classList.add('disabled');
+        btnMua.onclick = function(e) { if(e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Chọn màu để mua';
     } else {
         stockDiv.innerHTML = 'Hết hàng';
         stockDiv.className = 'stock_status unavailable';
         btnMua.classList.add('disabled');
-        btnMua.onclick = null;
+        btnMua.onclick = function(e) { if(e) e.preventDefault(); };
         btnMua.querySelector('b').innerText = 'Hết hàng';
     }
 
@@ -86,7 +259,7 @@ function renderProductDetail(p) {
 function renderSmallImages(mainImg) {
     var owl = document.querySelector('.div_smallimg.owl-carousel');
     if(owl) {
-        owl.innerHTML = ''; 
+        owl.innerHTML = '';
         owl.innerHTML += `<div class='item'><img src="${mainImg}" onclick="changepic(this.src)"></div>`;
         var demos = ["img/products/huawei-mate-20-pro-green-600x600.jpg", "img/chitietsanpham/oppo-f9-mau-do-1-org.jpg", "img/chitietsanpham/oppo-f9-mau-do-2-org.jpg"];
         demos.forEach(src => {
@@ -192,77 +365,56 @@ function setupReviewForm() {
         notBoughtMsg.style.background = '#fff3cd';
         notBoughtMsg.style.padding = '10px';
         notBoughtMsg.style.textAlign = 'center';
-        notBoughtMsg.style.borderRadius = '5px';
-        notBoughtMsg.innerHTML = '<i class="fa fa-exclamation-circle"></i> Bạn cần <b>mua sản phẩm này</b> và xác nhận <b>"Đã nhận hàng"</b> mới có thể viết đánh giá.';
-        document.getElementById('review-form-section').appendChild(notBoughtMsg);
+        notBoughtMsg.style.borderRadius = '6px';
+        document.getElementById('review-form-section').prepend(notBoughtMsg);
     }
 
-    if(user) {
-        loginMsg.style.display = 'none';
-        
-        // Cần đảm bảo user.donhang đã được load. 
-        // Do trang detail không tự gọi fetchOrderHistory, ta kiểm tra nếu chưa có thì fetch nhẹ
-        if(!user.donhang) {
-             fetch('php/get-order-history.php?username=' + user.username)
-            .then(res=>res.json())
-            .then(data => {
-                user.donhang = data;
-                setCurrentUser(user);
-                checkShowForm(user);
-            });
-        } else {
-            checkShowForm(user);
-        }
-
-    } else {
+    if (!user) {
         formDiv.style.display = 'none';
-        notBoughtMsg.style.display = 'none';
         loginMsg.style.display = 'block';
-    }
-
-    function checkShowForm(u) {
-        if (checkDaMuaSanPham(u, sanPhamHienTai.masp)) {
-            formDiv.style.display = 'block';
-            notBoughtMsg.style.display = 'none';
-            resetReviewForm();
-        } else {
-            formDiv.style.display = 'none';
-            notBoughtMsg.style.display = 'block';
-        }
-    }
-}
-
-// [THAY ĐỔI] Gửi đánh giá lên API
-function handleReviewSubmit() {
-    var user = getCurrentUser();
-    
-    if (!checkDaMuaSanPham(user, sanPhamHienTai.masp)) {
-        alert('Lỗi: Bạn chưa mua sản phẩm này!');
+        notBoughtMsg.style.display = 'none';
         return;
     }
 
-    var comment = document.getElementById('commentText').value.trim();
-    if(selectedRating === 0) { alert('Vui lòng chọn số sao!'); return; }
-    if(comment.length < 10) { alert('Nội dung đánh giá quá ngắn (tối thiểu 10 ký tự).'); return; }
+    // Check đã mua chưa
+    if (!checkDaMuaSanPham(user, sanPhamHienTai.masp)) {
+        formDiv.style.display = 'none';
+        loginMsg.style.display = 'none';
+        notBoughtMsg.style.display = 'block';
+        notBoughtMsg.innerText = 'Bạn cần mua và nhận hàng sản phẩm này để có thể viết đánh giá.';
+        return;
+    }
 
-    var data = {
-        masp: sanPhamHienTai.masp,
-        username: user.username,
-        rating: selectedRating,
-        comment: comment
-    };
+    // OK
+    formDiv.style.display = 'block';
+    loginMsg.style.display = 'none';
+    notBoughtMsg.style.display = 'none';
+}
+
+function submitReview() {
+    var user = getCurrentUser();
+    if(!user) { alert("Bạn cần đăng nhập!"); return; }
+
+    var comment = document.getElementById('commentText').value.trim();
+    if(selectedRating <= 0) { alert("Vui lòng chọn số sao!"); return; }
+    if(comment.length < 5) { alert("Nhận xét quá ngắn!"); return; }
 
     fetch('php/add-review.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            masp: sanPhamHienTai.masp,
+            username: user.username,
+            rating: selectedRating,
+            comment: comment
+        })
     })
     .then(res => res.json())
     .then(resp => {
-        if(resp.status) {
-            alert(resp.message);
-            displayReviews(); // Tải lại danh sách
+        if(resp.success) {
+            alert("Gửi đánh giá thành công!");
             resetReviewForm();
+            displayReviews();
         } else {
             alert("Lỗi: " + resp.message);
         }
