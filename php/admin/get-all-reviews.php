@@ -2,20 +2,19 @@
 header('Content-Type: application/json');
 require_once('../../connect.php');
 
-// Lấy danh sách bình luận kèm tên sản phẩm
-// Dùng JOIN để lấy tên sản phẩm từ bảng products
-$sql = "SELECT rate.*, products.ten_sp 
-        FROM rate 
-        JOIN products ON rate.masp = products.masp 
-        ORDER BY rate.ngay_dg DESC";
+$sql = "
+    SELECT r.*, p.ten_sp, pv.ma_mau_hex
+    FROM rate r
+    JOIN products p ON r.masp = p.masp
+    LEFT JOIN product_variants pv ON r.variant_id = pv.variant_id
+    ORDER BY r.ngay_dg DESC
+";
 
 $result = $conn->query($sql);
 
 $reviews = [];
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $reviews[] = $row;
-    }
+if ($result && $result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) $reviews[] = $row;
 }
 
 echo json_encode($reviews);

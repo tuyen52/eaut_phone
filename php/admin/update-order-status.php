@@ -2,51 +2,84 @@
 header('Content-Type: application/json');
 require_once('../../connect.php');
 
-$data = json_decode(file_get_contents("php://input"), true);
-$maDon = $data['maDon'];
-$trangThaiMoi = $data['trangThai'];
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-// 1. Kiểm tra trạng thái hiện tại của đơn hàng trước khi cập nhật
-// (Để tránh việc đơn đã hủy rồi lại bấm hủy lần nữa gây cộng dồn kho sai lệch)
-$checkSql = "SELECT tinh_trang FROM orders WHERE ma_don = $maDon";
-$resultCheck = $conn->query($checkSql);
-$rowCheck = $resultCheck->fetch_assoc();
-$trangThaiCu = $rowCheck['tinh_trang'];
+try {
+    $data = json_decode(file_get_contents("php://input"), true);
+    $maDon = (int)($data['maDon'] ?? 0);
+    $trangThaiMoi = $data['trangThai'] ?? '';
 
-// Nếu đơn hàng đã bị hủy trước đó rồi thì không làm gì thêm về kho nữa
-if (strpos($trangThaiCu, 'Hủy') !== false || strpos($trangThaiCu, 'hủy') !== false) {
-    // Chỉ update trạng thái text nếu cần, hoặc chặn luôn cũng được
-    // Ở đây ta cứ cho update text nhưng KHÔNG cộng kho
-} 
-else {
-    // [LOGIC MỚI] Nếu trạng thái MỚI là Hủy -> Cộng lại kho
-    if ($trangThaiMoi == 'Đã hủy' || $trangThaiMoi == 'Đã hủy bởi Khách') {
-        
-        // Lấy danh sách sản phẩm trong đơn hàng này
-        $sqlGetItems = "SELECT masp, so_luong FROM order_details WHERE ma_don = $maDon";
-        $resultItems = $conn->query($sqlGetItems);
+    if ($maDon <= 0) throw new Exception("Mã đơn không hợp lệ!");
+    if ($trangThaiMoi === '') throw new Exception("Thiếu trạng thái!");
 
-        if ($resultItems->num_rows > 0) {
-            while ($item = $resultItems->fetch_assoc()) {
-                $masp = $item['masp'];
-                $sl = $item['so_luong'];
+    $conn->begin_transaction();
 
-                // Cộng lại vào kho
-                $sqlRestore = "UPDATE products SET so_luong_ton = so_luong_ton + $sl WHERE masp = '$masp'";
-                $conn->query($sqlRestore);
+    // Lấy trạng thái cũ
+    $rs = $conn->query("SELECT tinh_trang FROM orders WHERE ma_don = $maDon LIMIT 1");
+    if ($rs->num_rows === 0) throw new Exception("Không tìm thấy đơn hàng!");
+    $trangThaiCu = $rs->fetch_assoc()['tinh_trang'];
+
+    $cuDaHuy = (stripos($trangThaiCu, 'hủy') !== false);
+    $moiLaHuy = ($trangThaiMoi === 'Đã hủy' || $trangThaiMoi === 'Đã hủy bởi Khách');
+
+    // Nếu chuyển sang Hủy lần đầu => hoàn kho theo variant
+    if (!$cuDaHuy && $moiLaHuy) {
+        $items = $conn->query("SELECT masp, variant_id, so_luong FROM order_details WHERE ma_don = $maDon");
+
+        $maspNeedSync = [];
+
+        while ($item = $items->fetch_assoc()) {
+            $masp = $item['masp'];
+            $sl = (int)$item['so_luong'];
+            $variant_id = isset($item['variant_id']) ? (int)$item['variant_id'] : 0;
+
+            if ($variant_id > 0) {
+                $stmt = $conn->prepare("UPDATE product_variants SET so_luong_ton = so_luong_ton + ? WHERE variant_id = ?");
+                $stmt->bind_param("ii", $sl, $variant_id);
+                $stmt->execute();
+                $stmt->close();
+            } else {
+                // fallback nếu đơn cũ không có variant
+                $stmt = $conn->prepare("UPDATE products SET so_luong_ton = so_luong_ton + ? WHERE masp = ?");
+                $stmt->bind_param("is", $sl, $masp);
+                $stmt->execute();
+                $stmt->close();
             }
+
+            $maspNeedSync[$masp] = true;
+        }
+
+        // Sync tồn kho tổng products = SUM(variants)
+        foreach (array_keys($maspNeedSync) as $m) {
+            $stmt2 = $conn->prepare("
+                UPDATE products
+                SET so_luong_ton = (
+                    SELECT IFNULL(SUM(v.so_luong_ton), 0)
+                    FROM product_variants v
+                    WHERE v.masp = ?
+                )
+                WHERE masp = ?
+            ");
+            $stmt2->bind_param("ss", $m, $m);
+            $stmt2->execute();
+            $stmt2->close();
         }
     }
-}
 
-// 2. Cập nhật trạng thái đơn hàng
-$sql = "UPDATE orders SET tinh_trang = '$trangThaiMoi' WHERE ma_don = $maDon";
+    // Update trạng thái
+    $stmtUp = $conn->prepare("UPDATE orders SET tinh_trang = ? WHERE ma_don = ?");
+    $stmtUp->bind_param("si", $trangThaiMoi, $maDon);
+    $stmtUp->execute();
+    $stmtUp->close();
 
-if ($conn->query($sql) === TRUE) {
+    $conn->commit();
     echo json_encode(["status" => true, "message" => "Cập nhật trạng thái thành công!"]);
-} else {
-    echo json_encode(["status" => false, "message" => "Lỗi: " . $conn->error]);
+} catch (Exception $e) {
+    if (isset($conn)) {
+        try { $conn->rollback(); } catch (Exception $ignore) {}
+    }
+    echo json_encode(["status" => false, "message" => $e->getMessage()]);
+} finally {
+    if (isset($conn)) $conn->close();
 }
-
-$conn->close();
 ?>

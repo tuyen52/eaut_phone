@@ -7,6 +7,23 @@ var selectedRating = 0;
 var variantsHienTai = [];
 var selectedVariant = null;
 
+// --- [MỚI] Đổi ảnh theo màu (variant image swap) ---
+function applyVariantImage(p, v) {
+    // Ưu tiên ảnh theo màu, fallback ảnh sản phẩm
+    var img = (v && v.hinh_anh && String(v.hinh_anh).trim() !== '') ? v.hinh_anh : (p && p.img ? p.img : '');
+
+    var smallImg = document.querySelector('.picture img');
+    if (smallImg && img) smallImg.src = img;
+
+    var bigImg = document.getElementById('bigimg');
+    if (bigImg && img) bigImg.src = img;
+
+    // Refresh thumbnail carousel nếu có
+    if (typeof renderSmallImages === 'function' && img) {
+        renderSmallImages(img);
+    }
+}
+
 window.onload = function() {
     khoiTao(); // core/init.js
 
@@ -24,10 +41,10 @@ window.onload = function() {
     renderProductDetail(sanPhamHienTai);
     renderSuggestion(sanPhamHienTai, getListProducts());
 
-    // [MỚI] Load variants màu cho sản phẩm hiện tại
+    // Load variants màu cho sản phẩm hiện tại
     loadVariantsForProduct(sanPhamHienTai);
 
-    // [MỚI] Gọi API tải bình luận từ Database
+    // Gọi API tải bình luận từ Database
     displayReviews();
 
     // Setup form
@@ -42,9 +59,8 @@ function showNotFound() {
 }
 
 /* =========================================================
-   [MỚI] VARIANT MÀU (CHỌN MÀU TRƯỚC KHI MUA)
+   VARIANT MÀU (CHỌN MÀU TRƯỚC KHI MUA)
    - API: php/get-product-variants.php?masp=...
-   - user phải chọn màu mới cho thêm vào giỏ
    ========================================================= */
 
 function loadVariantsForProduct(p) {
@@ -54,7 +70,6 @@ function loadVariantsForProduct(p) {
 
     if(!picker || !optionsDiv || !hintDiv) return;
 
-    // Hiện khu chọn màu
     picker.style.display = 'block';
     optionsDiv.innerHTML = '<span style="color:#777">Đang tải màu...</span>';
     hintDiv.className = 'variant_hint';
@@ -66,6 +81,9 @@ function loadVariantsForProduct(p) {
         if(!Array.isArray(list)) list = [];
         variantsHienTai = list;
         renderVariantOptions(p, list);
+
+        // reset ảnh về ảnh sản phẩm mặc định khi load màu
+        applyVariantImage(p, null);
     })
     .catch(err => {
         console.error(err);
@@ -83,7 +101,6 @@ function renderVariantOptions(p, variants) {
         return;
     }
 
-    // Render nút màu
     optionsDiv.innerHTML = variants.map(v => {
         var disabled = (parseInt(v.so_luong_ton) || 0) <= 0 ? 'disabled' : '';
         var disabledClass = disabled ? 'disabled' : '';
@@ -101,7 +118,6 @@ function renderVariantOptions(p, variants) {
         `;
     }).join('');
 
-    // Bind click
     var btns = optionsDiv.querySelectorAll('.variant_btn');
     btns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -111,13 +127,14 @@ function renderVariantOptions(p, variants) {
             var v = variants.find(x => parseInt(x.variant_id) === vid);
             if(!v) return;
 
-            // active UI
             btns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
             selectedVariant = v;
 
-            // Update hint + stock + button
+            // [MỚI] đổi ảnh theo màu ngay khi chọn
+            applyVariantImage(p, v);
+
             hintDiv.className = 'variant_hint ok';
             hintDiv.innerText = `Đã chọn màu: ${v.ten_mau}`;
 
@@ -125,7 +142,6 @@ function renderVariantOptions(p, variants) {
         });
     });
 
-    // Chưa chọn màu => disable nút mua
     updateStockAndBuyButton(p);
 }
 
@@ -137,7 +153,6 @@ function updateStockAndBuyButton(p) {
 
     var totalStock = parseInt(p.inventory) || 0;
 
-    // Nếu hết tổng => luôn disable
     if(totalStock <= 0) {
         btnMua.classList.add('disabled');
         btnMua.onclick = function(e){ if(e) e.preventDefault(); };
@@ -145,7 +160,6 @@ function updateStockAndBuyButton(p) {
     }
 
     if(!selectedVariant) {
-        // Chưa chọn màu
         stockDiv.innerHTML = `Còn hàng: ${totalStock} (tổng)`;
         stockDiv.className = 'stock_status available';
 
@@ -176,7 +190,6 @@ function updateStockAndBuyButton(p) {
 }
 
 function handleAddToCart(p) {
-    // Bắt buộc chọn màu
     if(!selectedVariant) {
         alert('Bạn phải chọn màu trước khi thêm vào giỏ / mua.');
         var picker = document.getElementById('variantPicker');
@@ -190,8 +203,6 @@ function handleAddToCart(p) {
         return;
     }
 
-    // Gọi hàm cart cũ, truyền thêm các tham số mới.
-    // (Nếu cart.js hiện tại chưa dùng các tham số này thì vẫn không lỗi)
     themVaoGioHang(
         p.masp,
         p.name,
@@ -208,7 +219,6 @@ function renderProductDetail(p) {
     div.querySelector('h1').innerText = 'Điện thoại ' + p.name;
     document.getElementById('review-product-name').innerText = 'Đánh giá & Nhận xét về ' + p.name;
 
-    // Hiển thị sao và số đánh giá lấy từ dữ liệu sản phẩm (đã được update từ DB)
     div.querySelector('.rating').innerHTML = generateStarHTML(p.star, p.rateCount);
 
     div.querySelector('.picture img').src = p.img;
@@ -233,12 +243,10 @@ function renderProductDetail(p) {
     var stockDiv = document.querySelector('.stock_status');
     var stock = parseInt(p.inventory) || 0;
 
-    // Reset chọn màu mỗi lần render
     variantsHienTai = [];
     selectedVariant = null;
 
     if(stock > 0) {
-        // Tạm thời disable nút mua cho tới khi user chọn màu
         stockDiv.innerHTML = `Còn hàng: ${stock} (tổng)`;
         stockDiv.className = 'stock_status available';
 
@@ -276,6 +284,8 @@ function changepic(src) { document.getElementById("bigimg").src = src; }
 function opencertain() { document.getElementById("overlaycertainimg").style.transform = "scale(1)"; }
 function closecertain() { document.getElementById("overlaycertainimg").style.transform = "scale(0)"; }
 
+// ====== (PHẦN CÒN LẠI GIỮ NGUYÊN FILE CỦA BẠN) ======
+// Các hàm renderSuggestion, review, generateStarHTML, getPromoDetailString... giữ nguyên như đang có trong file của bạn.
 // --- LOGIC GỢI Ý ---
 function renderSuggestion(currentP, list) {
     var div = document.getElementById('goiYSanPham');
@@ -319,8 +329,6 @@ function checkDaMuaSanPham(user, masp) {
     }
     return false;
 }
-
-// [THAY ĐỔI] Gọi API lấy bình luận
 function displayReviews() {
     var div = document.getElementById('reviews-list');
     div.innerHTML = '<p style="text-align:center">Đang tải đánh giá...</p>';
@@ -329,20 +337,28 @@ function displayReviews() {
     .then(res => res.json())
     .then(list => {
         div.innerHTML = '';
-        if (list.length === 0) {
+        if (!Array.isArray(list) || list.length === 0) {
             div.innerHTML = '<p id="no-reviews" style="display:block; text-align:center; color:#777;">Chưa có đánh giá nào cho sản phẩm này.</p>';
-        } else {
-            list.forEach(r => {
-                var stars = '';
-                for(var i=1; i<=5; i++) stars += `<i class="fa ${i<=r.rating?'fa-star':'fa-star-o'}"></i>`;
-                div.innerHTML += `
-                <div class="review-item">
-                    <div class="reviewer-info"><b>${r.username}</b> <span style="font-size:12px; color:#999">(${new Date(r.timestamp).toLocaleString()})</span></div>
-                    <div class="review-stars" style="color:orange">${stars}</div>
-                    <div class="review-comment">${r.comment.replace(/\n/g, '<br>')}</div>
-                </div>`;
-            });
+            return;
         }
+
+        list.forEach(r => {
+            var stars = '';
+            for (var i = 1; i <= 5; i++) stars += `<i class="fa ${i<=r.rating?'fa-star':'fa-star-o'}"></i>`;
+
+            // [MỚI] hiện màu đã mua
+            var mau = r.mau_sac ? r.mau_sac : (r.variant_id ? ('Variant #' + r.variant_id) : '');
+            var swatch = r.ma_mau_hex ? `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid #ccc;background:${r.ma_mau_hex};margin-right:6px;"></span>` : '';
+            var mauHtml = mau ? `<div style="margin-top:4px;font-size:12px;color:#0056b3;">Màu đã mua: ${swatch}<b>${mau}</b></div>` : '';
+
+            div.innerHTML += `
+            <div class="review-item">
+                <div class="reviewer-info"><b>${r.username}</b> <span style="font-size:12px; color:#999">(${new Date(r.timestamp).toLocaleString()})</span></div>
+                <div class="review-stars" style="color:orange">${stars}</div>
+                ${mauHtml}
+                <div class="review-comment">${String(r.comment || '').replace(/\n/g, '<br>')}</div>
+            </div>`;
+        });
     })
     .catch(err => {
         console.error(err);
@@ -399,24 +415,49 @@ function submitReview() {
     if(selectedRating <= 0) { alert("Vui lòng chọn số sao!"); return; }
     if(comment.length < 5) { alert("Nhận xét quá ngắn!"); return; }
 
+    // [MỚI] Suy ra màu đã mua từ lịch sử đơn (nếu có)
+    var extra = null;
+    if (user.donhang && Array.isArray(user.donhang)) {
+        for (var don of user.donhang) {
+            if (don.tinhTrang === 'Đã nhận hàng' || don.tinhTrang === 'Hoàn thành') {
+                for (var sp of (don.sp || [])) {
+                    if (sp.ma == sanPhamHienTai.masp || sp.masp == sanPhamHienTai.masp) {
+                        extra = { variant_id: sp.variant_id || null, mau_sac: sp.mau_sac || null };
+                        break;
+                    }
+                }
+            }
+            if (extra) break;
+        }
+    }
+
+    var payload = {
+        masp: sanPhamHienTai.masp,
+        username: user.username,
+        rating: selectedRating,
+        comment: comment
+    };
+
+    if (extra && (extra.variant_id || extra.mau_sac)) {
+        payload.variant_id = extra.variant_id;
+        payload.mau_sac = extra.mau_sac;
+    }
+
     fetch('php/add-review.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            masp: sanPhamHienTai.masp,
-            username: user.username,
-            rating: selectedRating,
-            comment: comment
-        })
+        body: JSON.stringify(payload)
     })
     .then(res => res.json())
     .then(resp => {
-        if(resp.success) {
-            alert("Gửi đánh giá thành công!");
+        // [MỚI] hỗ trợ cả status (chuẩn mới) và success (chuẩn cũ)
+        var ok = (resp && (resp.status === true || resp.success === true));
+        if(ok) {
+            alert(resp.message || "Gửi đánh giá thành công!");
             resetReviewForm();
             displayReviews();
         } else {
-            alert("Lỗi: " + resp.message);
+            alert("Lỗi: " + (resp.message || "Không rõ lỗi"));
         }
     })
     .catch(err => alert("Lỗi kết nối Server!"));

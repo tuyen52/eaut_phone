@@ -1,50 +1,57 @@
 <?php
 header('Content-Type: application/json');
-require_once('../connect.php'); // Kết nối CSDL
+require_once('../connect.php');
 
-// Lấy username từ đường dẫn (URL) do user.js gửi lên
-if(isset($_GET['username'])) {
-    $username = $_GET['username'];
-} else {
-    echo json_encode([]); // Trả về rỗng nếu không có user
+if(!isset($_GET['username'])) {
+    echo json_encode([]);
     exit();
 }
 
-// 1. Lấy danh sách đơn hàng của user đó từ bảng 'orders'
-$sql = "SELECT * FROM orders WHERE username = '$username' ORDER BY ngay_mua DESC";
-$result = $conn->query($sql);
+$username = $_GET['username'];
+
+$stmt = $conn->prepare("SELECT * FROM orders WHERE username = ? ORDER BY ngay_mua DESC");
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$result = $stmt->get_result();
 
 $dsDonHang = [];
 
-if ($result && $result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $ma_don = $row['ma_don'];
-        
-        // 2. Với mỗi đơn hàng, lấy chi tiết sản phẩm từ bảng 'order_details'
-        $sql_detail = "SELECT * FROM order_details WHERE ma_don = $ma_don";
-        $res_detail = $conn->query($sql_detail);
-        $products = [];
-        
-        while($d = $res_detail->fetch_assoc()) {
-            $products[] = [
-                'ma' => $d['masp'],          // Mã sản phẩm
-                'soluong' => $d['so_luong'], // Số lượng
-                'gia' => $d['don_gia']       // Giá lúc mua
-            ];
-        }
+$stmtDetail = $conn->prepare("
+    SELECT masp, variant_id, mau_sac, so_luong, don_gia
+    FROM order_details
+    WHERE ma_don = ?
+");
 
-        // 3. Gom dữ liệu trả về cho js/pages/user.js hiển thị
-        $dsDonHang[] = [
-            'maDon' => $row['ma_don'],
-            'ngaymua' => $row['ngay_mua'],
-            'tinhTrang' => $row['tinh_trang'], 
-            'tongtien' => $row['tong_tien'],
-            'sp' => $products
+while($row = $result->fetch_assoc()) {
+    $ma_don = (int)$row['ma_don'];
+
+    $stmtDetail->bind_param("i", $ma_don);
+    $stmtDetail->execute();
+    $res_detail = $stmtDetail->get_result();
+
+    $products = [];
+    while($d = $res_detail->fetch_assoc()) {
+        $products[] = [
+            'ma' => $d['masp'],
+            'variant_id' => $d['variant_id'] !== null ? (int)$d['variant_id'] : null,
+            'mau_sac' => $d['mau_sac'] ?? null,
+            'soluong' => (int)$d['so_luong'],
+            'gia' => (int)$d['don_gia']
         ];
     }
+
+    $dsDonHang[] = [
+        'maDon' => $ma_don,
+        'ngaymua' => $row['ngay_mua'],
+        'tinhTrang' => $row['tinh_trang'],
+        'tongtien' => (int)$row['tong_tien'],
+        'sp' => $products
+    ];
 }
 
-// Trả kết quả về cho user.js
 echo json_encode($dsDonHang);
+
+$stmtDetail->close();
+$stmt->close();
 $conn->close();
 ?>
