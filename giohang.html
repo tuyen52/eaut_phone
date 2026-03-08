@@ -99,18 +99,12 @@
                     </div>
     
                     <div style="margin-bottom: 15px; background: #fdfdfd; padding: 10px; border: 1px solid #eee; border-radius: 5px;">
-                        <input type="radio" id="banking" name="paymentMethod" value="Banking" onchange="togglePaymentMethod('Banking')">
-                        <label for="banking" style="cursor: pointer; font-weight: bold; margin-left: 5px;">Chuyển khoản ngân hàng (QR)</label>
+                        <input type="radio" id="vnpay" name="paymentMethod" value="VNPAY" onchange="togglePaymentMethod('VNPAY')">
+                        <label for="vnpay" style="cursor: pointer; font-weight: bold; margin-left: 5px;">VNPay Sandbox</label>
                         
-                        <div id="qrInfo" style="display: none; margin-top: 10px; text-align: center; background: #fff; padding: 10px; border-radius: 5px; border: 1px dashed #28a745;">
-                            <p style="font-size: 13px; margin-bottom: 5px; color: #555;">Mở App Ngân hàng để quét mã:</p>
-                            
-                            <img id="qrImage" src="" alt="QR Code" style="width: 160px; height: 160px; object-fit: contain; border: 1px solid #ccc; margin-bottom: 5px;">
-                            
-                            <div style="text-align: left; font-size: 13px; padding-left: 10px; color: #333;">
-                                <p>Nội dung CK: <b id="qrContent" style="color: #d0021b; background: #fff0f0; padding: 2px 5px;">...</b></p>
-                                <p style="font-size: 11px; color: #777;"><i>(Hệ thống sẽ tự động đối soát)</i></p>
-                            </div>
+                        <div id="vnpayInfo" style="display: none; margin-top: 10px; background: #fff; padding: 10px; border-radius: 5px; border: 1px dashed #28a745; font-size: 13px; color: #333; line-height: 1.6;">
+                            <p style="margin: 0 0 6px;"><i class="fa fa-info-circle" style="color:#28a745"></i> Sau khi bấm đặt hàng, hệ thống sẽ tạo đơn <b>Chờ thanh toán</b> rồi chuyển bạn sang cổng <b>VNPay Sandbox</b>.</p>
+                            <p style="margin: 0;">Chỉ khi VNPay báo thanh toán thành công thì đơn mới được xác nhận và trừ tồn kho theo màu.</p>
                         </div>
                     </div>
                 </div>

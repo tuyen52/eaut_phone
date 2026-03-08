@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 require_once('../connect.php');
 
-// Ưu tiên check theo variant_id
+// check-stock
 if (isset($_GET['variant_id'])) {
     $variant_id = intval($_GET['variant_id']);
     if ($variant_id <= 0) {

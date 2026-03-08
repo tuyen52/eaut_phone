@@ -1,5 +1,8 @@
 // js/pages/cart.js
 // Giỏ hàng theo variant_id (màu): hiển thị màu + check kho theo variant
+// Đã nâng cấp checkout hỗ trợ:
+// - COD
+// - VNPAY Sandbox
 
 var currentCart = [];
 var variantCache = {}; // variant_id -> {ten_mau, ma_mau_hex, so_luong_ton}
@@ -118,6 +121,50 @@ function getItemColor(item) {
     };
 }
 
+function clearLocalCart() {
+    var user = getCurrentUser();
+    if (!user) return;
+
+    user.products = [];
+    currentCart = [];
+
+    setCurrentUser(user);
+    updateSingleUserInList(user);
+    capNhat_ThongTin_CurrentUser();
+}
+
+function buildCheckoutProducts() {
+    var tongTien = 0;
+    var listProducts = getListProducts();
+
+    var danhSachSanPhamGuiDi = currentCart.map(item => {
+        var p = listProducts.find(x => x.masp == item.ma);
+        var price = 0;
+
+        if (p) {
+            price = parseInt(p.price.split('.').join(''));
+            if (p.promo && p.promo.name == 'giareonline') {
+                price = parseInt(p.promo.value.split('.').join(''));
+            }
+        }
+
+        tongTien += price * item.soluong;
+
+        return {
+            masp: item.ma,
+            variant_id: item.variant_id || null,
+            mau_sac: item.mau_sac || null,
+            so_luong: item.soluong,
+            gia: price
+        };
+    });
+
+    return {
+        tongTien: tongTien,
+        sanPham: danhSachSanPhamGuiDi
+    };
+}
+
 // =============================================================
 // 1. QUẢN LÝ HIỂN THỊ GIỎ HÀNG
 // =============================================================
@@ -142,15 +189,16 @@ function renderCart() {
 
     currentCart.forEach((item, index) => {
         var p = findProduct(item.ma);
-        if(!p) return;
+        if (!p) return;
 
         var price = parseInt(p.price.split('.').join(''));
-        if(p.promo && p.promo.name == 'giareonline') price = parseInt(p.promo.value.split('.').join(''));
+        if (p.promo && p.promo.name == 'giareonline') {
+            price = parseInt(p.promo.value.split('.').join(''));
+        }
 
         var stock = getItemStock(item, p);
         var color = getItemColor(item);
 
-        // clamp nếu vượt kho
         if (stock > 0 && item.soluong > stock) item.soluong = stock;
 
         var thanhTien = price * item.soluong;
@@ -220,7 +268,7 @@ function updateQty(index, change) {
 }
 
 function removeItem(index) {
-    if(confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
+    if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
         currentCart.splice(index, 1);
         saveCart();
         renderCart();
@@ -237,19 +285,20 @@ function saveCart() {
 }
 
 // =============================================================
-// 2. LOGIC THANH TOÁN (GIỮ NGUYÊN CỦA BẠN, CHỈ THÊM RECHECK KHO)
+// 2. LOGIC THANH TOÁN
 // =============================================================
 async function openPaymentModal() {
-    if(currentCart.length === 0) {
+    if (currentCart.length === 0) {
         alert('Giỏ hàng trống!');
         return;
     }
 
-    // Recheck kho theo variant trước khi mở modal
     await loadVariantInfoForCart();
+
     for (let item of currentCart) {
         let p = findProduct(item.ma);
         let stock = getItemStock(item, p);
+
         if (!item.variant_id) {
             alert('Có sản phẩm chưa có màu trong giỏ. Vui lòng vào chi tiết chọn màu.');
             return;
@@ -267,40 +316,25 @@ async function openPaymentModal() {
 
     var user = getCurrentUser();
     document.getElementById('paymentModal').style.display = 'block';
-    document.getElementById('hoTen').value = (user.ho + ' ' + user.ten).trim();
+    document.getElementById('hoTen').value = ((user.ho || '') + ' ' + (user.ten || '')).trim();
     document.getElementById('soDienThoai').value = '';
 
     var total = 0;
     currentCart.forEach(item => {
         var p = findProduct(item.ma);
-        if(p) {
+        if (p) {
             var price = stringToNum(p.price);
-            if(p.promo && p.promo.name == 'giareonline') price = stringToNum(p.promo.value);
+            if (p.promo && p.promo.name == 'giareonline') {
+                price = stringToNum(p.promo.value);
+            }
             total += price * item.soluong;
         }
     });
 
     document.getElementById('paymentTotal').innerText = numToString(total) + "₫";
 
-    var date = new Date();
-    var day = String(date.getDate()).padStart(2, '0');
-    var month = String(date.getMonth() + 1).padStart(2, '0');
-    var randomNum = Math.floor(Math.random() * 900) + 100;
-    var transCode = "DH" + day + month + randomNum;
-    window.currentTransactionCode = transCode;
-
-    var bankId = "MB";
-    var accountNo = "1140160149732";
-    var accountName = "NGUYEN DANG TUYEN";
-    var content = "EAUT " + transCode;
-
-    var qrSrc = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact.jpg?amount=${total}&addInfo=${content}&accountName=${accountName}`;
-
-    var qrImg = document.getElementById('qrImage');
-    if(qrImg) qrImg.src = qrSrc;
-
-    var qrContent = document.getElementById('qrContent');
-    if(qrContent) qrContent.innerText = content;
+    var checked = document.querySelector('input[name="paymentMethod"]:checked');
+    togglePaymentMethod(checked ? checked.value : 'COD');
 }
 
 function closePaymentModal() {
@@ -308,8 +342,10 @@ function closePaymentModal() {
 }
 
 function togglePaymentMethod(method) {
-    var qrDiv = document.getElementById('qrInfo');
-    qrDiv.style.display = (method === 'Banking') ? 'block' : 'none';
+    var vnpayInfo = document.getElementById('vnpayInfo');
+    if (vnpayInfo) {
+        vnpayInfo.style.display = (method === 'VNPAY') ? 'block' : 'none';
+    }
 }
 
 // Location giữ nguyên
@@ -343,9 +379,14 @@ function showPosition(position) {
 function showError(error) {
     alert("Lỗi định vị: " + error.message);
 }
+let isSubmittingPayment = false;
 
-// Submit: giữ logic của bạn, đã có variant_id + mau_sac
 function processPayment() {
+    if (isSubmittingPayment) {
+        alert('Hệ thống đang xử lý yêu cầu thanh toán, vui lòng đợi...');
+        return;
+    }
+
     var user = getCurrentUser();
     var hoten = document.getElementById('hoTen').value.trim();
     var sdt = document.getElementById('soDienThoai').value.trim();
@@ -353,14 +394,20 @@ function processPayment() {
     var ptttInput = document.querySelector('input[name="paymentMethod"]:checked');
     var pttt = ptttInput ? ptttInput.value : 'COD';
 
-    if (!hoten) { alert('Vui lòng nhập họ tên người nhận!'); return; }
-    var phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/g;
-    if (!sdt || !phoneRegex.test(sdt)) { alert('Số điện thoại không hợp lệ (Phải là 10 số)!'); return; }
-    if (!diachi || diachi.length < 10) { alert('Vui lòng nhập địa chỉ chi tiết (Số nhà, đường...)!'); return; }
+    if (!hoten) {
+        alert('Vui lòng nhập họ tên người nhận!');
+        return;
+    }
 
-    if (pttt === 'Banking') {
-        var xacNhan = confirm("BẠN CÓ CHẮC CHẮN ĐÃ CHUYỂN KHOẢN CHƯA?\n\nHệ thống sẽ lưu mã giao dịch để Admin đối soát.\nNếu chưa chuyển tiền, đơn hàng sẽ bị hủy.");
-        if (!xacNhan) return;
+    var phoneRegex = /^(84|0[3|5|7|8|9])[0-9]{8}$/;
+    if (!sdt || !phoneRegex.test(sdt)) {
+        alert('Số điện thoại không hợp lệ!');
+        return;
+    }
+
+    if (!diachi || diachi.length < 10) {
+        alert('Vui lòng nhập địa chỉ chi tiết!');
+        return;
     }
 
     var tongTien = 0;
@@ -372,7 +419,9 @@ function processPayment() {
 
         if (p) {
             price = parseInt(p.price.split('.').join(''));
-            if (p.promo && p.promo.name == 'giareonline') price = parseInt(p.promo.value.split('.').join(''));
+            if (p.promo && p.promo.name == 'giareonline') {
+                price = parseInt(p.promo.value.split('.').join(''));
+            }
         }
 
         tongTien += price * item.soluong;
@@ -386,13 +435,6 @@ function processPayment() {
         };
     });
 
-    if(pttt === 'Banking') {
-        var code = window.currentTransactionCode || "UNKNOWN";
-        pttt = "Chuyển khoản (Mã GD: " + code + ")";
-    } else {
-        pttt = "Thanh toán khi nhận hàng (COD)";
-    }
-
     var dataToSend = {
         username: user.username,
         tong_tien: tongTien,
@@ -400,8 +442,11 @@ function processPayment() {
         sdt: sdt,
         dia_chi: diachi,
         phuong_thuc: pttt,
+        payment_method_code: pttt,
         san_pham: danhSachSanPhamGuiDi
     };
+
+    isSubmittingPayment = true;
 
     fetch('php/thanhtoan.php', {
         method: 'POST',
@@ -411,22 +456,42 @@ function processPayment() {
     .then(r => r.json())
     .then(data => {
         if (data.status == true) {
-            user.products = [];
-            currentCart = [];
-            setCurrentUser(user);
-            updateSingleUserInList(user);
-            capNhat_ThongTin_CurrentUser();
 
-            alert("ĐẶT HÀNG THÀNH CÔNG!\n" + data.message);
+            // COD: đặt hàng xong thì xóa giỏ
+            if (pttt === 'COD') {
+                clearLocalCart();
+                closePaymentModal();
+                renderCart();
 
-            closePaymentModal();
-            renderCart();
-            window.location.href = 'nguoidung.html';
+                alert("ĐẶT HÀNG THÀNH CÔNG!\n" + data.message);
+                window.location.href = 'nguoidung.html';
+                return;
+            }
+
+            // VNPAY: không xóa giỏ ở đây
+            // vì sẽ xóa sau khi return thành công
+            if (pttt === 'VNPAY' && data.payment_url) {
+                closePaymentModal();
+
+                if (data.reused_pending_order) {
+                    alert('Bạn đang có một đơn VNPay chờ thanh toán. Hệ thống sẽ chuyển bạn tới link thanh toán của đơn đó.');
+                } else {
+                    alert('Đơn hàng đã được tạo ở trạng thái Chờ thanh toán. Hệ thống sẽ chuyển bạn sang VNPay Sandbox.');
+                }
+
+                window.location.href = data.payment_url;
+                return;
+            }
+
+            isSubmittingPayment = false;
+            alert("Lỗi: Không tạo được link thanh toán VNPay.");
         } else {
+            isSubmittingPayment = false;
             alert('Lỗi: ' + data.message);
         }
     })
     .catch(err => {
+        isSubmittingPayment = false;
         console.error(err);
         alert('Lỗi kết nối Server!');
     });

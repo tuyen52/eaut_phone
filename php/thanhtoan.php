@@ -1,164 +1,340 @@
 <?php
 // php/thanhtoan.php
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+
 require_once('../connect.php');
+require_once(__DIR__ . '/vnpay_config.php');
+require_once(__DIR__ . '/order_helpers.php');
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-try {
-    $data = json_decode(file_get_contents("php://input"), true);
-    if (!$data) throw new Exception("Dữ liệu gửi lên không hợp lệ (JSON).");
+function normalize_cart_items_for_signature(array $items): array
+{
+    $normalized = [];
 
-    $username  = trim($data['username'] ?? '');
-    $tong_tien = (int)($data['tong_tien'] ?? 0);
-    $san_pham  = $data['san_pham'] ?? [];
-
-    $hoten  = $conn->real_escape_string(trim($data['ho_ten'] ?? '')); // bạn chưa lưu họ tên vào DB, giữ để sau dùng
-    $sdt    = $conn->real_escape_string(trim($data['sdt'] ?? ''));
-    $diachi = $conn->real_escape_string(trim($data['dia_chi'] ?? ''));
-    $pttt   = $conn->real_escape_string(trim($data['phuong_thuc'] ?? 'COD'));
-
-    if ($username === '') throw new Exception("Thiếu username.");
-    if (!is_array($san_pham) || count($san_pham) === 0) throw new Exception("Giỏ hàng trống.");
-
-    // ===== TRANSACTION =====
-    $conn->begin_transaction();
-
-    // 1) Tạo đơn hàng
-    $sql_order = "INSERT INTO orders (username, tong_tien, tinh_trang, phuong_thuc_tt, dia_chi, so_dien_thoai)
-                  VALUES ('$username', $tong_tien, 'Chờ xử lý', '$pttt', '$diachi', '$sdt')";
-    $conn->query($sql_order);
-    $ma_don = $conn->insert_id;
-
-    // 2) Prepared statements
-
-    // Nếu frontend không gửi variant_id -> tự chọn variant mặc định/đầu tiên của masp
-    $stmtPickVariant = $conn->prepare("
-        SELECT variant_id, ten_mau
-        FROM product_variants
-        WHERE masp = ?
-        ORDER BY CASE WHEN ten_mau='Mặc định' THEN 0 ELSE 1 END, variant_id ASC
-        LIMIT 1
-    ");
-
-    // Lock variant để tránh race condition khi trừ kho
-    $stmtGetVariantForUpdate = $conn->prepare("
-        SELECT variant_id, masp, ten_mau, so_luong_ton
-        FROM product_variants
-        WHERE variant_id = ?
-        FOR UPDATE
-    ");
-
-    // Trừ kho variant (atomic)
-    $stmtUpdateVariant = $conn->prepare("
-        UPDATE product_variants
-        SET so_luong_ton = so_luong_ton - ?
-        WHERE variant_id = ? AND so_luong_ton >= ?
-    ");
-
-    // Insert order_details có variant
-    $stmtInsertDetail = $conn->prepare("
-        INSERT INTO order_details (ma_don, masp, variant_id, mau_sac, so_luong, don_gia)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ");
-
-    // Đồng bộ tồn kho tổng products (phòng trường hợp bạn chưa tạo trigger)
-    $stmtSyncProduct = $conn->prepare("
-        UPDATE products
-        SET so_luong_ton = (
-            SELECT IFNULL(SUM(v.so_luong_ton), 0)
-            FROM product_variants v
-            WHERE v.masp = ?
-        )
-        WHERE masp = ?
-    ");
-
-    $maspNeedSync = [];
-
-    // 3) Check + trừ kho theo variant + lưu order_details
-    foreach ($san_pham as $sp) {
-        $masp = trim($sp['masp'] ?? '');
-        $sl   = (int)($sp['so_luong'] ?? 0);
-        $gia  = (int)($sp['gia'] ?? 0);
-
-        $variant_id = (int)($sp['variant_id'] ?? 0);
-        $mau_sac_in = trim($sp['mau_sac'] ?? '');
-
-        if ($masp === '') throw new Exception("Thiếu masp trong giỏ hàng.");
-        if ($sl <= 0) throw new Exception("Số lượng mua không hợp lệ.");
-        if ($gia < 0) throw new Exception("Đơn giá không hợp lệ.");
-
-        // Nếu chưa có variant_id -> pick mặc định
-        if ($variant_id <= 0) {
-            $stmtPickVariant->bind_param("s", $masp);
-            $stmtPickVariant->execute();
-            $rsPick = $stmtPickVariant->get_result();
-            if ($rsPick->num_rows === 0) {
-                throw new Exception("Sản phẩm '$masp' chưa có màu (variant) để mua.");
-            }
-            $pick = $rsPick->fetch_assoc();
-            $variant_id = (int)$pick['variant_id'];
-            if ($mau_sac_in === '') $mau_sac_in = $pick['ten_mau'];
-        }
-
-        // Lock & đọc kho variant
-        $stmtGetVariantForUpdate->bind_param("i", $variant_id);
-        $stmtGetVariantForUpdate->execute();
-        $rsV = $stmtGetVariantForUpdate->get_result();
-        if ($rsV->num_rows === 0) {
-            throw new Exception("Không tìm thấy variant_id=$variant_id.");
-        }
-
-        $v = $rsV->fetch_assoc();
-        if ($v['masp'] !== $masp) {
-            throw new Exception("variant_id=$variant_id không thuộc sản phẩm $masp.");
-        }
-
-        $ten_mau = $v['ten_mau'];
-        $stock   = (int)$v['so_luong_ton'];
-
-        if ($sl > $stock) {
-            throw new Exception("Màu '$ten_mau' của sản phẩm '$masp' chỉ còn $stock cái!");
-        }
-
-        // Trừ kho (atomic)
-        $stmtUpdateVariant->bind_param("iii", $sl, $variant_id, $sl);
-        $stmtUpdateVariant->execute();
-        if ($stmtUpdateVariant->affected_rows === 0) {
-            throw new Exception("Tồn kho màu '$ten_mau' vừa thay đổi, vui lòng thử lại!");
-        }
-
-        $mau_sac_final = ($mau_sac_in !== '') ? $mau_sac_in : $ten_mau;
-
-        // Insert chi tiết đơn
-        $stmtInsertDetail->bind_param("isisii", $ma_don, $masp, $variant_id, $mau_sac_final, $sl, $gia);
-        $stmtInsertDetail->execute();
-
-        $maspNeedSync[$masp] = true;
+    foreach ($items as $sp) {
+        $normalized[] = [
+            'masp'       => trim((string)($sp['masp'] ?? '')),
+            'variant_id' => (int)($sp['variant_id'] ?? 0),
+            'mau_sac'    => trim((string)($sp['mau_sac'] ?? '')),
+            'so_luong'   => (int)($sp['so_luong'] ?? 0),
+            'gia'        => (int)round((float)($sp['gia'] ?? 0))
+        ];
     }
 
-    // 4) Sync tồn kho tổng products cho các masp liên quan
-    foreach (array_keys($maspNeedSync) as $m) {
-        $stmtSyncProduct->bind_param("ss", $m, $m);
-        $stmtSyncProduct->execute();
+    usort($normalized, function ($a, $b) {
+        $ka = $a['masp'] . '|' . $a['variant_id'] . '|' . $a['mau_sac'] . '|' . $a['gia'] . '|' . $a['so_luong'];
+        $kb = $b['masp'] . '|' . $b['variant_id'] . '|' . $b['mau_sac'] . '|' . $b['gia'] . '|' . $b['so_luong'];
+        return strcmp($ka, $kb);
+    });
+
+    return $normalized;
+}
+
+function build_cart_signature(array $items): string
+{
+    return hash('sha256', json_encode(
+        normalize_cart_items_for_signature($items),
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    ));
+}
+
+function get_order_details_signature(mysqli $conn, int $maDon): string
+{
+    $stmt = $conn->prepare("
+        SELECT masp, variant_id, mau_sac, so_luong, don_gia
+        FROM order_details
+        WHERE ma_don = ?
+        ORDER BY detail_id ASC
+    ");
+    $stmt->bind_param("i", $maDon);
+    $stmt->execute();
+    $rs = $stmt->get_result();
+
+    $items = [];
+    while ($row = $rs->fetch_assoc()) {
+        $items[] = [
+            'masp'       => $row['masp'],
+            'variant_id' => $row['variant_id'] !== null ? (int)$row['variant_id'] : 0,
+            'mau_sac'    => $row['mau_sac'] ?? '',
+            'so_luong'   => (int)$row['so_luong'],
+            'gia'        => (int)$row['don_gia']
+        ];
+    }
+
+    $rs->free();
+    $stmt->close();
+
+    return build_cart_signature($items);
+}
+
+function find_reusable_pending_vnpay_order(
+    mysqli $conn,
+    string $username,
+    int $tongTien,
+    string $diaChi,
+    string $sdt,
+    array $sanPham
+): ?array {
+    $cartSignature = build_cart_signature($sanPham);
+
+    $stmt = $conn->prepare("
+        SELECT ma_don, vnp_txn_ref, tong_tien, dia_chi, so_dien_thoai, ngay_mua
+        FROM orders
+        WHERE username = ?
+          AND phuong_thuc_tt = 'VNPAY'
+          AND payment_status = 'Pending'
+          AND tinh_trang = 'Chờ thanh toán'
+          AND tong_tien = ?
+          AND ngay_mua >= DATE_SUB(NOW(), INTERVAL 6 HOUR)
+        ORDER BY ma_don DESC
+        LIMIT 10
+    ");
+    $stmt->bind_param("si", $username, $tongTien);
+    $stmt->execute();
+    $rs = $stmt->get_result();
+
+    while ($row = $rs->fetch_assoc()) {
+        $sameAddress = trim((string)$row['dia_chi']) === trim($diaChi);
+        $samePhone   = trim((string)$row['so_dien_thoai']) === trim($sdt);
+
+        if (!$sameAddress || !$samePhone) {
+            continue;
+        }
+
+        $oldSignature = get_order_details_signature($conn, (int)$row['ma_don']);
+        if ($oldSignature === $cartSignature) {
+            $rs->free();
+            $stmt->close();
+            return $row;
+        }
+    }
+
+    $rs->free();
+    $stmt->close();
+    return null;
+}
+
+try {
+    $raw = file_get_contents("php://input");
+    $data = json_decode($raw, true);
+
+    if (!is_array($data)) {
+        throw new Exception("Dữ liệu gửi lên không hợp lệ (JSON).");
+    }
+
+    $username = trim($data['username'] ?? '');
+    $sanPham  = $data['san_pham'] ?? [];
+    $tongTienGuiLen = (float)($data['tong_tien'] ?? 0);
+
+    $hoTen   = trim($data['ho_ten'] ?? '');
+    $sdt     = trim($data['sdt'] ?? '');
+    $diaChi  = trim($data['dia_chi'] ?? '');
+    $ptttRaw = $data['payment_method_code'] ?? ($data['phuong_thuc'] ?? 'COD');
+    $paymentMethod = normalize_payment_method_code($ptttRaw);
+
+    if ($username === '') {
+        throw new Exception("Thiếu username.");
+    }
+
+    if (!is_array($sanPham) || count($sanPham) === 0) {
+        throw new Exception("Giỏ hàng trống.");
+    }
+
+    if ($sdt === '') {
+        throw new Exception("Thiếu số điện thoại.");
+    }
+
+    if ($diaChi === '') {
+        throw new Exception("Thiếu địa chỉ nhận hàng.");
+    }
+
+    $tongTien = 0;
+    foreach ($sanPham as $sp) {
+        $soLuong = (int)($sp['so_luong'] ?? 0);
+        $gia     = (float)($sp['gia'] ?? 0);
+
+        if ($soLuong <= 0) {
+            throw new Exception("Số lượng mua không hợp lệ.");
+        }
+        if ($gia < 0) {
+            throw new Exception("Đơn giá không hợp lệ.");
+        }
+
+        $tongTien += ($soLuong * $gia);
+    }
+
+    if ($tongTien <= 0) {
+        throw new Exception("Tổng tiền không hợp lệ.");
+    }
+
+    if ((int)$tongTienGuiLen !== (int)$tongTien) {
+        $tongTienGuiLen = $tongTien;
+    }
+
+    // =========================================================
+    // REUSE ĐƠN PENDING CŨ NẾU USER BẤM LẠI VNPAY CÙNG 1 GIỎ
+    // =========================================================
+    if ($paymentMethod === 'VNPAY') {
+        $existingPending = find_reusable_pending_vnpay_order(
+            $conn,
+            $username,
+            (int)$tongTien,
+            $diaChi,
+            $sdt,
+            $sanPham
+        );
+
+        if ($existingPending) {
+            $maDon = (int)$existingPending['ma_don'];
+            $vnpTxnRef = trim((string)$existingPending['vnp_txn_ref']);
+
+            if ($vnpTxnRef === '') {
+                $vnpTxnRef = generate_vnp_txn_ref($maDon);
+
+                $stmtFixTxnRef = $conn->prepare("
+                    UPDATE orders
+                    SET vnp_txn_ref = ?
+                    WHERE ma_don = ?
+                ");
+                $stmtFixTxnRef->bind_param("si", $vnpTxnRef, $maDon);
+                $stmtFixTxnRef->execute();
+                $stmtFixTxnRef->close();
+            }
+
+            $paymentUrl = vnpay_create_payment_url([
+                'txn_ref'    => $vnpTxnRef,
+                'amount'     => (int)$tongTien,
+                'order_info' => 'Thanh toan don hang ' . $vnpTxnRef,
+                'ip_addr'    => get_client_ip()
+            ]);
+
+            echo json_encode([
+                "status" => true,
+                "message" => "Đã tìm thấy đơn VNPay đang chờ thanh toán. Hệ thống sẽ dùng lại đơn cũ.",
+                "ma_don" => $maDon,
+                "payment_method" => "VNPAY",
+                "payment_status" => "Pending",
+                "vnp_TxnRef" => $vnpTxnRef,
+                "payment_url" => $paymentUrl,
+                "reused_pending_order" => true
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
+
+    // =========================================================
+    // TẠO ĐƠN MỚI
+    // =========================================================
+    $conn->begin_transaction();
+
+    $tinhTrangDon = ($paymentMethod === 'VNPAY') ? 'Chờ thanh toán' : 'Chờ xử lý';
+    $paymentStatus = 'Pending';
+
+    $stmtOrder = $conn->prepare("
+        INSERT INTO orders (
+            username,
+            tong_tien,
+            tinh_trang,
+            phuong_thuc_tt,
+            payment_status,
+            dia_chi,
+            so_dien_thoai
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    $stmtOrder->bind_param(
+        "sdsssss",
+        $username,
+        $tongTien,
+        $tinhTrangDon,
+        $paymentMethod,
+        $paymentStatus,
+        $diaChi,
+        $sdt
+    );
+    $stmtOrder->execute();
+
+    $maDon = $conn->insert_id;
+    $stmtOrder->close();
+
+    $vnpTxnRef = null;
+
+    if ($paymentMethod === 'VNPAY') {
+        $vnpTxnRef = generate_vnp_txn_ref($maDon);
+
+        $stmtUpdateTxnRef = $conn->prepare("
+            UPDATE orders
+            SET vnp_txn_ref = ?
+            WHERE ma_don = ?
+        ");
+        $stmtUpdateTxnRef->bind_param("si", $vnpTxnRef, $maDon);
+        $stmtUpdateTxnRef->execute();
+        $stmtUpdateTxnRef->close();
+    }
+
+    // COD: trừ kho ngay
+    // VNPAY: chỉ lưu order_details, chưa trừ kho
+    save_order_details_from_cart($conn, $maDon, $sanPham, $paymentMethod === 'COD');
+
+    $paymentUrl = null;
+
+    if ($paymentMethod === 'VNPAY') {
+        if (
+            trim($vnp_TmnCode) === '' ||
+            trim($vnp_HashSecret) === '' ||
+            trim($vnp_ReturnUrl) === ''
+        ) {
+            throw new Exception("VNPay Sandbox chưa được cấu hình trong php/vnpay_config.php.");
+        }
+
+        $paymentUrl = vnpay_create_payment_url([
+            'txn_ref'    => $vnpTxnRef,
+            'amount'     => (int)$tongTien,
+            'order_info' => 'Thanh toan don hang ' . $vnpTxnRef,
+            'ip_addr'    => get_client_ip()
+        ]);
     }
 
     $conn->commit();
 
+    if ($paymentMethod === 'VNPAY') {
+        echo json_encode([
+            "status" => true,
+            "message" => "Đơn hàng đã được tạo. Đang chuyển sang VNPay Sandbox.",
+            "ma_don" => $maDon,
+            "payment_method" => "VNPAY",
+            "payment_status" => "Pending",
+            "vnp_TxnRef" => $vnpTxnRef,
+            "payment_url" => $paymentUrl,
+            "reused_pending_order" => false
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     echo json_encode([
         "status" => true,
-        "message" => "Đặt hàng thành công! Mã đơn: #" . $ma_don,
-        "ma_don" => $ma_don
-    ]);
+        "message" => "Đặt hàng thành công! Mã đơn: #" . $maDon,
+        "ma_don" => $maDon,
+        "payment_method" => "COD",
+        "payment_status" => "Pending"
+    ], JSON_UNESCAPED_UNICODE);
+
 } catch (Exception $e) {
     if (isset($conn)) {
-        try { $conn->rollback(); } catch (Exception $ignore) {}
+        try {
+            $conn->rollback();
+        } catch (Exception $ignore) {}
     }
+
     echo json_encode([
         "status" => false,
         "message" => $e->getMessage()
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
+
 } finally {
-    if (isset($conn)) $conn->close();
+    if (isset($conn) && $conn instanceof mysqli) {
+        $conn->close();
+    }
 }
 ?>
