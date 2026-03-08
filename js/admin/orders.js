@@ -31,6 +31,7 @@ function addTableDonHang() {
 
 function renderOrderTable(list) {
     var tc = document.querySelector('.donhang .table-content');
+    if (!tc) return;
 
     var s = `<table class="table-outline hideImg">
     <thead>
@@ -41,18 +42,18 @@ function renderOrderTable(list) {
             <th>Sản phẩm</th>
             <th>Tổng tiền</th>
             <th>Ngày giờ</th>
-            <th>Thanh toán</th>
-            <th>Trạng thái</th>
+            <th>PT thanh toán</th>
+            <th>TT thanh toán</th>
+            <th>Trạng thái đơn</th>
             <th>Hành động</th>
         </tr>
     </thead>
     <tbody>`;
 
     if (!list || list.length === 0) {
-        s += `<tr><td colspan="9" style="text-align:center; padding: 20px;">Không tìm thấy đơn hàng nào.</td></tr>`;
+        s += `<tr><td colspan="10" style="text-align:center; padding:20px;">Không tìm thấy đơn hàng nào.</td></tr>`;
     } else {
         list.forEach(d => {
-            // 1) Danh sách sản phẩm (kèm màu/variant)
             var spString = (d.sp || []).map(it => {
                 var productInfo = (typeof list_products !== 'undefined' && Array.isArray(list_products))
                     ? list_products.find(p => p.masp == it.ma_sp)
@@ -68,43 +69,26 @@ function renderOrderTable(list) {
                 return `<p style="margin:0; font-size:12px;">- ${tenSP}${vtxt} <b>x${it.so_luong}</b></p>`;
             }).join('');
 
-            // 2) Phương thức thanh toán
-            var ptttDisplay = d.pttt || 'COD';
-            if (ptttDisplay.includes('Chuyển khoản')) {
-                ptttDisplay = `<span style="color:#0056b3; font-weight:bold; font-size:12px;">${ptttDisplay}</span>`;
-            } else {
-                ptttDisplay = `<span style="font-size:12px;">${ptttDisplay}</span>`;
-            }
+            var paymentMethodHtml = renderPaymentMethod(d.pttt);
+            var paymentStatusHtml = renderPaymentStatus(d.paymentStatus);
 
-            // 3) Liên hệ
             var contactInfo = `
-                <div style="font-size:13px;"><b>${d.sdt || ''}</b></div>
-                <div style="font-size:11px; color:#555; max-width: 150px;">${d.diaChi || ''}</div>
+                <div style="font-size:13px;"><b>${escapeHtml(d.sdt || '')}</b></div>
+                <div style="font-size:11px; color:#555; max-width:150px;">${escapeHtml(d.diaChi || '')}</div>
             `;
 
-            // 4) Nút hành động
-            var btnAction = '';
-            if (d.tinhTrang === 'Chờ xử lý') {
-                btnAction += `<div class="tooltip"><i class="fa fa-check" style="color:green; cursor:pointer; font-size:1.2em;" onclick="capNhatTrangThai(${d.maDon}, 'Đang giao hàng')"></i><span class="tooltiptext">Duyệt</span></div>`;
-                btnAction += `<div class="tooltip"><i class="fa fa-remove" style="color:red; cursor:pointer; margin-left:15px; font-size:1.2em;" onclick="capNhatTrangThai(${d.maDon}, 'Đã hủy')"></i><span class="tooltiptext">Hủy đơn</span></div>`;
-            } else if (d.tinhTrang === 'Đang giao hàng') {
-                btnAction += `<span style="font-size:11px; color:#888;">Đang giao...</span>`;
-                btnAction += `<div class="tooltip"><i class="fa fa-remove" style="color:red; cursor:pointer; margin-left:10px" onclick="capNhatTrangThai(${d.maDon}, 'Đã hủy')"></i><span class="tooltiptext">Hủy đơn</span></div>`;
-            } else if (d.tinhTrang === 'Đã nhận hàng') {
-                btnAction += `<div class="tooltip"><i class="fa fa-check-circle" style="color:#28a745; cursor:pointer; font-size: 1.5em;" onclick="capNhatTrangThai(${d.maDon}, 'Hoàn thành')"></i><span class="tooltiptext">Duyệt</span></div>`;
-            } else {
-                btnAction += `<div class="tooltip"><i class="fa fa-trash" style="color:#aaa; cursor:pointer" onclick="xoaDonHangVinhVien(${d.maDon})"></i><span class="tooltiptext">Xóa</span></div>`;
-            }
+            var btnAction = buildOrderActions(d);
 
             s += `<tr>
                 <td style="text-align:center"><b>#${d.maDon}</b></td>
-                <td>${d.khachHang || ''}</td>
+                <td>${escapeHtml(d.khachHang || '')}</td>
                 <td>${contactInfo}</td>
                 <td>${spString}</td>
                 <td style="color:#d0021b; font-weight:bold;">${numToString(parseInt(d.tongTien || 0))}₫</td>
-                <td style="font-size:12px;">${new Date(d.ngayMua).toLocaleString()}</td>
-                <td>${ptttDisplay}</td>
-                <td><span style="color:${getColorByStatus(d.tinhTrang)}; font-weight:bold; font-size:12px;">${d.tinhTrang}</span></td>
+                <td style="font-size:12px;">${formatDateTime(d.ngayMua)}</td>
+                <td>${paymentMethodHtml}</td>
+                <td>${paymentStatusHtml}</td>
+                <td><span style="color:${getColorByStatus(d.tinhTrang)}; font-weight:bold; font-size:12px;">${escapeHtml(d.tinhTrang || '')}</span></td>
                 <td style="text-align:center">${btnAction}</td>
             </tr>`;
         });
@@ -114,7 +98,69 @@ function renderOrderTable(list) {
     tc.innerHTML = s;
 }
 
+function renderPaymentMethod(pttt) {
+    var text = pttt || 'COD';
+
+    if (text === 'VNPAY') {
+        return `<span style="display:inline-block; padding:4px 8px; border-radius:999px; background:#e8f1ff; color:#0056b3; font-weight:bold; font-size:12px;">VNPAY</span>`;
+    }
+
+    return `<span style="display:inline-block; padding:4px 8px; border-radius:999px; background:#f3f4f6; color:#333; font-weight:bold; font-size:12px;">COD</span>`;
+}
+
+function renderPaymentStatus(status) {
+    var s = (status || 'Pending').trim();
+
+    if (s === 'Paid') {
+        return `<span style="display:inline-block; padding:4px 8px; border-radius:999px; background:#e7f7ed; color:#1e7e34; font-weight:bold; font-size:12px;">Paid</span>`;
+    }
+    if (s === 'Failed') {
+        return `<span style="display:inline-block; padding:4px 8px; border-radius:999px; background:#fdeaea; color:#c82333; font-weight:bold; font-size:12px;">Failed</span>`;
+    }
+    return `<span style="display:inline-block; padding:4px 8px; border-radius:999px; background:#fff4db; color:#b26a00; font-weight:bold; font-size:12px;">Pending</span>`;
+}
+
+function buildOrderActions(d) {
+    var btnAction = '';
+    var tinhTrang = d.tinhTrang || '';
+    var pttt = (d.pttt || '').toUpperCase();
+    var paymentStatus = d.paymentStatus || 'Pending';
+
+    if (tinhTrang === 'Chờ thanh toán') {
+        btnAction += `<span style="font-size:11px; color:#b26a00;">Chờ khách thanh toán</span>`;
+        btnAction += `<div class="tooltip"><i class="fa fa-remove" style="color:red; cursor:pointer; margin-left:10px; font-size:1.2em;" onclick="capNhatTrangThai(${d.maDon}, 'Đã hủy')"></i><span class="tooltiptext">Hủy đơn</span></div>`;
+        return btnAction;
+    }
+
+    if (tinhTrang === 'Chờ xử lý') {
+        if (pttt === 'VNPAY' && paymentStatus !== 'Paid') {
+            btnAction += `<span style="font-size:11px; color:#dc3545;">Chưa thanh toán</span>`;
+            btnAction += `<div class="tooltip"><i class="fa fa-remove" style="color:red; cursor:pointer; margin-left:10px; font-size:1.2em;" onclick="capNhatTrangThai(${d.maDon}, 'Đã hủy')"></i><span class="tooltiptext">Hủy đơn</span></div>`;
+            return btnAction;
+        }
+
+        btnAction += `<div class="tooltip"><i class="fa fa-check" style="color:green; cursor:pointer; font-size:1.2em;" onclick="capNhatTrangThai(${d.maDon}, 'Đang giao hàng')"></i><span class="tooltiptext">Duyệt giao hàng</span></div>`;
+        btnAction += `<div class="tooltip"><i class="fa fa-remove" style="color:red; cursor:pointer; margin-left:15px; font-size:1.2em;" onclick="capNhatTrangThai(${d.maDon}, 'Đã hủy')"></i><span class="tooltiptext">Hủy đơn</span></div>`;
+        return btnAction;
+    }
+
+    if (tinhTrang === 'Đang giao hàng') {
+        btnAction += `<div class="tooltip"><i class="fa fa-truck" style="color:#007bff; cursor:pointer; font-size:1.2em;" onclick="capNhatTrangThai(${d.maDon}, 'Đã nhận hàng')"></i><span class="tooltiptext">Đã giao thành công</span></div>`;
+        btnAction += `<div class="tooltip"><i class="fa fa-remove" style="color:red; cursor:pointer; margin-left:12px; font-size:1.2em;" onclick="capNhatTrangThai(${d.maDon}, 'Đã hủy')"></i><span class="tooltiptext">Hủy đơn</span></div>`;
+        return btnAction;
+    }
+
+    if (tinhTrang === 'Đã nhận hàng') {
+        btnAction += `<div class="tooltip"><i class="fa fa-check-circle" style="color:#28a745; cursor:pointer; font-size:1.5em;" onclick="capNhatTrangThai(${d.maDon}, 'Hoàn thành')"></i><span class="tooltiptext">Hoàn thành</span></div>`;
+        return btnAction;
+    }
+
+    btnAction += `<div class="tooltip"><i class="fa fa-trash" style="color:#aaa; cursor:pointer" onclick="xoaDonHangVinhVien(${d.maDon})"></i><span class="tooltiptext">Xóa</span></div>`;
+    return btnAction;
+}
+
 function getColorByStatus(status) {
+    if (status == 'Chờ thanh toán') return '#b26a00';
     if (status == 'Chờ xử lý') return '#ff9800';
     if (status == 'Đang giao hàng') return '#17a2b8';
     if (status == 'Đã nhận hàng') return '#007bff';
@@ -123,11 +169,9 @@ function getColorByStatus(status) {
     return '#333';
 }
 
-// ======================= TƯƠNG TÁC SERVER =======================
-
 function capNhatTrangThai(maDon, trangThaiMoi) {
     var msg = 'Xác nhận chuyển đơn hàng #' + maDon + ' sang trạng thái: "' + trangThaiMoi + '"?';
-    if (trangThaiMoi === 'Đã hủy') msg += '\nLưu ý: Không thể hoàn tác!';
+    if ((trangThaiMoi || '').includes('Hủy')) msg += '\nLưu ý: Không thể hoàn tác!';
 
     if (!confirm(msg)) return;
 
@@ -136,16 +180,16 @@ function capNhatTrangThai(maDon, trangThaiMoi) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ maDon: maDon, trangThai: trangThaiMoi })
     })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status) {
-                alert(data.message);
-                addTableDonHang();
-            } else {
-                alert("Lỗi: " + data.message);
-            }
-        })
-        .catch(() => alert("Lỗi kết nối Server!"));
+    .then(res => res.json())
+    .then(data => {
+        if (data.status) {
+            alert(data.message);
+            addTableDonHang();
+        } else {
+            alert("Lỗi: " + data.message);
+        }
+    })
+    .catch(() => alert("Lỗi kết nối Server!"));
 }
 
 function xoaDonHangVinhVien(maDon) {
@@ -156,20 +200,18 @@ function xoaDonHangVinhVien(maDon) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ maDon: maDon })
     })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status) {
-                alert(data.message);
-                currentOrderList = currentOrderList.filter(d => d.maDon != maDon);
-                renderOrderTable(currentOrderList);
-            } else {
-                alert("Lỗi: " + data.message);
-            }
-        })
-        .catch(() => alert("Lỗi kết nối Server!"));
+    .then(res => res.json())
+    .then(data => {
+        if (data.status) {
+            alert(data.message);
+            currentOrderList = currentOrderList.filter(d => d.maDon != maDon);
+            renderOrderTable(currentOrderList);
+        } else {
+            alert("Lỗi: " + data.message);
+        }
+    })
+    .catch(() => alert("Lỗi kết nối Server!"));
 }
-
-// ======================= LỌC / TÌM KIẾM =======================
 
 function updateOrderFooterUI() {
     var footer = document.querySelector('.donhang .table-footer');
@@ -187,7 +229,8 @@ function updateOrderFooterUI() {
                 <option value="ma">Mã đơn</option>
                 <option value="khach">Tên khách</option>
                 <option value="sdt">Số điện thoại</option>
-                <option value="pttt">Thanh toán</option>
+                <option value="pttt">PT thanh toán</option>
+                <option value="paymentStatus">TT thanh toán</option>
             </select>
             <input type="text" placeholder="Tìm kiếm..." onkeyup="timKiemDonHang(this)">
         </div>`;
@@ -202,23 +245,43 @@ function locDonHangTheoKhoangNgay() {
 
     var filtered = currentOrderList.filter(d => {
         var time = new Date(d.ngayMua).getTime();
-        return (!from || time >= from) && (!to || time <= to);
+        return (!from || time >= from.getTime()) && (!to || time <= to.getTime());
     });
+
     renderOrderTable(filtered);
 }
 
 function timKiemDonHang(inp) {
     var type = document.getElementById('kieuTimDonHang').value;
-    var txt = inp.value.toUpperCase();
+    var txt = (inp.value || '').toUpperCase();
 
     var filtered = currentOrderList.filter(d => {
         var val = '';
-        if (type == 'ma') val = d.maDon.toString();
+
+        if (type == 'ma') val = String(d.maDon || '');
         else if (type == 'khach') val = d.khachHang || '';
         else if (type == 'sdt') val = d.sdt || '';
         else if (type == 'pttt') val = d.pttt || '';
+        else if (type == 'paymentStatus') val = d.paymentStatus || '';
 
         return val.toUpperCase().includes(txt);
     });
+
     renderOrderTable(filtered);
+}
+
+function formatDateTime(value) {
+    if (!value) return '';
+    var dt = new Date(value.replace(' ', 'T'));
+    if (isNaN(dt.getTime())) return value;
+    return dt.toLocaleString('vi-VN');
+}
+
+function escapeHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
