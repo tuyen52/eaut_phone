@@ -11,10 +11,15 @@ function renderProductCardHTML(p) {
         rating += `<span>${p.rateCount} đánh giá</span>`;
     }
 
-    // 2. Xử lý giá tiền
-    var price = `<strong>${p.price}&#8363;</strong>`;
+    // 2. Chuẩn hóa giá tiền trước khi render
+    var giaGoc = numToString(stringToNum(p.price));
+    var giaKhuyenMai = (p.promo && p.promo.value != null)
+        ? numToString(stringToNum(p.promo.value))
+        : '';
+
+    var price = `<strong>${giaGoc}&#8363;</strong>`;
     if (p.promo && p.promo.name == "giareonline") {
-        price = `<strong>${p.promo.value}&#8363;</strong><span>${p.price}&#8363;</span>`;
+        price = `<strong>${giaKhuyenMai}&#8363;</strong><span>${giaGoc}&#8363;</span>`;
     }
 
     // 3. Tạo link chi tiết (Thay khoảng trắng bằng dấu -)

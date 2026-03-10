@@ -29,13 +29,13 @@ window.onload = function() {
 
     // Lấy tên sản phẩm từ URL
     var nameProduct = window.location.href.split('?')[1];
-    if(!nameProduct) { showNotFound(); return; }
+    if (!nameProduct) { showNotFound(); return; }
 
     nameProduct = decodeURIComponent(nameProduct.split('-').join(' '));
     // list_products được tải từ DB ở init.js
     sanPhamHienTai = getListProducts().find(p => p.name.toUpperCase() === nameProduct.toUpperCase());
 
-    if(!sanPhamHienTai) { showNotFound(); return; }
+    if (!sanPhamHienTai) { showNotFound(); return; }
 
     // Render giao diện
     renderProductDetail(sanPhamHienTai);
@@ -53,9 +53,9 @@ window.onload = function() {
 
 function showNotFound() {
     var div = document.getElementById('productNotFound');
-    if(div) div.style.display = 'block';
+    if (div) div.style.display = 'block';
     var detail = document.querySelector('.chitietSanpham');
-    if(detail) detail.style.display = 'none';
+    if (detail) detail.style.display = 'none';
 }
 
 /* =========================================================
@@ -68,7 +68,7 @@ function loadVariantsForProduct(p) {
     var optionsDiv = document.getElementById('variantOptions');
     var hintDiv = document.getElementById('variantHint');
 
-    if(!picker || !optionsDiv || !hintDiv) return;
+    if (!picker || !optionsDiv || !hintDiv) return;
 
     picker.style.display = 'block';
     optionsDiv.innerHTML = '<span style="color:#777">Đang tải màu...</span>';
@@ -78,7 +78,7 @@ function loadVariantsForProduct(p) {
     fetch('php/get-product-variants.php?masp=' + encodeURIComponent(p.masp))
     .then(res => res.json())
     .then(list => {
-        if(!Array.isArray(list)) list = [];
+        if (!Array.isArray(list)) list = [];
         variantsHienTai = list;
         renderVariantOptions(p, list);
 
@@ -94,9 +94,9 @@ function loadVariantsForProduct(p) {
 function renderVariantOptions(p, variants) {
     var optionsDiv = document.getElementById('variantOptions');
     var hintDiv = document.getElementById('variantHint');
-    if(!optionsDiv || !hintDiv) return;
+    if (!optionsDiv || !hintDiv) return;
 
-    if(!variants.length) {
+    if (!variants.length) {
         optionsDiv.innerHTML = '<span style="color:#777">Chưa có màu cho sản phẩm này.</span>';
         return;
     }
@@ -125,7 +125,7 @@ function renderVariantOptions(p, variants) {
 
             var vid = parseInt(btn.getAttribute('data-variant-id'));
             var v = variants.find(x => parseInt(x.variant_id) === vid);
-            if(!v) return;
+            if (!v) return;
 
             btns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -149,25 +149,25 @@ function updateStockAndBuyButton(p) {
     var btnMua = document.getElementById('buyButton');
     var stockDiv = document.querySelector('.stock_status');
     var hintDiv = document.getElementById('variantHint');
-    if(!btnMua || !stockDiv) return;
+    if (!btnMua || !stockDiv) return;
 
     var totalStock = parseInt(p.inventory) || 0;
 
-    if(totalStock <= 0) {
+    if (totalStock <= 0) {
         btnMua.classList.add('disabled');
-        btnMua.onclick = function(e){ if(e) e.preventDefault(); };
+        btnMua.onclick = function(e){ if (e) e.preventDefault(); };
         return;
     }
 
-    if(!selectedVariant) {
+    if (!selectedVariant) {
         stockDiv.innerHTML = `Còn hàng: ${totalStock} (tổng)`;
         stockDiv.className = 'stock_status available';
 
         btnMua.classList.add('disabled');
-        btnMua.onclick = function(e) { if(e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.onclick = function(e) { if (e) e.preventDefault(); handleAddToCart(p); };
         btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Chọn màu để mua';
 
-        if(hintDiv) {
+        if (hintDiv) {
             hintDiv.className = 'variant_hint';
             hintDiv.innerText = 'Vui lòng chọn màu trước khi mua.';
         }
@@ -178,27 +178,27 @@ function updateStockAndBuyButton(p) {
     stockDiv.innerHTML = `Còn hàng màu ${selectedVariant.ten_mau}: ${variantStock}`;
     stockDiv.className = variantStock > 0 ? 'stock_status available' : 'stock_status unavailable';
 
-    if(variantStock > 0) {
+    if (variantStock > 0) {
         btnMua.classList.remove('disabled');
-        btnMua.onclick = function(e) { if(e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.onclick = function(e) { if (e) e.preventDefault(); handleAddToCart(p); };
         btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng';
     } else {
         btnMua.classList.add('disabled');
-        btnMua.onclick = function(e) { if(e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.onclick = function(e) { if (e) e.preventDefault(); handleAddToCart(p); };
         btnMua.querySelector('b').innerText = 'Hết hàng (màu đã chọn)';
     }
 }
 
 function handleAddToCart(p) {
-    if(!selectedVariant) {
+    if (!selectedVariant) {
         alert('Bạn phải chọn màu trước khi thêm vào giỏ / mua.');
         var picker = document.getElementById('variantPicker');
-        if(picker) picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (picker) picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
 
     var variantStock = parseInt(selectedVariant.so_luong_ton) || 0;
-    if(variantStock <= 0) {
+    if (variantStock <= 0) {
         alert('Màu bạn chọn hiện đã hết hàng. Vui lòng chọn màu khác.');
         return;
     }
@@ -225,10 +225,15 @@ function renderProductDetail(p) {
     document.getElementById('bigimg').src = p.img;
 
     var priceArea = div.querySelector('.area_price');
-    if(p.promo.name !== 'giareonline') {
-        priceArea.innerHTML = `<strong>${p.price}₫</strong>` + new Promo(p.promo.name, p.promo.value).toWeb();
+    var giaGoc = numToString(stringToNum(p.price));
+    var giaKhuyenMai = (p.promo && p.promo.value != null)
+        ? numToString(stringToNum(p.promo.value))
+        : '';
+
+    if (p.promo.name !== 'giareonline') {
+        priceArea.innerHTML = `<strong>${giaGoc}₫</strong>` + new Promo(p.promo.name, p.promo.value).toWeb();
     } else {
-        priceArea.innerHTML = `<strong>${p.promo.value}₫</strong> <span>${p.price}₫</span>`;
+        priceArea.innerHTML = `<strong>${giaKhuyenMai}₫</strong> <span>${giaGoc}₫</span>`;
     }
 
     document.getElementById('detailPromo').innerText = getPromoDetailString(p);
@@ -236,8 +241,17 @@ function renderProductDetail(p) {
     var infoUl = div.querySelector('.info');
     infoUl.innerHTML = '';
     var d = p.detail || {};
-    var specs = {'Màn hình': d.screen, 'HĐH': d.os, 'Cam sau': d.camara, 'Cam trước': d.camaraFront, 'CPU': d.cpu, 'RAM': d.ram, 'Bộ nhớ': d.rom, 'Pin': d.battery};
-    for(var k in specs) if(specs[k]) infoUl.innerHTML += `<li><p>${k}</p><div>${specs[k]}</div></li>`;
+    var specs = {
+        'Màn hình': d.screen,
+        'HĐH': d.os,
+        'Cam sau': d.camara,
+        'Cam trước': d.camaraFront,
+        'CPU': d.cpu,
+        'RAM': d.ram,
+        'Bộ nhớ': d.rom,
+        'Pin': d.battery
+    };
+    for (var k in specs) if (specs[k]) infoUl.innerHTML += `<li><p>${k}</p><div>${specs[k]}</div></li>`;
 
     var btnMua = document.getElementById('buyButton');
     var stockDiv = document.querySelector('.stock_status');
@@ -246,18 +260,18 @@ function renderProductDetail(p) {
     variantsHienTai = [];
     selectedVariant = null;
 
-    if(stock > 0) {
+    if (stock > 0) {
         stockDiv.innerHTML = `Còn hàng: ${stock} (tổng)`;
         stockDiv.className = 'stock_status available';
 
         btnMua.classList.add('disabled');
-        btnMua.onclick = function(e) { if(e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.onclick = function(e) { if (e) e.preventDefault(); handleAddToCart(p); };
         btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Chọn màu để mua';
     } else {
         stockDiv.innerHTML = 'Hết hàng';
         stockDiv.className = 'stock_status unavailable';
         btnMua.classList.add('disabled');
-        btnMua.onclick = function(e) { if(e) e.preventDefault(); };
+        btnMua.onclick = function(e) { if (e) e.preventDefault(); };
         btnMua.querySelector('b').innerText = 'Hết hàng';
     }
 
@@ -266,7 +280,7 @@ function renderProductDetail(p) {
 
 function renderSmallImages(mainImg) {
     var owl = document.querySelector('.div_smallimg.owl-carousel');
-    if(owl) {
+    if (owl) {
         owl.innerHTML = '';
         owl.innerHTML += `<div class='item'><img src="${mainImg}" onclick="changepic(this.src)"></div>`;
         var demos = ["img/products/huawei-mate-20-pro-green-600x600.jpg", "img/chitietsanpham/oppo-f9-mau-do-1-org.jpg", "img/chitietsanpham/oppo-f9-mau-do-2-org.jpg"];
@@ -289,7 +303,7 @@ function closecertain() { document.getElementById("overlaycertainimg").style.tra
 // --- LOGIC GỢI Ý ---
 function renderSuggestion(currentP, list) {
     var div = document.getElementById('goiYSanPham');
-    if(!div) return;
+    if (!div) return;
     const giaHienTai = stringToNum(currentP.price);
     const sanPhamTuongTu = list.filter(p => p.masp !== currentP.masp).map(p => {
         const giaP = stringToNum(p.price);
@@ -301,7 +315,7 @@ function renderSuggestion(currentP, list) {
     });
     sanPhamTuongTu.sort((a, b) => b.diem - a.diem);
     var finalResult = sanPhamTuongTu.slice(0, 5);
-    if(finalResult.length) {
+    if (finalResult.length) {
         var s = `<div class="khungSanPham" style="border-color:#434aa8">
                     <h3 class="tenKhung" style="background-image: linear-gradient(120deg, #434aa8 0%, #004c70 50%, #434aa8 100%);">* SẢN PHẨM TƯƠNG TỰ *</h3>
                     <div class="listSpTrongKhung flexContain">`;
@@ -317,7 +331,7 @@ function renderSuggestion(currentP, list) {
 // --- LOGIC BÌNH LUẬN (DATABASE) ---
 
 function checkDaMuaSanPham(user, masp) {
-    if(!user.donhang || user.donhang.length === 0) return false;
+    if (!user.donhang || user.donhang.length === 0) return false;
     // user.donhang giờ đã được tải từ API (user.js)
     for (var don of user.donhang) {
         if (don.tinhTrang === 'Đã nhận hàng' || don.tinhTrang === 'Hoàn thành') {
@@ -409,11 +423,11 @@ function setupReviewForm() {
 
 function submitReview() {
     var user = getCurrentUser();
-    if(!user) { alert("Bạn cần đăng nhập!"); return; }
+    if (!user) { alert("Bạn cần đăng nhập!"); return; }
 
     var comment = document.getElementById('commentText').value.trim();
-    if(selectedRating <= 0) { alert("Vui lòng chọn số sao!"); return; }
-    if(comment.length < 5) { alert("Nhận xét quá ngắn!"); return; }
+    if (selectedRating <= 0) { alert("Vui lòng chọn số sao!"); return; }
+    if (comment.length < 5) { alert("Nhận xét quá ngắn!"); return; }
 
     // [MỚI] Suy ra màu đã mua từ lịch sử đơn (nếu có)
     var extra = null;
@@ -452,7 +466,7 @@ function submitReview() {
     .then(resp => {
         // [MỚI] hỗ trợ cả status (chuẩn mới) và success (chuẩn cũ)
         var ok = (resp && (resp.status === true || resp.success === true));
-        if(ok) {
+        if (ok) {
             alert(resp.message || "Gửi đánh giá thành công!");
             resetReviewForm();
             displayReviews();
@@ -467,7 +481,7 @@ function submitReview() {
 function hoverStars(rating) {
     var stars = document.querySelectorAll('.star-rating .fa');
     stars.forEach((s, i) => {
-        if(i < rating) { s.classList.remove('fa-star-o'); s.classList.add('fa-star'); } 
+        if (i < rating) { s.classList.remove('fa-star-o'); s.classList.add('fa-star'); } 
         else { s.classList.remove('fa-star'); s.classList.add('fa-star-o'); }
     });
 }
@@ -475,7 +489,7 @@ function hoverStars(rating) {
 function resetStars() {
     var stars = document.querySelectorAll('.star-rating .fa');
     stars.forEach(s => {
-        if(!s.classList.contains('selected')) { s.classList.remove('fa-star'); s.classList.add('fa-star-o'); }
+        if (!s.classList.contains('selected')) { s.classList.remove('fa-star'); s.classList.add('fa-star-o'); }
         else { s.classList.remove('fa-star-o'); s.classList.add('fa-star'); }
     });
 }
@@ -484,7 +498,7 @@ function selectStar(rating) {
     selectedRating = rating;
     var stars = document.querySelectorAll('.star-rating .fa');
     stars.forEach((s, i) => {
-        if(i < rating) { s.classList.add('selected'); s.classList.remove('fa-star-o'); s.classList.add('fa-star'); }
+        if (i < rating) { s.classList.add('selected'); s.classList.remove('fa-star-o'); s.classList.add('fa-star'); }
         else { s.classList.remove('selected'); s.classList.remove('fa-star'); s.classList.add('fa-star-o'); }
     });
 }
@@ -498,15 +512,15 @@ function resetReviewForm() {
 
 function generateStarHTML(star, count) {
     var s = "";
-    for(var i=1; i<=5; i++) s += (i<=star ? '<i class="fa fa-star"></i>' : '<i class="fa fa-star-o"></i>');
+    for (var i = 1; i <= 5; i++) s += (i <= star ? '<i class="fa fa-star"></i>' : '<i class="fa fa-star-o"></i>');
     s += `<span> ${count} đánh giá</span>`;
     return s;
 }
 
 function getPromoDetailString(p) {
-    if(!p.promo) return "";
-    if(p.promo.name === 'tragop') return `Trả góp 0% lãi suất.`;
-    if(p.promo.name === 'giamgia') return `Giảm ngay ${p.promo.value}₫.`;
-    if(p.promo.name === 'giareonline') return `Giá sốc online ${p.promo.value}₫.`;
+    if (!p.promo) return "";
+    if (p.promo.name === 'tragop') return `Trả góp 0% lãi suất.`;
+    if (p.promo.name === 'giamgia') return `Giảm ngay ${p.promo.value}₫.`;
+    if (p.promo.name === 'giareonline') return `Giá sốc online ${p.promo.value}₫.`;
     return `Nhiều ưu đãi hấp dẫn.`;
 }
