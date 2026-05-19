@@ -3,6 +3,7 @@
 var currentUser = null;
 var __orderFilterStatus = 'all';
 var __orderSearch = '';
+var __profileCollapsed = false;
 
 window.onload = function () {
     khoiTao();
@@ -18,74 +19,166 @@ window.onload = function () {
     renderUserInfo();
     fetchOrderHistory();
 };
-
 // ======================= PROFILE =======================
 
 function getInitials(u) {
     var name = ((u.ho || '') + ' ' + (u.ten || '')).trim();
     if (!name) return (u.username || 'U').slice(0, 2).toUpperCase();
-    var parts = name.split(' ').filter(Boolean);
+
+    var parts = name.split(/\s+/).filter(Boolean);
     var a = parts[0] ? parts[0][0] : 'U';
     var b = parts.length > 1 ? parts[parts.length - 1][0] : '';
     return (a + b).toUpperCase();
 }
 
+function getFullName(u) {
+    return ((u.ho || '') + ' ' + (u.ten || '')).replace(/\s+/g, ' ').trim();
+}
+
+function splitFullName(fullName) {
+    var parts = String(fullName || '').trim().replace(/\s+/g, ' ').split(' ').filter(Boolean);
+
+    if (parts.length === 0) {
+        return { ho: '', ten: '' };
+    }
+
+    if (parts.length === 1) {
+        return { ho: '', ten: parts[0] };
+    }
+
+    return {
+        ho: parts.slice(0, -1).join(' '),
+        ten: parts[parts.length - 1]
+    };
+}
+
 function renderUserInfo() {
     var u = currentUser;
     var info = document.querySelector('.infoUser');
+    if (!info) return;
+
+    var fullName = getFullName(u);
+    var displayName = fullName || u.username || 'Người dùng';
 
     info.innerHTML = `
-        <div class="profileHeader">
-            <div class="avatarCircle">${getInitials(u)}</div>
-            <div class="profileMeta">
-                <div class="uName">${escapeHtml(u.username)}</div>
-                <div class="uSub">${escapeHtml(u.email || '')}</div>
+        <div class="userProfileBox">
+            <div class="profileTopBox">
+                <div class="profileHeaderFixed">
+                    <div class="avatarCircle">${getInitials(u)}</div>
+
+                    <div class="profileMetaFixed">
+                        <div class="uNameFixed" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</div>
+                        <div class="uSubFixed" title="${escapeHtml(u.email || '')}">${escapeHtml(u.email || '')}</div>
+                    </div>
+                </div>
+
+                <button type="button" class="profileCollapseBtn" onclick="toggleProfilePanel()">
+                    <i id="profileToggleIcon" class="fa ${__profileCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'}"></i>
+                    <span id="profileToggleText">${__profileCollapsed ? 'Mở hồ sơ' : 'Thu gọn hồ sơ'}</span>
+                </button>
             </div>
-        </div>
 
-        <h3 style="margin:0 0 10px 0;"><i class="fa fa-user-circle"></i> Hồ sơ</h3>
+            <div id="profileBody" class="profileBody ${__profileCollapsed ? 'collapsed' : 'expanded'}">
+                <h3 class="profileSectionTitle">
+                    <i class="fa fa-user-circle"></i> Hồ sơ
+                </h3>
 
-        <div class="formRow">
-            <label>Tên đăng nhập</label>
-            <input class="uInput" type="text" value="${escapeHtml(u.username)}" disabled>
-            <span style="color:#6b7280;font-size:12px;"><i class="fa fa-lock"></i></span>
-        </div>
+                <div class="profileFormRow">
+                    <label for="profileUsername">Tên đăng nhập</label>
+                    <div class="profileInputOnly">
+                        <input id="profileUsername" class="uInput" type="text" value="${escapeHtml(u.username)}" disabled>
+                    </div>
+                </div>
 
-        <div class="formRow">
-            <label>Họ tên</label>
-            <input class="uInput" type="text" id="infoName" value="${escapeHtml(((u.ho || '') + ' ' + (u.ten || '')).trim())}">
-            <button class="uBtn uBtnPrimary" onclick="updateInfo()"><i class="fa fa-pencil"></i> Cập nhật</button>
-        </div>
+                <div class="profileFormRow">
+                    <label for="infoName">Họ tên</label>
+                    <div class="profileInputAction">
+                        <input class="uInput" type="text" id="infoName" value="${escapeHtml(fullName)}" placeholder="Nhập họ và tên">
+                        <button id="btnUpdateInfo" class="uBtn uBtnPrimary" onclick="updateInfo()">
+                            <i class="fa fa-pencil"></i> Cập nhật
+                        </button>
+                    </div>
+                </div>
 
-        <div class="formRow">
-            <label>Email</label>
-            <input class="uInput" type="text" value="${escapeHtml(u.email || '')}" disabled>
-            <span></span>
-        </div>
+                <div class="profileFormRow">
+                    <label for="profileEmail">Email</label>
+                    <div class="profileInputOnly">
+                        <input id="profileEmail" class="uInput" type="text" value="${escapeHtml(u.email || '')}" disabled>
+                    </div>
+                </div>
 
-        <div class="uDivider"></div>
+                <div class="uDivider"></div>
 
-        <h3 style="margin:0 0 10px 0;"><i class="fa fa-key"></i> Bảo mật</h3>
+                <h3 class="profileSectionTitle">
+                    <i class="fa fa-key"></i> Bảo mật
+                </h3>
 
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="uBtn uBtnPrimary" onclick="togglePassForm(true)"><i class="fa fa-key"></i> Đổi mật khẩu</button>
-        </div>
+                <div class="profileSecurityActions">
+                    <button class="uBtn uBtnPrimary" onclick="togglePassForm(true)">
+                        <i class="fa fa-key"></i> Đổi mật khẩu
+                    </button>
+                </div>
 
-        <div id="passForm" style="display:none; margin-top:12px;">
-            <div class="formRow" style="grid-template-columns:1fr;">
-                <label>Mật khẩu cũ</label>
-                <input class="uInput" type="password" id="oldPass" placeholder="Mật khẩu cũ">
-            </div>
-            <div class="formRow" style="grid-template-columns:1fr;">
-                <label>Mật khẩu mới</label>
-                <input class="uInput" type="password" id="newPass" placeholder="Mật khẩu mới (tối thiểu 6 ký tự)">
-            </div>
-            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
-                <button class="uBtn uBtnSuccess" onclick="changePass()"><i class="fa fa-check"></i> Xác nhận</button>
-                <button class="uBtn uBtnDanger" onclick="togglePassForm(false)"><i class="fa fa-times"></i> Hủy</button>
+                <div id="passForm" style="display:none; margin-top:12px;">
+                    <div class="profileFormRow">
+                        <label for="oldPass">Mật khẩu cũ</label>
+                        <div class="profileInputOnly">
+                            <input class="uInput" type="password" id="oldPass" placeholder="Mật khẩu cũ">
+                        </div>
+                    </div>
+
+                    <div class="profileFormRow">
+                        <label for="newPass">Mật khẩu mới</label>
+                        <div class="profileInputOnly">
+                            <input class="uInput" type="password" id="newPass" placeholder="Mật khẩu mới tối thiểu 6 ký tự">
+                        </div>
+                    </div>
+
+                    <div class="profilePassActions">
+                        <button class="uBtn uBtnSuccess" onclick="changePass()">
+                            <i class="fa fa-check"></i> Xác nhận
+                        </button>
+
+                        <button class="uBtn uBtnDanger" onclick="togglePassForm(false)">
+                            <i class="fa fa-times"></i> Hủy
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
+}
+
+function toggleProfilePanel() {
+    var body = document.getElementById('profileBody');
+    var icon = document.getElementById('profileToggleIcon');
+    var text = document.getElementById('profileToggleText');
+
+    if (!body) return;
+
+    __profileCollapsed = !__profileCollapsed;
+
+    if (__profileCollapsed) {
+        body.classList.remove('expanded');
+        body.classList.add('collapsed');
+
+        if (icon) {
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+
+        if (text) text.innerText = 'Mở hồ sơ';
+    } else {
+        body.classList.remove('collapsed');
+        body.classList.add('expanded');
+
+        if (icon) {
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        }
+
+        if (text) text.innerText = 'Thu gọn hồ sơ';
+    }
 }
 
 function togglePassForm(show) {
@@ -95,84 +188,85 @@ function togglePassForm(show) {
 }
 
 function updateInfo() {
-    var fullname = document.getElementById('infoName').value.trim().split(' ').filter(Boolean);
-    if (fullname.length < 1) {
-        alert('Vui lòng nhập họ tên đầy đủ');
+    var input = document.getElementById('infoName');
+    var btn = document.getElementById('btnUpdateInfo');
+
+    if (!input) {
+        alert('Không tìm thấy ô nhập họ tên!');
         return;
     }
 
-    var hoMoi = fullname[0];
-    var tenMoi = fullname.slice(1).join(' ');
+    var fullName = input.value.trim().replace(/\s+/g, ' ');
+
+    if (!fullName) {
+        alert('Vui lòng nhập họ tên!');
+        input.focus();
+        return;
+    }
+
+    if (!currentUser || !currentUser.username) {
+        alert('Không tìm thấy tài khoản đang đăng nhập. Vui lòng đăng nhập lại!');
+        return;
+    }
+
+    var nameParts = splitFullName(fullName);
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang lưu...';
+    }
 
     fetch('php/update-user-info.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             username: currentUser.username,
-            ho: hoMoi,
-            ten: tenMoi
+            ho: nameParts.ho,
+            ten: nameParts.ten
         })
     })
-    .then(res => res.json())
+    .then(res => res.text())
+    .then(text => {
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            throw new Error('PHP không trả về JSON hợp lệ: ' + text);
+        }
+    })
     .then(data => {
         if (data.status) {
-            alert(data.message);
-            currentUser.ho = hoMoi;
-            currentUser.ten = tenMoi;
+            alert(data.message || 'Cập nhật họ tên thành công!');
+
+            if (data.user) {
+                currentUser.ho = data.user.ho || '';
+                currentUser.ten = data.user.ten || '';
+                currentUser.email = data.user.email || currentUser.email;
+                if (data.user.role) currentUser.role = data.user.role;
+            } else {
+                currentUser.ho = nameParts.ho;
+                currentUser.ten = nameParts.ten;
+            }
+
             setCurrentUser(currentUser);
+
+            if (typeof updateSingleUserInList === 'function') {
+                updateSingleUserInList(currentUser);
+            }
+
             renderUserInfo();
         } else {
-            alert("Lỗi: " + data.message);
+            alert('Lỗi: ' + (data.message || 'Không thể cập nhật họ tên!'));
         }
     })
     .catch(err => {
         console.error(err);
-        alert("Lỗi kết nối Server!");
-    });
-}
-
-function changePass() {
-    var oldPass = document.getElementById('oldPass').value;
-    var newPass = document.getElementById('newPass').value;
-
-    if (!oldPass || !newPass) {
-        alert('Vui lòng nhập đầy đủ thông tin!');
-        return;
-    }
-    if (newPass.length < 6) {
-        alert('Mật khẩu mới quá ngắn (tối thiểu 6 ký tự)!');
-        return;
-    }
-
-    fetch('php/change-password.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            username: currentUser.username,
-            old_pass: oldPass,
-            new_pass: newPass
-        })
+        alert('Lỗi cập nhật họ tên: ' + err.message);
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status) {
-            alert(data.message);
-
-            if (currentUser.pass) currentUser.pass = newPass;
-            if (currentUser.password) currentUser.password = newPass;
-
-            setCurrentUser(currentUser);
-            togglePassForm(false);
-
-            document.getElementById('oldPass').value = '';
-            document.getElementById('newPass').value = '';
-        } else {
-            alert("Lỗi: " + data.message);
+    .finally(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa fa-pencil"></i> Cập nhật';
         }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Lỗi kết nối Server!");
     });
 }
 
