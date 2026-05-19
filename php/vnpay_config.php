@@ -17,8 +17,8 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 |--------------------------------------------------------------------------
 */
 
-$vnp_TmnCode      = 'VN4QFA3Q';
-$vnp_HashSecret   = 'WIXHVAX08W8OG98CEINW85D919B5WDW2';
+$vnp_TmnCode      = 'ZLFHWBF7';
+$vnp_HashSecret   = 'UQY4ICHKWWYQ5377RYIAU5VLWFLHM3GR';
 
 $vnp_Url          = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
 $vnp_ReturnUrl    = 'https://ileac-jasperoid-ginger.ngrok-free.dev/eaut_phone/php/vnpay_return.php';

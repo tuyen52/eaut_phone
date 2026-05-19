@@ -197,3 +197,225 @@
 .btn-user-action.confirm:hover {
     background: #218838;
 }
+/* ===== FIX HỒ SƠ NGƯỜI DÙNG - thêm sau cùng để đè CSS cũ ===== */
+
+.userCard .infoUser {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    display: block !important;
+    align-items: stretch !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+}
+
+.userProfileBox,
+.profileTopBox,
+.profileBody {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.profileTopBox {
+    margin-bottom: 14px;
+}
+
+.profileHeaderFixed {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    box-sizing: border-box;
+}
+
+.profileMetaFixed {
+    flex: 1;
+    min-width: 0;
+}
+
+.uNameFixed {
+    font-weight: 800;
+    font-size: 16px;
+    margin-bottom: 3px;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.uSubFixed {
+    color: #6b7280;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profileCollapseBtn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 12px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    cursor: pointer;
+    font-weight: 700;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+}
+
+.profileCollapseBtn:hover {
+    background: #e5e7eb !important;
+    color: #111827 !important;
+}
+
+.profileBody {
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.25s ease;
+}
+
+.profileBody.expanded {
+    max-height: 900px;
+    opacity: 1;
+    margin-top: 0;
+}
+
+.profileBody.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    pointer-events: none;
+}
+
+.profileSectionTitle {
+    font-size: 22px !important;
+    color: #333 !important;
+    margin: 12px 0 14px 0 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.profileFormRow {
+    width: 100% !important;
+    display: block !important;
+    margin: 12px 0 !important;
+    box-sizing: border-box !important;
+}
+
+.profileFormRow label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: #374151;
+    font-size: 14px;
+}
+
+.profileInputAction,
+.profileInputOnly {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.profileInputAction {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.profileInputAction .uInput,
+.profileInputOnly .uInput {
+    flex: 1;
+    min-width: 0;
+}
+
+.userCard .infoUser .uInput {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+    border: 1px solid #ddd !important;
+    color: #333 !important;
+    font-weight: 700;
+    background: #fff;
+}
+
+.userCard .infoUser .uInput:focus {
+    border-color: #288ad6 !important;
+    box-shadow: 0 0 0 2px rgba(40, 138, 214, 0.15);
+}
+
+.userCard .infoUser .uInput[disabled] {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    cursor: not-allowed;
+}
+
+.userCard .infoUser .uBtn {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.userCard .infoUser .uBtnPrimary {
+    background: #0d6efd !important;
+    color: #fff !important;
+}
+
+.userCard .infoUser .uBtnDanger {
+    background: #dc3545 !important;
+    color: #fff !important;
+}
+
+.userCard .infoUser .uBtnSuccess {
+    background: #28a745 !important;
+    color: #fff !important;
+}
+
+.userCard .infoUser .uBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.profileSecurityActions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.profilePassActions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+#passForm {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 520px) {
+    .profileInputAction {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .profileInputAction .uBtn,
+    .profilePassActions .uBtn {
+        width: 100%;
+    }
+}

@@ -7,8 +7,8 @@ function addFooter() {
     </div>
     <div class="copy-right">
         <p>
-            <a href="index.html">EAUT PHONE</a> - All rights reserved © 2025 - Designed by
-            <span style="color: #eee; font-weight: bold">group 9</span>
+            <a href="index.html">EAUT PHONE</a> - All rights reserved © 2026 - Designed by
+            <span style="color: #eee; font-weight: bold">NGUYEN DANG TUYEN</span>
         </p>
     </div>`);
 }

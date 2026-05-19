@@ -238,29 +238,186 @@
 
         <!-- ===== CÁC TAB CŨ GIỮ NGUYÊN ===== -->
 
-        <div class="sanpham" style="display: none;">
-            <table class="table-header">
+       <div class="sanpham" style="display: none;">
+    <table class="table-header">
+        <tr>
+            <th title="Sắp xếp" style="width: 5%" onclick="sortProductsTable('stt')">
+                Stt <i class="fa fa-sort"></i>
+            </th>
+            <th title="Sắp xếp" style="width: 10%" onclick="sortProductsTable('masp')">
+                Mã <i class="fa fa-sort"></i>
+            </th>
+            <th title="Sắp xếp" style="width: 40%" onclick="sortProductsTable('ten')">
+                Tên <i class="fa fa-sort"></i>
+            </th>
+            <th title="Sắp xếp" style="width: 15%" onclick="sortProductsTable('gia')">
+                Giá <i class="fa fa-sort"></i>
+            </th>
+            <th title="Sắp xếp" style="width: 15%" onclick="sortProductsTable('khuyenmai')">
+                Khuyến mãi <i class="fa fa-sort"></i>
+            </th>
+            <th style="width: 15%">Hành động</th>
+        </tr>
+    </table>
+
+    <div class="table-content"></div>
+
+    <div class="table-footer">
+        <select name="kieuTimSanPham">
+            <option value="ma">Tìm theo mã</option>
+            <option value="ten">Tìm theo tên</option>
+        </select>
+
+        <input type="text" placeholder="Tìm kiếm sản phẩm..." onkeyup="timKiemSanPham(this)">
+
+        <button onclick="document.getElementById('khungThemSanPham').style.transform = 'scale(1)'; ensureVariantSection('khungThemSanPham'); autoMaSanPham();">
+            <i class="fa fa-plus-square"></i>
+            Thêm sản phẩm
+        </button>
+    </div>
+
+    <!-- KHUNG THÊM SẢN PHẨM -->
+    <div id="khungThemSanPham" class="overlay">
+        <span class="close" onclick="this.parentElement.style.transform = 'scale(0)';">&times;</span>
+
+        <form>
+            <table class="overlayTable table-outline table-content table-header">
                 <tr>
-                    <th title="Sắp xếp" style="width: 5%" onclick="sortProductsTable('stt')">Stt <i class="fa fa-sort"></i></th>
-                    <th title="Sắp xếp" style="width: 10%" onclick="sortProductsTable('masp')">Mã <i class="fa fa-sort"></i></th>
-                    <th title="Sắp xếp" style="width: 40%" onclick="sortProductsTable('ten')">Tên <i class="fa fa-sort"></i></th>
-                    <th title="Sắp xếp" style="width: 15%" onclick="sortProductsTable('gia')">Giá <i class="fa fa-sort"></i></th>
-                    <th title="Sắp xếp" style="width: 15%" onclick="sortProductsTable('khuyenmai')">Khuyến mãi <i class="fa fa-sort"></i></th>
-                    <th style="width: 15%">Hành động</th>
+                    <th colspan="2">Thêm Sản Phẩm</th>
+                </tr>
+
+                <tr>
+                    <td>Mã sản phẩm:</td>
+                    <td>
+                        <input type="text" id="maspThem" required>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Tên sản phẩm:</td>
+                    <td>
+                        <input type="text" required>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Hãng:</td>
+                    <td>
+                        <select name="chonCompany" onchange="autoMaSanPham(this.value)">
+                            <option value="Apple">Apple</option>
+                            <option value="Samsung">Samsung</option>
+                            <option value="Oppo">Oppo</option>
+                            <option value="Nokia">Nokia</option>
+                            <option value="Huawei">Huawei</option>
+                            <option value="Xiaomi">Xiaomi</option>
+                            <option value="Realme">Realme</option>
+                            <option value="Vivo">Vivo</option>
+                        </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Hình:</td>
+                    <td>
+                        <img class="hinhDaiDien" id="anhDaiDienSanPhamThem" src="">
+                        <input type="file" accept="image/*"
+                               onchange="capNhatAnhSanPham(this.files, 'anhDaiDienSanPhamThem')">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Giá tiền:</td>
+                    <td>
+                        <input type="number" min="0" required>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Tồn kho:</td>
+                    <td>
+                        <input type="number" min="0" value="0" readonly>
+                        <small style="display:block;color:#aaa;margin-top:4px;">
+                            Tự tính bằng tổng tồn kho theo màu.
+                        </small>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Khuyến mãi:</td>
+                    <td>
+                        <select>
+                            <option value="">Không</option>
+                            <option value="tragop">Trả góp</option>
+                            <option value="giamgia">Giảm giá</option>
+                            <option value="giareonline">Giá rẻ online</option>
+                            <option value="moiramat">Mới ra mắt</option>
+                        </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Giá trị KM:</td>
+                    <td>
+                        <input type="text" placeholder="Số tiền, % hoặc để trống">
+                    </td>
+                </tr>
+
+                <tr>
+                    <th colspan="2">Thông số kĩ thuật</th>
+                </tr>
+
+                <tr>
+                    <td>Màn hình:</td>
+                    <td><input type="text"></td>
+                </tr>
+
+                <tr>
+                    <td>HĐH:</td>
+                    <td><input type="text"></td>
+                </tr>
+
+                <tr>
+                    <td>Cam sau:</td>
+                    <td><input type="text"></td>
+                </tr>
+
+                <tr>
+                    <td>Cam trước:</td>
+                    <td><input type="text"></td>
+                </tr>
+
+                <tr>
+                    <td>CPU:</td>
+                    <td><input type="text"></td>
+                </tr>
+
+                <tr>
+                    <td>RAM:</td>
+                    <td><input type="text"></td>
+                </tr>
+
+                <tr>
+                    <td>ROM:</td>
+                    <td><input type="text"></td>
+                </tr>
+
+                <tr>
+                    <td>Pin:</td>
+                    <td><input type="text"></td>
+                </tr>
+
+                <tr>
+                    <td colspan="2" class="table-footer">
+                        <button type="button" onclick="themSanPham()">THÊM</button>
+                    </td>
                 </tr>
             </table>
-            <div class="table-content"></div>
-            <div class="table-footer">
-                <select name="kieuTimSanPham">
-                    <option value="ma">Tìm theo mã</option>
-                    <option value="ten">Tìm theo tên</option>
-                </select>
-                <input type="text" placeholder="Tìm kiếm sản phẩm..." onkeyup="timKiemSanPham(this)">
-                <button onclick="document.getElementById('khungThemSanPham').style.transform = 'scale(1)'">
-                    <i class="fa fa-plus"></i> Thêm sản phẩm
-                </button>
-            </div>
-        </div>
+        </form>
+    </div>
+
+    <!-- KHUNG SỬA SẢN PHẨM: products.js sẽ tự đổ form vào đây -->
+    <div id="khungSuaSanPham" class="overlay"></div>
+</div>
 
         <div class="donhang" style="display: none;">
             <table class="table-header">
@@ -303,10 +460,6 @@
         <div class="khohang" style="display: none;">
             <div class="table-content"></div>
         </div>
-
-        <!-- các overlay thêm/sửa sản phẩm... giữ nguyên file bạn đang dùng -->
-        <div id="khungThemSanPham" class="overlay" style="transform: scale(0);"></div>
-        <div id="khungSuaSanPham" class="overlay" style="transform: scale(0);"></div>
 
     </div>
 </body>
