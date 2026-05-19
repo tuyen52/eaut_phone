@@ -1,122 +1,321 @@
 // js/admin/dashboard.js
+var __statsCharts = {};
+
+function escapeHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 function addThongKe() {
-    // Canvas vẽ biểu đồ
-    var canvas1 = document.getElementById('myChart1');
-    var canvas2 = document.getElementById('myChart2');
-
-    if (!canvas1 || !canvas2) return;
-
-    // Hiển thị loading trong lúc đợi tính toán
-    var chartContainer = canvas1.parentElement;
-    // (Mẹo: Có thể thêm loading spinner ở đây nếu muốn)
-
-    // GỌI API THỐNG KÊ TỪ SERVER
-    fetch('php/admin/get-statistics.php')
-    .then(res => res.json())
-    .then(data => {
-        if(data.length === 0) {
-            // Chưa có đơn hàng nào hoàn thành
-            chartContainer.innerHTML = '<h3 style="text-align:center; margin-top:50px;">Chưa có dữ liệu thống kê (Cần có đơn hàng "Hoàn thành")</h3>';
-            return;
-        }
-
-        // Tách dữ liệu từ API thành các mảng riêng lẻ để vẽ
-        var labels = data.map(item => item.hang);           // ["Apple", "Samsung"...]
-        var dataSoluong = data.map(item => item.so_luong);  // [10, 5...]
-        var dataTien = data.map(item => item.doanh_thu);    // [200000000, 50000000...]
-        
-        // Tạo màu ngẫu nhiên cho đẹp
-        var colors = labels.map(() => getRandomColor());
-
-        // Reset canvas cũ (để tránh lỗi vẽ đè lên nhau khi click lại tab)
-        resetCanvas('myChart1');
-        resetCanvas('myChart2');
-
-        // Vẽ biểu đồ 1: Số lượng bán ra (Cột)
-        drawChart('myChart1', 'Số lượng bán ra', 'bar', labels, dataSoluong, colors);
-
-        // Vẽ biểu đồ 2: Doanh thu (Tròn)
-        drawChart('myChart2', 'Doanh thu (VNĐ)', 'doughnut', labels, dataTien, colors);
-    })
-    .catch(err => {
-        console.error(err);
-        chartContainer.innerHTML = '<h3 style="color:red; text-align:center;">Lỗi kết nối Server thống kê!</h3>';
-    });
+    ensureDashboardUI();
+    initDefaultFilters();
+    loadStatistics();
 }
 
-// --- CÁC HÀM HỖ TRỢ VẼ (GIỮ NGUYÊN LOGIC CŨ) ---
+function ensureDashboardUI() {
+    if (!document.getElementById('statsStart')) return;
 
-function resetCanvas(id) {
-    var canvas = document.getElementById(id);
-    var parent = canvas.parentNode;
-    parent.innerHTML = ''; // Xóa canvas cũ
-    var newCanvas = document.createElement('canvas');
-    newCanvas.id = id;
-    newCanvas.style.width = '100%'; // Responsive
-    newCanvas.style.height = '400px';
-    parent.appendChild(newCanvas);
-}
-
-function drawChart(id, title, type, labels, data, colors) {
-    var ctx = document.getElementById(id);
-    if(!ctx) return;
-    
-    // Kiểm tra xem thư viện Chart.js đã được load chưa
-    if (typeof Chart === 'undefined') {
-        console.error("Thư viện Chart.js chưa được load trong admin.html");
-        return;
+    var btn = document.getElementById('btnReloadStats');
+    if (btn && !btn.__bound) {
+        btn.__bound = true;
+        btn.addEventListener('click', function () { loadStatistics(); });
     }
 
-    new Chart(ctx, {
-        type: type,
-        data: {
-            labels: labels,
-            datasets: [{
-                label: title,
-                data: data,
-                backgroundColor: colors,
-                borderColor: '#fff',
-                borderWidth: 1
-            }]
-        },
+    var btnExport = document.getElementById('btnExportCsv');
+    if (btnExport && !btnExport.__bound) {
+        btnExport.__bound = true;
+        btnExport.addEventListener('click', function () { exportStatsCSV(); });
+    }
+}
+
+function initDefaultFilters() {
+    var startEl = document.getElementById('statsStart');
+    var endEl = document.getElementById('statsEnd');
+    var groupEl = document.getElementById('statsGroup');
+    var scopeEl = document.getElementById('statsScope');
+
+    if (!startEl || !endEl) return;
+
+    if (!endEl.value) endEl.value = toISODate(new Date());
+    if (!startEl.value) {
+        var end2 = parseISODate(endEl.value) || new Date();
+        var start = new Date(end2.getTime());
+        start.setDate(start.getDate() - 29);
+        startEl.value = toISODate(start);
+    }
+
+    if (groupEl && !groupEl.value) groupEl.value = 'day';
+    if (scopeEl && !scopeEl.value) scopeEl.value = 'completed';
+}
+
+function loadStatistics() {
+    var start = document.getElementById('statsStart')?.value || '';
+    var end = document.getElementById('statsEnd')?.value || '';
+    var group = document.getElementById('statsGroup')?.value || 'day';
+    var scope = document.getElementById('statsScope')?.value || 'completed';
+
+    var loading = document.getElementById('statsLoading');
+    if (loading) loading.style.display = 'inline-block';
+
+    var url = `php/admin/get-statistics.php?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&group=${encodeURIComponent(group)}&scope=${encodeURIComponent(scope)}`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            if (loading) loading.style.display = 'none';
+
+            if (data && data.error) {
+                showStatsError(data.message || 'Lỗi thống kê');
+                return;
+            }
+
+            renderKPIs(data.kpis || {});
+            renderCharts(data);
+            renderTables(data);
+        })
+        .catch(err => {
+            console.error(err);
+            if (loading) loading.style.display = 'none';
+            showStatsError('Lỗi kết nối Server thống kê!');
+        });
+}
+
+function showStatsError(msg) {
+    var box = document.getElementById('statsError');
+    if (box) { box.style.display = 'block'; box.innerText = msg; }
+}
+
+// KPI
+function setText(id, text) { var el = document.getElementById(id); if (el) el.innerText = text; }
+
+function renderKPIs(k) {
+    var box = document.getElementById('statsError');
+    if (box) box.style.display = 'none';
+
+    var revenue = Number(k.revenue || 0);
+    var orders = Number(k.orders || 0);
+    var units = Number(k.units || 0);
+    var aov = Number(k.aov || 0);
+    var cancelOrders = Number(k.cancel_orders || 0);
+    var cancelRate = Number(k.cancel_rate || 0);
+
+    setText('kpiRevenue', numToString(Math.round(revenue)) + ' ₫');
+    setText('kpiOrders', orders.toString());
+    setText('kpiUnits', units.toString());
+    setText('kpiAov', numToString(Math.round(aov)) + ' ₫');
+    setText('kpiCancel', cancelOrders.toString());
+    setText('kpiCancelRate', Math.round(cancelRate * 100) + '%');
+}
+
+// Charts
+function destroyChart(id) {
+    if (__statsCharts[id]) {
+        try { __statsCharts[id].destroy(); } catch (e) {}
+        delete __statsCharts[id];
+    }
+}
+
+function renderCharts(data) {
+    destroyChart('chartRevenue');
+    destroyChart('chartStatus');
+    destroyChart('chartBrand');
+    destroyChart('chartTopProducts');
+    destroyChart('chartTopVariants');
+
+    drawRevenueChart(data.revenue_series || []);
+    drawStatusChart(data.status_breakdown || []);
+    drawBrandChart(data.brand_summary || []);
+    drawTopProductsChart(data.top_products || []);
+    drawTopVariantsChart(data.top_variants || []);
+}
+
+function drawRevenueChart(series) {
+    var canvas = document.getElementById('chartRevenue');
+    if (!canvas) return;
+
+    var labels = series.map(x => x.period);
+    var values = series.map(x => Number(x.revenue || 0));
+
+    __statsCharts['chartRevenue'] = new Chart(canvas, {
+        type: 'line',
+        data: { labels, datasets: [{ label: 'Doanh thu', data: values, fill: false, borderWidth: 2, pointRadius: 2 }] },
         options: {
             responsive: true,
-            title: {
-                display: true,
-                text: title,
-                fontSize: 25,
-                fontColor: '#333' // Màu chữ tiêu đề (đổi sang màu tối cho dễ đọc trên nền trắng)
-            },
-            legend: {
-                labels: { fontColor: '#333' },
-                position: 'bottom'
-            },
-            tooltips: {
-                callbacks: {
-                    label: function(tooltipItem, data) {
-                        var label = data.labels[tooltipItem.index] || '';
-                        var value = data.datasets[0].data[tooltipItem.index];
-                        
-                        if (label) { label += ': '; }
-                        // Format tiền tệ nếu là biểu đồ doanh thu
-                        if(id === 'myChart2') {
-                             label += numToString(value) + ' ₫';
-                        } else {
-                             label += value + ' cái';
-                        }
-                        return label;
-                    }
-                }
-            },
-            scales: type === 'bar' ? {
-                yAxes: [{ 
-                    ticks: { beginAtZero: true, fontColor: '#333' } 
-                }],
-                xAxes: [{ 
-                    ticks: { fontColor: '#333' } 
-                }]
-            } : {}
+            maintainAspectRatio: false, // [MỚI]
+            title: { display: true, text: 'Doanh thu theo thời gian', fontSize: 18 },
+            tooltips: { callbacks: { label: t => ' ' + numToString(Math.round(t.yLabel)) + ' ₫' } },
+            scales: { yAxes: [{ ticks: { beginAtZero: true, callback: v => numToString(v) } }] }
         }
     });
+}
+
+function drawStatusChart(list) {
+    var canvas = document.getElementById('chartStatus');
+    if (!canvas) return;
+
+    var sorted = (list || []).slice().sort((a,b) => (b.count||0) - (a.count||0));
+    var top = sorted.slice(0, 6);
+    var rest = sorted.slice(6);
+    if (rest.length) top.push({ status: 'Khác', count: rest.reduce((s,x)=>s+(Number(x.count||0)),0) });
+
+    var labels = top.map(x => x.status);
+    var values = top.map(x => Number(x.count || 0));
+    var colors = labels.map(() => getRandomColor());
+
+    __statsCharts['chartStatus'] = new Chart(canvas, {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor:'#fff', borderWidth:1 }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // [MỚI]
+            title: { display: true, text: 'Tỷ trọng đơn theo trạng thái', fontSize: 18 },
+            legend: { position: 'bottom' }
+        }
+    });
+}
+
+function drawBrandChart(list) {
+    var canvas = document.getElementById('chartBrand');
+    if (!canvas) return;
+
+    var labels = (list || []).map(x => x.brand);
+    var values = (list || []).map(x => Number(x.revenue || 0));
+    var colors = labels.map(() => getRandomColor());
+
+    __statsCharts['chartBrand'] = new Chart(canvas, {
+        type: 'bar',
+        data: { labels, datasets: [{ label:'Doanh thu theo hãng', data: values, backgroundColor: colors, borderColor:'#fff', borderWidth:1 }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // [MỚI]
+            title: { display: true, text: 'Doanh thu theo hãng', fontSize: 18 },
+            tooltips: { callbacks: { label: (t,d)=> `${d.labels[t.index]}: ${numToString(Math.round(d.datasets[0].data[t.index]||0))} ₫` } },
+            scales: { yAxes: [{ ticks: { beginAtZero: true, callback: v => numToString(v) } }] }
+        }
+    });
+}
+
+function drawTopProductsChart(list) {
+    var canvas = document.getElementById('chartTopProducts');
+    if (!canvas) return;
+
+    var labels = (list || []).map(x => x.name);
+    var values = (list || []).map(x => Number(x.revenue || 0));
+    var colors = labels.map(() => getRandomColor());
+
+    __statsCharts['chartTopProducts'] = new Chart(canvas, {
+        type: 'horizontalBar',
+        data: { labels, datasets: [{ label:'Top sản phẩm (doanh thu)', data: values, backgroundColor: colors, borderColor:'#fff', borderWidth:1 }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // [MỚI]
+            title: { display: true, text: 'Top 10 sản phẩm theo doanh thu', fontSize: 18 },
+            tooltips: { callbacks: { label: t => ' ' + numToString(Math.round(t.xLabel)) + ' ₫' } },
+            scales: { xAxes: [{ ticks: { beginAtZero: true, callback: v => numToString(v) } }] }
+        }
+    });
+}
+
+function drawTopVariantsChart(list) {
+    var canvas = document.getElementById('chartTopVariants');
+    if (!canvas) return;
+
+    var labels = (list || []).map(x => `${x.product_name} - ${x.color_name}`);
+    var values = (list || []).map(x => Number(x.units || 0));
+    var colors = labels.map(() => getRandomColor());
+
+    __statsCharts['chartTopVariants'] = new Chart(canvas, {
+        type: 'bar',
+        data: { labels, datasets: [{ label:'Top màu (số lượng)', data: values, backgroundColor: colors, borderColor:'#fff', borderWidth:1 }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // [MỚI]
+            title: { display: true, text: 'Top 10 màu bán chạy (theo số lượng)', fontSize: 18 },
+            legend: { display:false },
+            scales: { yAxes: [{ ticks: { beginAtZero: true } }] }
+        }
+    });
+}
+
+// Tables + CSV (giữ như cũ)
+function renderTables(data) {
+    window.__lastStatsTopProducts = data.top_products || [];
+    window.__lastStatsTopVariants = data.top_variants || [];
+    renderTopProductsTable(data.top_products || []);
+    renderTopVariantsTable(data.top_variants || []);
+}
+
+function renderTopProductsTable(list) {
+    var div = document.getElementById('topProductsTable');
+    if (!div) return;
+    if (!list.length) { div.innerHTML = '<div style="padding:10px;color:#777;">Chưa có dữ liệu.</div>'; return; }
+
+    var html = `<table class="table-outline" style="margin:0;">
+        <tr><th>#</th><th>Mã</th><th>Tên</th><th>Hãng</th><th>Số lượng</th><th>Doanh thu</th></tr>`;
+    list.forEach((x,i) => {
+        html += `<tr>
+            <td>${i+1}</td><td>${x.masp}</td>
+            <td style="text-align:left;">${escapeHtml(x.name)}</td>
+            <td>${escapeHtml(x.brand)}</td>
+            <td>${x.units}</td>
+            <td style="color:#d0021b;font-weight:bold;">${numToString(Math.round(x.revenue))} ₫</td>
+        </tr>`;
+    });
+    div.innerHTML = html + `</table>`;
+}
+
+function renderTopVariantsTable(list) {
+    var div = document.getElementById('topVariantsTable');
+    if (!div) return;
+    if (!list.length) { div.innerHTML = '<div style="padding:10px;color:#777;">Chưa có dữ liệu.</div>'; return; }
+
+    var html = `<table class="table-outline" style="margin:0;">
+        <tr><th>#</th><th>Sản phẩm</th><th>Màu</th><th>SL</th><th>Doanh thu</th></tr>`;
+    list.forEach((x,i) => {
+        var swatch = x.color_hex ? `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid #ccc;background:${x.color_hex};margin-right:6px;"></span>` : '';
+        html += `<tr>
+            <td>${i+1}</td>
+            <td style="text-align:left;">${escapeHtml(x.product_name)} <small style="color:#777">(${x.masp})</small></td>
+            <td style="text-align:left;">${swatch}${escapeHtml(x.color_name || '')}</td>
+            <td>${x.units}</td>
+            <td style="color:#d0021b;font-weight:bold;">${numToString(Math.round(x.revenue))} ₫</td>
+        </tr>`;
+    });
+    div.innerHTML = html + `</table>`;
+}
+
+function exportStatsCSV() {
+    var rows = [];
+    rows.push(['SECTION','RANK','MASP','NAME','BRAND_OR_COLOR','UNITS','REVENUE']);
+    (window.__lastStatsTopProducts || []).forEach((x,i) => rows.push(['TOP_PRODUCTS', i+1, x.masp, x.name, x.brand, x.units, Math.round(x.revenue)]));
+    (window.__lastStatsTopVariants || []).forEach((x,i) => rows.push(['TOP_VARIANTS', i+1, x.masp, x.product_name, x.color_name, x.units, Math.round(x.revenue)]));
+    var csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+    downloadText('report.csv', csv);
+}
+
+function downloadText(filename, text) {
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function toISODate(d) {
+    var y = d.getFullYear();
+    var m = String(d.getMonth()+1).padStart(2,'0');
+    var day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+}
+
+function parseISODate(s) {
+    if (!s) return null;
+    var t = new Date(s + 'T00:00:00');
+    return isNaN(t.getTime()) ? null : t;
 }

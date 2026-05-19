@@ -21,12 +21,26 @@ function khoiTao() {
             // Format dữ liệu từ DB cho khớp với Frontend cũ
             list_products = data.map(function(p) {
                 // DB lưu giá số nguyên (1000000), Frontend cần chuỗi ("1.000.000")
-                if(typeof p.price === 'number') {
+                if (typeof p.price === 'number') {
                     p.price = numToString(p.price);
+                } else if (typeof p.price === 'string') {
+                    p.price = numToString(stringToNum(p.price));
+                }
+
+                // Format luôn promo.value để đồng bộ hiển thị
+                if (p.promo && p.promo.value != null) {
+                    if (typeof p.promo.value === 'number') {
+                        p.promo.value = numToString(p.promo.value);
+                    } else if (typeof p.promo.value === 'string') {
+                        var promoNum = stringToNum(p.promo.value);
+                        if (!isNaN(promoNum) && promoNum > 0) {
+                            p.promo.value = numToString(promoNum);
+                        }
+                    }
                 }
                 
                 // Đảm bảo object 'detail' luôn tồn tại để không lỗi hiển thị
-                if(!p.detail) p.detail = {};
+                if (!p.detail) p.detail = {};
                 
                 return p;
             });
