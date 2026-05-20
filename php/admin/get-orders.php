@@ -1,7 +1,7 @@
 <?php
 // php/admin/get-orders.php
 header('Content-Type: application/json; charset=utf-8');
-
+require_once(__DIR__ . '/admin_auth.php');
 require_once('../../connect.php');
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);

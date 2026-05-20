@@ -1,5 +1,6 @@
 <?php
 header('Content-Type: application/json');
+require_once(__DIR__ . '/admin_auth.php');
 require_once('../../connect.php');
 
 // Nhận dữ liệu JSON gửi từ Javascript

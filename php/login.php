@@ -1,34 +1,83 @@
 <?php
-header('Content-Type: application/json');
-require_once('../connect.php'); // Kết nối DB
+// php/login.php
+header('Content-Type: application/json; charset=utf-8');
 
-// Nhận dữ liệu JSON từ phía JS gửi lên
-$data = json_decode(file_get_contents("php://input"), true);
-$username = $data['username'];
-$password = $data['pass'];
+require_once(__DIR__ . '/auth_session.php');
+require_once('../connect.php');
 
-// Kiểm tra trong database
-$sql = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
-$result = $conn->query($sql);
+try {
+    $data = read_json_body();
 
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    
-    // Nếu tài khoản bị khóa (trang_thai = 0)
-    if($row['trang_thai'] == 0) {
-        echo json_encode(["status" => false, "message" => "Tài khoản đang bị khóa!"]);
-    } else {
-        // Đăng nhập thành công -> Trả về thông tin user (trừ mật khẩu)
-        unset($row['password']); 
-        echo json_encode([
-            "status" => true, 
-            "message" => "Đăng nhập thành công!",
-            "user" => $row
-        ]);
+    $username = trim($data['username'] ?? '');
+    $password = trim($data['pass'] ?? '');
+
+    if ($username === '' || $password === '') {
+        json_response(false, 'Vui lòng nhập tên đăng nhập và mật khẩu!', [], 400);
     }
-} else {
-    echo json_encode(["status" => false, "message" => "Sai tên đăng nhập hoặc mật khẩu!"]);
-}
 
-$conn->close();
+    $stmt = $conn->prepare("
+        SELECT username, password, ho, ten, email, role, trang_thai
+        FROM users
+        WHERE username = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        json_response(false, 'Sai tên đăng nhập hoặc mật khẩu!', [], 401);
+    }
+
+    $row = $result->fetch_assoc();
+    $stmt->close();
+
+    if ((int)$row['trang_thai'] === 0) {
+        json_response(false, 'Tài khoản đang bị khóa!', [], 403);
+    }
+
+    /*
+        Tạm thời hỗ trợ cả 2 dạng:
+        - Mật khẩu cũ đang lưu plain text.
+        - Mật khẩu mới sau này sẽ lưu bằng password_hash().
+    */
+    $storedPassword = (string)$row['password'];
+    $isHashed = password_get_info($storedPassword)['algo'] !== 0;
+
+    $passwordOk = $isHashed
+        ? password_verify($password, $storedPassword)
+        : hash_equals($storedPassword, $password);
+
+    if (!$passwordOk) {
+        json_response(false, 'Sai tên đăng nhập hoặc mật khẩu!', [], 401);
+    }
+
+    unset($row['password']);
+
+    $user = [
+        'username' => $row['username'],
+        'ho' => $row['ho'] ?? '',
+        'ten' => $row['ten'] ?? '',
+        'email' => $row['email'] ?? '',
+        'role' => $row['role'] ?? 'user',
+        'trang_thai' => (int)$row['trang_thai'],
+        'off' => ((int)$row['trang_thai'] === 0)
+    ];
+
+    session_regenerate_id(true);
+    $_SESSION['user'] = $user;
+
+    json_response(true, 'Đăng nhập thành công!', [
+        'user' => $user
+    ]);
+
+} catch (Throwable $e) {
+    error_log('Login error: ' . $e->getMessage());
+    json_response(false, 'Có lỗi xảy ra khi đăng nhập!', [], 500);
+} finally {
+    if (isset($conn) && $conn instanceof mysqli) {
+        $conn->close();
+    }
+}
 ?>
