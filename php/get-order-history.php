@@ -1,83 +1,103 @@
 <?php
+// php/get-order-history.php
 header('Content-Type: application/json; charset=utf-8');
+
 require_once('../connect.php');
 
-if (!isset($_GET['username'])) {
-    echo json_encode([]);
-    exit();
-}
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-$username = trim($_GET['username']);
-if ($username === '') {
-    echo json_encode([]);
-    exit();
-}
+try {
+    $username = trim((string)($_GET['username'] ?? ''));
 
-$stmt = $conn->prepare("
-    SELECT 
-        ma_don,
-        ngay_mua,
-        tinh_trang,
-        phuong_thuc_tt,
-        payment_status,
-        tong_tien,
-        vnp_txn_ref,
-        vnp_transaction_no,
-        vnp_response_code,
-        paid_at
-    FROM orders
-    WHERE username = ?
-    ORDER BY ngay_mua DESC, ma_don DESC
-");
-$stmt->bind_param("s", $username);
-$stmt->execute();
-$result = $stmt->get_result();
+    if ($username === '') {
+        echo json_encode([], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 
-$dsDonHang = [];
+    $dateCol = 'ngay_mua';
+    $chk = $conn->query("SHOW COLUMNS FROM orders LIKE 'ngaymua'");
+    if ($chk && $chk->num_rows > 0) {
+        $dateCol = 'ngaymua';
+    }
 
-$stmtDetail = $conn->prepare("
-    SELECT masp, variant_id, mau_sac, so_luong, don_gia
-    FROM order_details
-    WHERE ma_don = ?
-    ORDER BY detail_id ASC
-");
+    $stmtOrders = $conn->prepare("
+        SELECT ma_don, $dateCol AS ngay_mua_view, tinh_trang, tong_tien,
+               phuong_thuc_tt, payment_status, vnp_txn_ref,
+               vnp_transaction_no, vnp_response_code, paid_at,
+               dia_chi, so_dien_thoai
+        FROM orders
+        WHERE username = ?
+        ORDER BY $dateCol DESC, ma_don DESC
+    ");
+    $stmtOrders->bind_param("s", $username);
+    $stmtOrders->execute();
+    $rsOrders = $stmtOrders->get_result();
 
-while ($row = $result->fetch_assoc()) {
-    $ma_don = (int)$row['ma_don'];
+    $stmtDetails = $conn->prepare("
+        SELECT masp, variant_id, mau_sac, so_luong, don_gia
+        FROM order_details
+        WHERE ma_don = ?
+        ORDER BY detail_id ASC
+    ");
 
-    $stmtDetail->bind_param("i", $ma_don);
-    $stmtDetail->execute();
-    $res_detail = $stmtDetail->get_result();
+    $orders = [];
 
-    $products = [];
-    while ($d = $res_detail->fetch_assoc()) {
-        $products[] = [
-            'ma' => $d['masp'],
-            'variant_id' => $d['variant_id'] !== null ? (int)$d['variant_id'] : null,
-            'mau_sac' => $d['mau_sac'] ?? null,
-            'soluong' => (int)$d['so_luong'],
-            'gia' => (int)$d['don_gia']
+    while ($row = $rsOrders->fetch_assoc()) {
+        $maDon = (int)$row['ma_don'];
+
+        $stmtDetails->bind_param("i", $maDon);
+        $stmtDetails->execute();
+        $rsDetails = $stmtDetails->get_result();
+
+        $products = [];
+
+        while ($d = $rsDetails->fetch_assoc()) {
+            $products[] = [
+                'ma' => $d['masp'],
+                'masp' => $d['masp'],
+                'variant_id' => $d['variant_id'] !== null ? (int)$d['variant_id'] : null,
+                'mau_sac' => $d['mau_sac'] ?? null,
+                'soluong' => (int)$d['so_luong'],
+                'so_luong' => (int)$d['so_luong'],
+                'gia' => (int)$d['don_gia']
+            ];
+        }
+
+        $orders[] = [
+            'maDon' => $maDon,
+            'ngaymua' => $row['ngay_mua_view'],
+            'ngayMua' => $row['ngay_mua_view'],
+            'tinhTrang' => $row['tinh_trang'],
+            'tongtien' => (int)$row['tong_tien'],
+            'tongTien' => (int)$row['tong_tien'],
+            'phuongThucTT' => $row['phuong_thuc_tt'] ?? 'COD',
+            'pttt' => $row['phuong_thuc_tt'] ?? 'COD',
+            'paymentStatus' => $row['payment_status'] ?? 'Pending',
+            'vnpTxnRef' => $row['vnp_txn_ref'] ?? null,
+            'vnpTransactionNo' => $row['vnp_transaction_no'] ?? null,
+            'vnpResponseCode' => $row['vnp_response_code'] ?? null,
+            'paidAt' => $row['paid_at'] ?? null,
+            'diaChi' => $row['dia_chi'] ?? '',
+            'sdt' => $row['so_dien_thoai'] ?? '',
+            'sp' => $products
         ];
     }
 
-    $dsDonHang[] = [
-        'maDon' => $ma_don,
-        'ngaymua' => $row['ngay_mua'],
-        'tinhTrang' => $row['tinh_trang'],
-        'phuongThucTT' => $row['phuong_thuc_tt'],
-        'paymentStatus' => $row['payment_status'],
-        'tongtien' => (int)$row['tong_tien'],
-        'vnpTxnRef' => $row['vnp_txn_ref'],
-        'vnpTransactionNo' => $row['vnp_transaction_no'],
-        'vnpResponseCode' => $row['vnp_response_code'],
-        'paidAt' => $row['paid_at'],
-        'sp' => $products
-    ];
+    $stmtDetails->close();
+    $stmtOrders->close();
+
+    echo json_encode($orders, JSON_UNESCAPED_UNICODE);
+
+} catch (Throwable $e) {
+    http_response_code(400);
+
+    echo json_encode([
+        "status" => false,
+        "message" => $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
+} finally {
+    if (isset($conn) && $conn instanceof mysqli) {
+        $conn->close();
+    }
 }
-
-echo json_encode($dsDonHang, JSON_UNESCAPED_UNICODE);
-
-$stmtDetail->close();
-$stmt->close();
-$conn->close();
 ?>

@@ -378,4 +378,336 @@ if (!function_exists('deduct_stock_for_saved_order')) {
         }
     }
 }
+/* =========================================================
+   VNPay session flow helpers
+   - VNPay bấm thanh toán: chỉ lưu vnpay_payment_sessions
+   - Chỉ tạo orders/order_details khi VNPay trả về success/fail
+   ========================================================= */
+
+if (!function_exists('generate_vnp_session_ref')) {
+    function generate_vnp_session_ref()
+    {
+        return 'GD' . date('YmdHis') . random_int(1000, 9999);
+    }
+}
+
+if (!function_exists('normalize_cart_items_for_order')) {
+    function normalize_cart_items_for_order($items)
+    {
+        if (!is_array($items) || count($items) === 0) {
+            throw new Exception("Giỏ hàng trống hoặc dữ liệu sản phẩm không hợp lệ.");
+        }
+
+        $normalized = [];
+
+        foreach ($items as $sp) {
+            if (!is_array($sp)) {
+                throw new Exception("Dữ liệu sản phẩm không hợp lệ.");
+            }
+
+            $masp = trim((string)($sp['masp'] ?? $sp['ma'] ?? ''));
+            $variantId = (int)($sp['variant_id'] ?? 0);
+            $mauSac = trim((string)($sp['mau_sac'] ?? ''));
+            $soLuong = (int)($sp['so_luong'] ?? $sp['soluong'] ?? 0);
+            $gia = (float)($sp['gia'] ?? $sp['don_gia'] ?? 0);
+
+            if ($masp === '') throw new Exception("Thiếu mã sản phẩm trong giỏ hàng.");
+            if ($soLuong <= 0) throw new Exception("Số lượng mua không hợp lệ.");
+            if ($gia < 0) throw new Exception("Đơn giá không hợp lệ.");
+
+            $normalized[] = [
+                'masp' => $masp,
+                'variant_id' => $variantId > 0 ? $variantId : null,
+                'mau_sac' => $mauSac !== '' ? $mauSac : null,
+                'so_luong' => $soLuong,
+                'gia' => $gia
+            ];
+        }
+
+        return $normalized;
+    }
+}
+
+if (!function_exists('calculate_cart_total_amount')) {
+    function calculate_cart_total_amount($sanPham)
+    {
+        $total = 0;
+        foreach ($sanPham as $sp) {
+            $total += ((float)$sp['gia']) * ((int)$sp['so_luong']);
+        }
+        return (int)round($total);
+    }
+}
+
+if (!function_exists('create_cart_signature')) {
+    function create_cart_signature($username, $tongTien, $sanPham, $secret = '')
+    {
+        $payload = json_encode([
+            'username' => $username,
+            'tong_tien' => (int)$tongTien,
+            'san_pham' => $sanPham
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        return hash('sha256', $payload . '|' . (string)$secret);
+    }
+}
+
+if (!function_exists('assert_cart_stock_available')) {
+    function assert_cart_stock_available($conn, $sanPham)
+    {
+        $stmtByVariant = $conn->prepare("
+            SELECT pv.variant_id, pv.masp, pv.ten_mau, pv.so_luong_ton, p.ten_sp
+            FROM product_variants pv
+            INNER JOIN products p ON pv.masp = p.masp
+            WHERE pv.variant_id = ?
+            LIMIT 1
+        ");
+
+        $stmtPickVariant = $conn->prepare("
+            SELECT pv.variant_id, pv.masp, pv.ten_mau, pv.so_luong_ton, p.ten_sp
+            FROM product_variants pv
+            INNER JOIN products p ON pv.masp = p.masp
+            WHERE pv.masp = ?
+            ORDER BY CASE WHEN pv.ten_mau = 'Mặc định' THEN 0 ELSE 1 END, pv.variant_id ASC
+            LIMIT 1
+        ");
+
+        try {
+            foreach ($sanPham as $sp) {
+                $masp = trim((string)$sp['masp']);
+                $variantId = (int)($sp['variant_id'] ?? 0);
+                $soLuong = (int)$sp['so_luong'];
+
+                if ($variantId > 0) {
+                    $stmtByVariant->bind_param("i", $variantId);
+                    $stmtByVariant->execute();
+                    $rs = $stmtByVariant->get_result();
+                } else {
+                    $stmtPickVariant->bind_param("s", $masp);
+                    $stmtPickVariant->execute();
+                    $rs = $stmtPickVariant->get_result();
+                }
+
+                if ($rs->num_rows === 0) {
+                    throw new Exception("Không tìm thấy màu/variant cho sản phẩm $masp.");
+                }
+
+                $row = $rs->fetch_assoc();
+                $rs->free();
+
+                if ($row['masp'] !== $masp) {
+                    throw new Exception("Variant không thuộc sản phẩm $masp.");
+                }
+
+                $stock = (int)$row['so_luong_ton'];
+                if ($soLuong > $stock) {
+                    $tenSp = $row['ten_sp'] ?: $masp;
+                    $tenMau = $row['ten_mau'] ?: 'Không rõ';
+                    throw new Exception("Sản phẩm '$tenSp' màu '$tenMau' chỉ còn $stock cái.");
+                }
+            }
+        } finally {
+            $stmtByVariant->close();
+            $stmtPickVariant->close();
+        }
+    }
+}
+
+if (!function_exists('load_order_for_vnpay_result')) {
+    function load_order_for_vnpay_result($conn, $maDon)
+    {
+        $stmt = $conn->prepare("
+            SELECT ma_don, username, ngay_mua, tinh_trang, phuong_thuc_tt, payment_status,
+                   tong_tien, dia_chi, so_dien_thoai, vnp_txn_ref, vnp_transaction_no,
+                   vnp_response_code, paid_at
+            FROM orders
+            WHERE ma_don = ?
+            LIMIT 1
+        ");
+        $stmt->bind_param("i", $maDon);
+        $stmt->execute();
+        $rs = $stmt->get_result();
+        $order = $rs->num_rows > 0 ? $rs->fetch_assoc() : null;
+        $rs->free();
+        $stmt->close();
+
+        return $order;
+    }
+}
+
+if (!function_exists('create_order_from_vnpay_session')) {
+    function create_order_from_vnpay_session($conn, $session, $paymentStatus, $tinhTrang, $vnpTransactionNo, $vnpResponseCode, $paidAt, $deductStockNow)
+    {
+        $sanPham = json_decode($session['cart_json'], true);
+        $sanPham = normalize_cart_items_for_order($sanPham);
+
+        $username = (string)$session['username'];
+        $tongTien = (float)$session['tong_tien'];
+        $txnRef = (string)$session['txn_ref'];
+        $diaChi = (string)$session['dia_chi'];
+        $sdt = (string)$session['so_dien_thoai'];
+
+        $stmt = $conn->prepare("
+            INSERT INTO orders (
+                username, tong_tien, tinh_trang, phuong_thuc_tt, payment_status,
+                vnp_txn_ref, vnp_transaction_no, vnp_response_code, paid_at,
+                dia_chi, so_dien_thoai
+            )
+            VALUES (?, ?, ?, 'VNPAY', ?, ?, ?, ?, ?, ?, ?)
+        ");
+
+        $stmt->bind_param(
+            "sdssssssss",
+            $username,
+            $tongTien,
+            $tinhTrang,
+            $paymentStatus,
+            $txnRef,
+            $vnpTransactionNo,
+            $vnpResponseCode,
+            $paidAt,
+            $diaChi,
+            $sdt
+        );
+
+        $stmt->execute();
+        $maDon = (int)$conn->insert_id;
+        $stmt->close();
+
+        save_order_details_from_cart($conn, $maDon, $sanPham, $deductStockNow);
+
+        return $maDon;
+    }
+}
+
+if (!function_exists('process_vnpay_session_result')) {
+    function process_vnpay_session_result($conn, $txnRef, $vnpAmount, $vnpResponseCode, $vnpTransactionStatus, $vnpTransactionNo, $vnpPayDate)
+    {
+        $txnRef = trim((string)$txnRef);
+        if ($txnRef === '') {
+            throw new Exception("MISSING_TXN_REF");
+        }
+
+        $conn->begin_transaction();
+
+        try {
+            $stmtSession = $conn->prepare("
+                SELECT session_id, txn_ref, username, tong_tien, ho_ten, dia_chi, so_dien_thoai,
+                       cart_json, cart_signature, session_status, order_id,
+                       vnp_transaction_no, vnp_response_code, paid_at, created_at, expires_at
+                FROM vnpay_payment_sessions
+                WHERE txn_ref = ?
+                LIMIT 1
+                FOR UPDATE
+            ");
+            $stmtSession->bind_param("s", $txnRef);
+            $stmtSession->execute();
+            $rsSession = $stmtSession->get_result();
+
+            if ($rsSession->num_rows === 0) {
+                $rsSession->free();
+                $stmtSession->close();
+                throw new Exception("SESSION_NOT_FOUND");
+            }
+
+            $session = $rsSession->fetch_assoc();
+            $rsSession->free();
+            $stmtSession->close();
+
+            $tongTienHeThong = (int)$session['tong_tien'];
+            $tongTienVnpay = (int)((int)$vnpAmount / 100);
+
+            if ($tongTienVnpay !== $tongTienHeThong) {
+                throw new Exception("INVALID_AMOUNT");
+            }
+
+            if (!empty($session['order_id'])) {
+                $order = load_order_for_vnpay_result($conn, (int)$session['order_id']);
+                $conn->commit();
+
+                return [
+                    'session' => $session,
+                    'order' => $order,
+                    'already_processed' => true,
+                    'success' => (($session['session_status'] ?? '') === 'Paid')
+                ];
+            }
+
+            $isSuccess = ($vnpResponseCode === '00' && $vnpTransactionStatus === '00');
+
+            if ($isSuccess) {
+                $paymentStatus = 'Paid';
+                $tinhTrang = 'Chờ xử lý';
+                $paidAt = parse_vnpay_paydate_to_mysql($vnpPayDate);
+                if ($paidAt === null) $paidAt = date('Y-m-d H:i:s');
+
+                $maDon = create_order_from_vnpay_session(
+                    $conn,
+                    $session,
+                    $paymentStatus,
+                    $tinhTrang,
+                    $vnpTransactionNo,
+                    $vnpResponseCode,
+                    $paidAt,
+                    true
+                );
+
+                $sessionStatus = 'Paid';
+            } else {
+                $paymentStatus = 'Failed';
+                $tinhTrang = 'Đã hủy thanh toán';
+                $paidAt = null;
+
+                $maDon = create_order_from_vnpay_session(
+                    $conn,
+                    $session,
+                    $paymentStatus,
+                    $tinhTrang,
+                    $vnpTransactionNo,
+                    $vnpResponseCode,
+                    $paidAt,
+                    false
+                );
+
+                $sessionStatus = 'Failed';
+            }
+
+            $stmtUpdateSession = $conn->prepare("
+                UPDATE vnpay_payment_sessions
+                SET session_status = ?,
+                    order_id = ?,
+                    vnp_transaction_no = ?,
+                    vnp_response_code = ?,
+                    paid_at = ?
+                WHERE session_id = ?
+            ");
+            $stmtUpdateSession->bind_param(
+                "sisssi",
+                $sessionStatus,
+                $maDon,
+                $vnpTransactionNo,
+                $vnpResponseCode,
+                $paidAt,
+                $session['session_id']
+            );
+            $stmtUpdateSession->execute();
+            $stmtUpdateSession->close();
+
+            $order = load_order_for_vnpay_result($conn, $maDon);
+
+            $conn->commit();
+
+            return [
+                'session' => $session,
+                'order' => $order,
+                'already_processed' => false,
+                'success' => $isSuccess
+            ];
+
+        } catch (Throwable $e) {
+            try { $conn->rollback(); } catch (Throwable $ignore) {}
+            throw $e;
+        }
+    }
+}
 ?>
