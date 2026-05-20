@@ -104,31 +104,37 @@ function updateInfo() {
     var hoMoi = fullname[0];
     var tenMoi = fullname.slice(1).join(' ');
 
-    fetch('php/update-user-info.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            username: currentUser.username,
-            ho: hoMoi,
-            ten: tenMoi
-        })
+  fetch('php/update-user-info.php', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        ho: hoMoi,
+        ten: tenMoi
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status) {
-            alert(data.message);
+})
+.then(res => res.json())
+.then(data => {
+    if (data.status) {
+        alert(data.message);
+
+        if (data.user) {
+            currentUser = Object.assign(currentUser, data.user);
+        } else {
             currentUser.ho = hoMoi;
             currentUser.ten = tenMoi;
-            setCurrentUser(currentUser);
-            renderUserInfo();
-        } else {
-            alert("Lỗi: " + data.message);
         }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Lỗi kết nối Server!");
-    });
+
+        setCurrentUser(currentUser);
+        renderUserInfo();
+    } else {
+        alert("Lỗi: " + data.message);
+    }
+})
+.catch(err => {
+    console.error(err);
+    alert("Lỗi kết nối Server!");
+});
 }
 
 function changePass() {
@@ -219,7 +225,9 @@ function fetchOrderHistory() {
         fetchOrderHistory();
     });
 
-    fetch('php/get-order-history.php?username=' + encodeURIComponent(currentUser.username))
+    fetch('php/get-order-history.php', {
+    credentials: 'same-origin'
+    })
         .then(res => res.json())
         .then(data => {
             currentUser.donhang = Array.isArray(data) ? data : [];

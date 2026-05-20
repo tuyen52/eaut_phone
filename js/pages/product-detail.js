@@ -445,12 +445,11 @@ function submitReview() {
         }
     }
 
-    var payload = {
-        masp: sanPhamHienTai.masp,
-        username: user.username,
-        rating: selectedRating,
-        comment: comment
-    };
+        var payload = {
+         masp: sanPhamHienTai.masp,
+         rating: selectedRating,
+         comment: comment
+         };
 
     if (extra && (extra.variant_id || extra.mau_sac)) {
         payload.variant_id = extra.variant_id;
@@ -459,6 +458,7 @@ function submitReview() {
 
     fetch('php/add-review.php', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(payload)
     })
