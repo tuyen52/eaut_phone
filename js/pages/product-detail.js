@@ -24,7 +24,7 @@ function applyVariantImage(p, v) {
     }
 }
 
-window.onload = function() {
+window.onload = function () {
     khoiTao(); // core/init.js
 
     // Lấy tên sản phẩm từ URL
@@ -76,19 +76,19 @@ function loadVariantsForProduct(p) {
     hintDiv.innerText = 'Vui lòng chọn màu trước khi mua.';
 
     fetch('php/get-product-variants.php?masp=' + encodeURIComponent(p.masp))
-    .then(res => res.json())
-    .then(list => {
-        if (!Array.isArray(list)) list = [];
-        variantsHienTai = list;
-        renderVariantOptions(p, list);
+        .then(res => res.json())
+        .then(list => {
+            if (!Array.isArray(list)) list = [];
+            variantsHienTai = list;
+            renderVariantOptions(p, list);
 
-        // reset ảnh về ảnh sản phẩm mặc định khi load màu
-        applyVariantImage(p, null);
-    })
-    .catch(err => {
-        console.error(err);
-        optionsDiv.innerHTML = '<span style="color:red">Lỗi tải danh sách màu!</span>';
-    });
+            // reset ảnh về ảnh sản phẩm mặc định khi load màu
+            applyVariantImage(p, null);
+        })
+        .catch(err => {
+            console.error(err);
+            optionsDiv.innerHTML = '<span style="color:red">Lỗi tải danh sách màu!</span>';
+        });
 }
 
 function renderVariantOptions(p, variants) {
@@ -120,7 +120,7 @@ function renderVariantOptions(p, variants) {
 
     var btns = optionsDiv.querySelectorAll('.variant_btn');
     btns.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             if (btn.getAttribute('data-disabled') == '1') return;
 
             var vid = parseInt(btn.getAttribute('data-variant-id'));
@@ -155,7 +155,7 @@ function updateStockAndBuyButton(p) {
 
     if (totalStock <= 0) {
         btnMua.classList.add('disabled');
-        btnMua.onclick = function(e){ if (e) e.preventDefault(); };
+        btnMua.onclick = function (e) { if (e) e.preventDefault(); };
         return;
     }
 
@@ -164,7 +164,7 @@ function updateStockAndBuyButton(p) {
         stockDiv.className = 'stock_status available';
 
         btnMua.classList.add('disabled');
-        btnMua.onclick = function(e) { if (e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.onclick = function (e) { if (e) e.preventDefault(); handleAddToCart(p); };
         btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Chọn màu để mua';
 
         if (hintDiv) {
@@ -180,11 +180,11 @@ function updateStockAndBuyButton(p) {
 
     if (variantStock > 0) {
         btnMua.classList.remove('disabled');
-        btnMua.onclick = function(e) { if (e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.onclick = function (e) { if (e) e.preventDefault(); handleAddToCart(p); };
         btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng';
     } else {
         btnMua.classList.add('disabled');
-        btnMua.onclick = function(e) { if (e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.onclick = function (e) { if (e) e.preventDefault(); handleAddToCart(p); };
         btnMua.querySelector('b').innerText = 'Hết hàng (màu đã chọn)';
     }
 }
@@ -265,13 +265,13 @@ function renderProductDetail(p) {
         stockDiv.className = 'stock_status available';
 
         btnMua.classList.add('disabled');
-        btnMua.onclick = function(e) { if (e) e.preventDefault(); handleAddToCart(p); };
+        btnMua.onclick = function (e) { if (e) e.preventDefault(); handleAddToCart(p); };
         btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Chọn màu để mua';
     } else {
         stockDiv.innerHTML = 'Hết hàng';
         stockDiv.className = 'stock_status unavailable';
         btnMua.classList.add('disabled');
-        btnMua.onclick = function(e) { if (e) e.preventDefault(); };
+        btnMua.onclick = function (e) { if (e) e.preventDefault(); };
         btnMua.querySelector('b').innerText = 'Hết hàng';
     }
 
@@ -320,8 +320,8 @@ function renderSuggestion(currentP, list) {
                     <h3 class="tenKhung" style="background-image: linear-gradient(120deg, #434aa8 0%, #004c70 50%, #434aa8 100%);">* SẢN PHẨM TƯƠNG TỰ *</h3>
                     <div class="listSpTrongKhung flexContain">`;
         finalResult.forEach(p => {
-             var productObj = new Product(p.masp, p.name, p.img, p.price, p.star, p.rateCount, p.promo);
-             s += renderProductCardHTML(productObj);
+            var productObj = new Product(p.masp, p.name, p.img, p.price, p.star, p.rateCount, p.promo);
+            s += renderProductCardHTML(productObj);
         });
         s += `</div></div>`;
         div.innerHTML = s;
@@ -348,36 +348,57 @@ function displayReviews() {
     div.innerHTML = '<p style="text-align:center">Đang tải đánh giá...</p>';
 
     fetch('php/get-reviews.php?masp=' + sanPhamHienTai.masp)
-    .then(res => res.json())
-    .then(list => {
-        div.innerHTML = '';
-        if (!Array.isArray(list) || list.length === 0) {
-            div.innerHTML = '<p id="no-reviews" style="display:block; text-align:center; color:#777;">Chưa có đánh giá nào cho sản phẩm này.</p>';
-            return;
-        }
+        .then(res => res.json())
+        .then(list => {
+            div.innerHTML = '';
+            if (!Array.isArray(list) || list.length === 0) {
+                div.innerHTML = '<p id="no-reviews" style="display:block; text-align:center; color:#777;">Chưa có đánh giá nào cho sản phẩm này.</p>';
+                return;
+            }
 
-        list.forEach(r => {
-            var stars = '';
-            for (var i = 1; i <= 5; i++) stars += `<i class="fa ${i<=r.rating?'fa-star':'fa-star-o'}"></i>`;
+            list.forEach(r => {
+                var rating = parseInt(r.rating || 0);
+                if (rating < 0) rating = 0;
+                if (rating > 5) rating = 5;
 
-            // [MỚI] hiện màu đã mua
-            var mau = r.mau_sac ? r.mau_sac : (r.variant_id ? ('Variant #' + r.variant_id) : '');
-            var swatch = r.ma_mau_hex ? `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid #ccc;background:${r.ma_mau_hex};margin-right:6px;"></span>` : '';
-            var mauHtml = mau ? `<div style="margin-top:4px;font-size:12px;color:#0056b3;">Màu đã mua: ${swatch}<b>${mau}</b></div>` : '';
+                var stars = '';
+                for (var i = 1; i <= 5; i++) {
+                    stars += `<i class="fa ${i <= rating ? 'fa-star' : 'fa-star-o'}"></i>`;
+                }
 
-            div.innerHTML += `
-            <div class="review-item">
-                <div class="reviewer-info"><b>${r.username}</b> <span style="font-size:12px; color:#999">(${new Date(r.timestamp).toLocaleString()})</span></div>
-                <div class="review-stars" style="color:orange">${stars}</div>
-                ${mauHtml}
-                <div class="review-comment">${String(r.comment || '').replace(/\n/g, '<br>')}</div>
-            </div>`;
+                var mau = r.mau_sac ? r.mau_sac : (r.variant_id ? ('Variant #' + r.variant_id) : '');
+                var safeMau = escapeHtml(mau);
+                var safeUsername = escapeHtml(r.username);
+                var safeComment = escapeHtml(r.comment).replace(/\n/g, '<br>');
+                var safeTime = escapeHtml(new Date(r.timestamp).toLocaleString());
+
+                var hex = String(r.ma_mau_hex || '');
+                var safeHex = /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : '#000000';
+
+                var swatch = mau
+                    ? `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid #ccc;background:${safeHex};margin-right:6px;"></span>`
+                    : '';
+
+                var mauHtml = mau
+                    ? `<div style="margin-top:4px;font-size:12px;color:#0056b3;">Màu đã mua: ${swatch}<b>${safeMau}</b></div>`
+                    : '';
+
+                div.innerHTML += `
+    <div class="review-item">
+        <div class="reviewer-info">
+            <b>${safeUsername}</b>
+            <span style="font-size:12px; color:#999">(${safeTime})</span>
+        </div>
+        <div class="review-stars" style="color:orange">${stars}</div>
+        ${mauHtml}
+        <div class="review-comment">${safeComment}</div>
+    </div>`;
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            div.innerHTML = '<p style="color:red">Lỗi tải đánh giá!</p>';
         });
-    })
-    .catch(err => {
-        console.error(err);
-        div.innerHTML = '<p style="color:red">Lỗi tải đánh giá!</p>';
-    });
 }
 
 function setupReviewForm() {
@@ -445,11 +466,11 @@ function submitReview() {
         }
     }
 
-        var payload = {
-         masp: sanPhamHienTai.masp,
-         rating: selectedRating,
-         comment: comment
-         };
+    var payload = {
+        masp: sanPhamHienTai.masp,
+        rating: selectedRating,
+        comment: comment
+    };
 
     if (extra && (extra.variant_id || extra.mau_sac)) {
         payload.variant_id = extra.variant_id;
@@ -459,29 +480,29 @@ function submitReview() {
     fetch('php/add-review.php', {
         method: 'POST',
         credentials: 'same-origin',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     })
-    .then(res => res.json())
-    .then(resp => {
-        // [MỚI] hỗ trợ cả status (chuẩn mới) và success (chuẩn cũ)
-        var ok = (resp && (resp.status === true || resp.success === true));
-        if (ok) {
-            alert(resp.message || "Gửi đánh giá thành công!");
-            resetReviewForm();
-            displayReviews();
-        } else {
-            alert("Lỗi: " + (resp.message || "Không rõ lỗi"));
-        }
-    })
-    .catch(err => alert("Lỗi kết nối Server!"));
+        .then(res => res.json())
+        .then(resp => {
+            // [MỚI] hỗ trợ cả status (chuẩn mới) và success (chuẩn cũ)
+            var ok = (resp && (resp.status === true || resp.success === true));
+            if (ok) {
+                alert(resp.message || "Gửi đánh giá thành công!");
+                resetReviewForm();
+                displayReviews();
+            } else {
+                alert("Lỗi: " + (resp.message || "Không rõ lỗi"));
+            }
+        })
+        .catch(err => alert("Lỗi kết nối Server!"));
 }
 
 // --- HELPER UI (Giữ nguyên) ---
 function hoverStars(rating) {
     var stars = document.querySelectorAll('.star-rating .fa');
     stars.forEach((s, i) => {
-        if (i < rating) { s.classList.remove('fa-star-o'); s.classList.add('fa-star'); } 
+        if (i < rating) { s.classList.remove('fa-star-o'); s.classList.add('fa-star'); }
         else { s.classList.remove('fa-star'); s.classList.add('fa-star-o'); }
     });
 }

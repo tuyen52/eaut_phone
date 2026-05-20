@@ -2,43 +2,61 @@
 
 // Hàm này nhận vào object Product và trả về chuỗi HTML
 function renderProductCardHTML(p) {
+    var rawMasp = String(p.masp || '');
+    var rawName = String(p.name || '');
+    var rawImg = String(p.img || '');
+
+    var safeMasp = escapeHtml(rawMasp);
+    var safeName = escapeHtml(rawName);
+    var safeImg = escapeAttr(rawImg);
+
     // 1. Xử lý sao đánh giá
     var rating = "";
-    if (p.rateCount > 0) {
+    var star = parseInt(p.star || 0);
+    var rateCount = parseInt(p.rateCount || 0);
+
+    if (star < 0) star = 0;
+    if (star > 5) star = 5;
+
+    if (rateCount > 0) {
         for (var i = 1; i <= 5; i++) {
-            rating += (i <= p.star) ? `<i class="fa fa-star"></i>` : `<i class="fa fa-star-o"></i>`;
+            rating += (i <= star) ? `<i class="fa fa-star"></i>` : `<i class="fa fa-star-o"></i>`;
         }
-        rating += `<span>${p.rateCount} đánh giá</span>`;
+        rating += `<span>${rateCount} đánh giá</span>`;
     }
 
-    // 2. Chuẩn hóa giá tiền trước khi render
+    // 2. Chuẩn hóa giá tiền
     var giaGoc = numToString(stringToNum(p.price));
     var giaKhuyenMai = (p.promo && p.promo.value != null)
         ? numToString(stringToNum(p.promo.value))
         : '';
 
     var price = `<strong>${giaGoc}&#8363;</strong>`;
+
     if (p.promo && p.promo.name == "giareonline") {
         price = `<strong>${giaKhuyenMai}&#8363;</strong><span>${giaGoc}&#8363;</span>`;
     }
 
-    // 3. Tạo link chi tiết (Thay khoảng trắng bằng dấu -)
-    var chitietSp = 'chitietsanpham.html?' + (p.name ? p.name.split(' ').join('-') : '');
+    // 3. Link chi tiết
+    var chitietSp = 'chitietsanpham.html?' + encodeURIComponent(rawName.split(' ').join('-'));
 
-    // 4. Tạo Promo Label (Dùng class Promo trong core/classes.js)
+    // 4. Promo label
     var promoObj = new Promo(p.promo.name, p.promo.value);
-    
-    // 5. Kết hợp thành HTML
+
+    // 5. Dữ liệu truyền vào onclick, dùng encodeURIComponent để tránh phá HTML/JS
+    var encodedMasp = encodeURIComponent(rawMasp);
+    var encodedName = encodeURIComponent(rawName);
+
     return `
     <li class="sanPham">
         <a href="${chitietSp}">
-            <img src="${p.img}" alt="${p.name}">
-            <h3>${p.name}</h3>
+            <img src="${safeImg}" alt="${safeName}">
+            <h3>${safeName}</h3>
             <div class="price">${price}</div>
             <div class="ratingresult">${rating}</div>
             ${promoObj.toWeb()}
             <div class="tooltip">
-                <button class="themvaogio" onclick="themVaoGioHang('${p.masp}', '${p.name}'); return false;">
+                <button class="themvaogio" onclick="themVaoGioHang(decodeURIComponent('${encodedMasp}'), decodeURIComponent('${encodedName}')); return false;">
                     <span class="tooltiptext" style="font-size: 15px;">Thêm vào giỏ</span>
                     +
                 </button>

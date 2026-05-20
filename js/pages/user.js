@@ -104,37 +104,37 @@ function updateInfo() {
     var hoMoi = fullname[0];
     var tenMoi = fullname.slice(1).join(' ');
 
-  fetch('php/update-user-info.php', {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        ho: hoMoi,
-        ten: tenMoi
+    fetch('php/update-user-info.php', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            ho: hoMoi,
+            ten: tenMoi
+        })
     })
-})
-.then(res => res.json())
-.then(data => {
-    if (data.status) {
-        alert(data.message);
+        .then(res => res.json())
+        .then(data => {
+            if (data.status) {
+                alert(data.message);
 
-        if (data.user) {
-            currentUser = Object.assign(currentUser, data.user);
-        } else {
-            currentUser.ho = hoMoi;
-            currentUser.ten = tenMoi;
-        }
+                if (data.user) {
+                    currentUser = Object.assign(currentUser, data.user);
+                } else {
+                    currentUser.ho = hoMoi;
+                    currentUser.ten = tenMoi;
+                }
 
-        setCurrentUser(currentUser);
-        renderUserInfo();
-    } else {
-        alert("Lỗi: " + data.message);
-    }
-})
-.catch(err => {
-    console.error(err);
-    alert("Lỗi kết nối Server!");
-});
+                setCurrentUser(currentUser);
+                renderUserInfo();
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Lỗi kết nối Server!");
+        });
 }
 
 function changePass() {
@@ -159,27 +159,27 @@ function changePass() {
             new_pass: newPass
         })
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status) {
-            alert(data.message);
+        .then(res => res.json())
+        .then(data => {
+            if (data.status) {
+                alert(data.message);
 
-            if (currentUser.pass) currentUser.pass = newPass;
-            if (currentUser.password) currentUser.password = newPass;
+                if (currentUser.pass) currentUser.pass = newPass;
+                if (currentUser.password) currentUser.password = newPass;
 
-            setCurrentUser(currentUser);
-            togglePassForm(false);
+                setCurrentUser(currentUser);
+                togglePassForm(false);
 
-            document.getElementById('oldPass').value = '';
-            document.getElementById('newPass').value = '';
-        } else {
-            alert("Lỗi: " + data.message);
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Lỗi kết nối Server!");
-    });
+                document.getElementById('oldPass').value = '';
+                document.getElementById('newPass').value = '';
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Lỗi kết nối Server!");
+        });
 }
 
 // ======================= ORDERS =======================
@@ -226,7 +226,7 @@ function fetchOrderHistory() {
     });
 
     fetch('php/get-order-history.php', {
-    credentials: 'same-origin'
+        credentials: 'same-origin'
     })
         .then(res => res.json())
         .then(data => {
@@ -344,24 +344,27 @@ function renderOrderHistory() {
 
         var spHTML = (dh.sp || []).map(s => {
             var p = null;
-            try { p = timKiemTheoMa(getListProducts(), s.ma); } catch (e) {}
+            try { p = timKiemTheoMa(getListProducts(), s.ma); } catch (e) { }
             var tenSP = p ? p.name : ("Sản phẩm #" + s.ma);
+            var safeTenSP = escapeHtml(tenSP);
+            var safeMauSac = escapeHtml(s.mau_sac || '');
+            var safeVariantId = escapeHtml(s.variant_id || '');
 
             var mauTxt = '';
             if (s.mau_sac) {
-                mauTxt = ` <span class="colorTag">(${escapeHtml(s.mau_sac)})</span>`;
+                mauTxt = ` <span class="colorTag">(${safeMauSac})</span>`;
             } else if (s.variant_id) {
-                mauTxt = ` <span style="color:#777;font-size:13px;">(Variant #${s.variant_id})</span>`;
+                mauTxt = ` <span style="color:#777;font-size:13px;">(Variant #${safeVariantId})</span>`;
             }
 
             var reviewLink = '';
             if ((st === 'Đã nhận hàng' || st === 'Hoàn thành') && p) {
-                var linkName = p.name.split(' ').join('-');
-                reviewLink = ` <a href="chitietsanpham.html?${linkName}" target="_blank" style="color:#288ad6; font-size:13px; text-decoration:underline;">
-                                <i class="fa fa-star-o"></i> Viết đánh giá</a>`;
+                var linkName = encodeURIComponent(p.name.split(' ').join('-'));
+                reviewLink = ` <a href="chitietsanpham.html?${linkName}" target="_blank" rel="noopener noreferrer" style="color:#288ad6; font-size:13px; text-decoration:underline;">
+                <i class="fa fa-star-o"></i> Viết đánh giá</a>`;
             }
 
-            return `<div class="itemLine">- ${escapeHtml(tenSP)}${mauTxt} <b>x${s.soluong}</b>${reviewLink}</div>`;
+            return `<div class="itemLine">- ${safeTenSP}${mauTxt} <b>x${parseInt(s.soluong || 0)}</b>${reviewLink}</div>`;
         }).join('');
 
         var actionBtn = '';
@@ -387,7 +390,7 @@ function renderOrderHistory() {
                 <div class="orderTop">
                     <div>
                         <div class="orderCode">Đơn #${maDon}</div>
-                        <div class="orderDate">${formatDateTime(dh.ngaymua)}</div>
+                        <div class="orderDate">${escapeHtml(formatDateTime(dh.ngaymua))}</div>
                     </div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
                         ${paymentMethodBadge(pttt)}
@@ -434,24 +437,28 @@ function userHuyDon(maDon) {
 }
 
 function updateOrderStatusAPI(maDon, status) {
-    fetch('php/admin/update-order-status.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ maDon: maDon, trangThai: status })
+fetch('php/admin/update-order-status.php', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        maDon: parseInt(maDon),
+        trangThai: status
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status) {
-            alert(data.message);
-            fetchOrderHistory();
-        } else {
-            alert("Lỗi: " + data.message);
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Lỗi kết nối Server!");
-    });
+})
+        .then(res => res.json())
+        .then(data => {
+            if (data.status) {
+                alert(data.message);
+                fetchOrderHistory();
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Lỗi kết nối Server!");
+        });
 }
 
 // ======================= Helpers =======================
