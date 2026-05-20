@@ -15,166 +15,54 @@ $statusClass = 'pending';
 $statusMessage = 'Hệ thống đang xử lý kết quả thanh toán.';
 $order = null;
 $shouldClearCart = false;
+$vnpTxnRefView = '';
 
 try {
-    if (trim($vnp_HashSecret) === '') {
+    if (trim((string)$vnp_HashSecret) === '') {
         throw new Exception('Thiếu cấu hình Hash Secret VNPay.');
     }
 
     $verify = vnpay_verify_response($_GET, $vnp_HashSecret);
+
     if (!$verify['valid']) {
         throw new Exception('Chữ ký không hợp lệ. Dữ liệu trả về có thể đã bị thay đổi.');
     }
 
     $input = $verify['input'];
 
-    $vnpTxnRef            = trim($input['vnp_TxnRef'] ?? '');
+    $vnpTxnRef            = trim((string)($input['vnp_TxnRef'] ?? ''));
     $vnpAmount            = (int)($input['vnp_Amount'] ?? 0);
-    $vnpResponseCode      = trim($input['vnp_ResponseCode'] ?? '');
-    $vnpTransactionStatus = trim($input['vnp_TransactionStatus'] ?? '');
-    $vnpTransactionNo     = trim($input['vnp_TransactionNo'] ?? '');
-    $vnpPayDate           = trim($input['vnp_PayDate'] ?? '');
+    $vnpResponseCode      = trim((string)($input['vnp_ResponseCode'] ?? ''));
+    $vnpTransactionStatus = trim((string)($input['vnp_TransactionStatus'] ?? ''));
+    $vnpTransactionNo     = trim((string)($input['vnp_TransactionNo'] ?? ''));
+    $vnpPayDate           = trim((string)($input['vnp_PayDate'] ?? ''));
+
+    $vnpTxnRefView = $vnpTxnRef;
 
     if ($vnpTxnRef === '') {
         throw new Exception('Không tìm thấy mã giao dịch VNPay.');
     }
 
-    $stmt = $conn->prepare("
-        SELECT ma_don, username, ngay_mua, tinh_trang, phuong_thuc_tt, payment_status,
-               tong_tien, dia_chi, so_dien_thoai, vnp_txn_ref, vnp_transaction_no,
-               vnp_response_code, paid_at
-        FROM orders
-        WHERE vnp_txn_ref = ?
-        LIMIT 1
-    ");
-    $stmt->bind_param("s", $vnpTxnRef);
-    $stmt->execute();
-    $rs = $stmt->get_result();
+    $result = process_vnpay_session_result(
+        $conn,
+        $vnpTxnRef,
+        $vnpAmount,
+        $vnpResponseCode,
+        $vnpTransactionStatus,
+        $vnpTransactionNo,
+        $vnpPayDate
+    );
 
-    if ($rs->num_rows === 0) {
-        throw new Exception('Không tìm thấy đơn hàng tương ứng với giao dịch VNPay.');
-    }
+    $order = $result['order'] ?? null;
 
-    $order = $rs->fetch_assoc();
-    $rs->free();
-    $stmt->close();
-
-    $maDon = (int)$order['ma_don'];
-    $heThongTongTien = (int)$order['tong_tien'];
-    $vnpTongTien = (int)($vnpAmount / 100);
-
-    if ($vnpTongTien !== $heThongTongTien) {
-        throw new Exception('Số tiền VNPay trả về không khớp với đơn hàng.');
-    }
-
-    // =========================================================
-    // FALLBACK XỬ LÝ THÀNH CÔNG NGAY TẠI RETURN NẾU IPN CHƯA UPDATE
-    // =========================================================
-    if (
-        $vnpResponseCode === '00' &&
-        $vnpTransactionStatus === '00' &&
-        ($order['payment_status'] ?? '') === 'Pending'
-    ) {
-        $conn->begin_transaction();
-
-        $stmtLock = $conn->prepare("
-            SELECT ma_don, payment_status
-            FROM orders
-            WHERE ma_don = ?
-            FOR UPDATE
-        ");
-        $stmtLock->bind_param("i", $maDon);
-        $stmtLock->execute();
-        $rsLock = $stmtLock->get_result();
-        $locked = $rsLock->fetch_assoc();
-        $rsLock->free();
-        $stmtLock->close();
-
-        if ($locked && $locked['payment_status'] === 'Pending') {
-            deduct_stock_for_saved_order($conn, $maDon);
-
-            $paidAt = parse_vnpay_paydate_to_mysql($vnpPayDate);
-            if ($paidAt === null) {
-                $paidAt = date('Y-m-d H:i:s');
-            }
-
-            $stmtUpdate = $conn->prepare("
-                UPDATE orders
-                SET tinh_trang = 'Chờ xử lý',
-                    payment_status = 'Paid',
-                    vnp_transaction_no = ?,
-                    vnp_response_code = ?,
-                    paid_at = ?
-                WHERE ma_don = ?
-            ");
-            $stmtUpdate->bind_param("sssi", $vnpTransactionNo, $vnpResponseCode, $paidAt, $maDon);
-            $stmtUpdate->execute();
-            $stmtUpdate->close();
-        }
-
-        $conn->commit();
-
-        // đọc lại đơn sau update
-        $stmtReload = $conn->prepare("
-            SELECT ma_don, username, ngay_mua, tinh_trang, phuong_thuc_tt, payment_status,
-                   tong_tien, dia_chi, so_dien_thoai, vnp_txn_ref, vnp_transaction_no,
-                   vnp_response_code, paid_at
-            FROM orders
-            WHERE ma_don = ?
-            LIMIT 1
-        ");
-        $stmtReload->bind_param("i", $maDon);
-        $stmtReload->execute();
-        $rsReload = $stmtReload->get_result();
-        $order = $rsReload->fetch_assoc();
-        $rsReload->free();
-        $stmtReload->close();
-    }
-
-    // =========================================================
-    // FALLBACK FAIL / HỦY
-    // =========================================================
-    if (
-        !($vnpResponseCode === '00' && $vnpTransactionStatus === '00') &&
-        ($order['payment_status'] ?? '') === 'Pending'
-    ) {
-        $conn->begin_transaction();
-
-        $stmtFail = $conn->prepare("
-            UPDATE orders
-            SET tinh_trang = 'Đã hủy thanh toán',
-                payment_status = 'Failed',
-                vnp_transaction_no = ?,
-                vnp_response_code = ?
-            WHERE ma_don = ?
-              AND payment_status = 'Pending'
-        ");
-        $stmtFail->bind_param("ssi", $vnpTransactionNo, $vnpResponseCode, $maDon);
-        $stmtFail->execute();
-        $stmtFail->close();
-
-        $conn->commit();
-
-        $stmtReload = $conn->prepare("
-            SELECT ma_don, username, ngay_mua, tinh_trang, phuong_thuc_tt, payment_status,
-                   tong_tien, dia_chi, so_dien_thoai, vnp_txn_ref, vnp_transaction_no,
-                   vnp_response_code, paid_at
-            FROM orders
-            WHERE ma_don = ?
-            LIMIT 1
-        ");
-        $stmtReload->bind_param("i", $maDon);
-        $stmtReload->execute();
-        $rsReload = $stmtReload->get_result();
-        $order = $rsReload->fetch_assoc();
-        $rsReload->free();
-        $stmtReload->close();
+    if (!$order) {
+        throw new Exception('Không thể tạo hoặc đọc đơn hàng từ phiên VNPay.');
     }
 
     if (($order['payment_status'] ?? '') === 'Paid') {
         $statusTitle = 'Thanh toán thành công';
         $statusClass = 'success';
-        $statusMessage = 'Đơn hàng của bạn đã được thanh toán thành công qua VNPay.';
+        $statusMessage = 'Đơn hàng của bạn đã được thanh toán thành công qua VNPay. Hệ thống đã tạo đơn hàng và trừ kho.';
         $shouldClearCart = true;
     } elseif (($order['payment_status'] ?? '') === 'Failed') {
         $statusTitle = 'Thanh toán thất bại / đã hủy';

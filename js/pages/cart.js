@@ -469,18 +469,13 @@ function processPayment() {
             }
 
             // VNPAY: không xóa giỏ ở đây
-            // vì sẽ xóa sau khi return thành công
             if (pttt === 'VNPAY' && data.payment_url) {
                 closePaymentModal();
 
-                if (data.reused_pending_order) {
-                    alert('Bạn đang có một đơn VNPay chờ thanh toán. Hệ thống sẽ chuyển bạn tới link thanh toán của đơn đó.');
-                } else {
-                    alert('Đơn hàng đã được tạo ở trạng thái Chờ thanh toán. Hệ thống sẽ chuyển bạn sang VNPay Sandbox.');
-                }
+                alert('Hệ thống đã tạo phiên thanh toán VNPay tạm. Đơn hàng chỉ được tạo sau khi VNPay trả kết quả thành công hoặc thất bại.');
 
                 window.location.href = data.payment_url;
-                return;
+             return;
             }
 
             isSubmittingPayment = false;
