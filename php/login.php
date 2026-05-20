@@ -37,23 +37,32 @@ try {
         json_response(false, 'Tài khoản đang bị khóa!', [], 403);
     }
 
-    /*
-        Tạm thời hỗ trợ cả 2 dạng:
-        - Mật khẩu cũ đang lưu plain text.
-        - Mật khẩu mới sau này sẽ lưu bằng password_hash().
-    */
     $storedPassword = (string)$row['password'];
     $isHashed = password_get_info($storedPassword)['algo'] !== 0;
 
-    $passwordOk = $isHashed
-        ? password_verify($password, $storedPassword)
-        : hash_equals($storedPassword, $password);
+    if ($isHashed) {
+        $passwordOk = password_verify($password, $storedPassword);
+    } else {
+        // Hỗ trợ tài khoản cũ đang lưu plain text
+        $passwordOk = hash_equals($storedPassword, $password);
+    }
 
     if (!$passwordOk) {
         json_response(false, 'Sai tên đăng nhập hoặc mật khẩu!', [], 401);
     }
 
-    unset($row['password']);
+    /*
+        Nếu mật khẩu cũ đang là plain text, tự nâng cấp sang password_hash()
+        sau khi người dùng đăng nhập thành công.
+    */
+    if (!$isHashed) {
+        $newHash = password_hash($password, PASSWORD_DEFAULT);
+
+        $stmtHash = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
+        $stmtHash->bind_param("ss", $newHash, $username);
+        $stmtHash->execute();
+        $stmtHash->close();
+    }
 
     $user = [
         'username' => $row['username'],

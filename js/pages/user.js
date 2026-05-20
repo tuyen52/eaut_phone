@@ -146,9 +146,9 @@ function changePass() {
 
     fetch('php/change-password.php', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            username: currentUser.username,
             old_pass: oldPass,
             new_pass: newPass
         })
