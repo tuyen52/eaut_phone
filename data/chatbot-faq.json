@@ -1,0 +1,130 @@
+{
+  "welcome": "Xin chào! Em là trợ lý EAUT PHONE — hỗ trợ hướng dẫn mua hàng, thanh toán và các thao tác trên website. Bạn chọn nút bên dưới hoặc gõ câu hỏi (ví dụ: COD, VNPay, đăng nhập, hủy đơn).",
+  "fallback": "Em chưa hiểu rõ câu hỏi. Bạn thử chọn một mục bên dưới, hoặc gõ từ khóa như: mua hàng, COD, VNPay, đăng nhập, chọn màu, đơn hàng, đánh giá, bảo hành, liên hệ.",
+  "quickMenus": [
+    { "id": "buy", "label": "Hướng dẫn mua hàng" },
+    { "id": "account", "label": "Đăng nhập / Đăng ký" },
+    { "id": "cod", "label": "Thanh toán COD" },
+    { "id": "vnpay", "label": "VNPay Sandbox" },
+    { "id": "color", "label": "Chọn màu sản phẩm" },
+    { "id": "order", "label": "Xem / Hủy đơn" },
+    { "id": "review", "label": "Đánh giá SP" },
+    { "id": "warranty", "label": "Bảo hành" },
+    { "id": "contact", "label": "Liên hệ" },
+    { "id": "search", "label": "Tìm sản phẩm" }
+  ],
+  "rules": [
+    {
+      "keywords": ["mua hang", "huong dan mua", "cach mua", "dat hang", "quy trinh mua", "mua dien thoai", "mua nhu the nao"],
+      "answer": "Quy trình mua hàng trên EAUT PHONE:\n1) Vào Trang chủ, tìm hoặc lọc sản phẩm.\n2) Mở Chi tiết sản phẩm, chọn màu (bắt buộc) rồi Thêm vào giỏ.\n3) Đăng nhập tài khoản (khách vãng lai chưa mua được).\n4) Vào Giỏ hàng → Xác nhận thanh toán → nhập địa chỉ → chọn COD hoặc VNPay Sandbox.\n5) Theo dõi đơn tại Trang người dùng.",
+      "actions": [
+        { "label": "Trang chủ", "url": "index.html" },
+        { "label": "Giỏ hàng", "url": "giohang.html" }
+      ]
+    },
+    {
+      "keywords": ["dang nhap", "dang ky", "tai khoan", "login", "register", "dang nhap tai khoan", "tao tai khoan"],
+      "answer": "Đăng ký / Đăng nhập:\n• Bấm Tài khoản trên thanh header → chọn Đăng nhập hoặc Đăng ký.\n• Sau khi đăng nhập mới thêm giỏ, đặt hàng và xem lịch sử đơn.\n• Quên mật khẩu: dùng liên kết Quên mật khẩu trên form đăng nhập.",
+      "actions": [
+        { "label": "Mở đăng nhập", "action": "openLogin" },
+        { "label": "Quên mật khẩu", "url": "forgot-pass.html" }
+      ]
+    },
+    {
+      "keywords": ["cod", "thanh toan khi nhan", "nhan hang moi tra", "tien mat", "tra tien khi nhan"],
+      "answer": "COD (Thanh toán khi nhận hàng):\n• Bạn chọn COD khi xác nhận thanh toán trong Giỏ hàng.\n• Đơn được lưu với trạng thái chờ xử lý; bạn thanh toán tiền mặt khi nhận hàng.\n• Có thể kiểm tra hàng trước khi nhận (theo chính sách demo của shop).",
+      "actions": [{ "label": "Giỏ hàng", "url": "giohang.html" }]
+    },
+    {
+      "keywords": ["vnpay", "vn pay", "sandbox", "thanh toan truc tuyen", "cong thanh toan", "qua the", "chuyen khoan online"],
+      "answer": "VNPay Sandbox (mô phỏng thanh toán trực tuyến):\n• Chọn VNPay khi đặt hàng → hệ thống chuyển sang cổng VNPay Sandbox để thử thanh toán.\n• Đây là môi trường thử nghiệm của đồ án, không trừ tiền thật.\n• Sau thanh toán thành công, đơn cập nhật trạng thái thanh toán Paid; thất bại/hủy sẽ ghi nhận Failed hoặc Đã hủy thanh toán.",
+      "actions": [{ "label": "Giỏ hàng", "url": "giohang.html" }]
+    },
+    {
+      "keywords": ["chon mau", "mau sac", "bien the", "variant", "mau sp", "chua chon mau", "ton kho mau"],
+      "answer": "Chọn màu / biến thể sản phẩm:\n• Ở trang Chi tiết sản phẩm, bấm chọn màu trước khi Thêm vào giỏ.\n• Hệ thống hiển thị tồn kho theo từng màu — hết màu sẽ không đặt được.\n• Nếu chưa chọn màu, nút mua sẽ nhắc bạn chọn màu trước.",
+      "actions": [{ "label": "Trang chủ", "url": "index.html" }]
+    },
+    {
+      "keywords": ["don hang", "lich su don", "xem don", "trang thai don", "theo doi don", "ma don"],
+      "answer": "Xem đơn hàng:\n• Đăng nhập → Trang người dùng (Tài khoản → Trang người dùng).\n• Xem danh sách đơn, trạng thái (Chờ xử lý, Hoàn thành, Đã hủy…), phương thức thanh toán và tổng tiền.\n• Khi đơn đang giao, bạn có thể Xác nhận đã nhận hàng nếu shop đã xử lý.",
+      "actions": [{ "label": "Trang người dùng", "url": "nguoidung.html" }]
+    },
+    {
+      "keywords": ["huy don", "huy don hang", "huy don hang", "da huy", "huy mua"],
+      "answer": "Hủy đơn hàng:\n• Vào Trang người dùng → chọn đơn còn trạng thái cho phép (ví dụ Chờ xử lý).\n• Bấm Hủy đơn — hệ thống cập nhật trạng thái Đã hủy bởi Khách.\n• Đơn đã hoàn thành hoặc đã thanh toán VNPay thành công có thể không hủy được.",
+      "actions": [{ "label": "Trang người dùng", "url": "nguoidung.html" }]
+    },
+    {
+      "keywords": ["danh gia", "binh luan", "sao", "review", "nhan xet", "gom y"],
+      "answer": "Đánh giá sản phẩm:\n• Chỉ khách đã mua và đơn phù hợp mới đánh giá được (theo quy tắc hệ thống).\n• Vào Trang người dùng hoặc Chi tiết sản phẩm → nhập số sao và nội dung bình luận.\n• Đánh giá giúp người mua khác tham khảo chất lượng máy.",
+      "actions": [{ "label": "Trang người dùng", "url": "nguoidung.html" }]
+    },
+    {
+      "keywords": ["bao hanh", "sua chua", "trung tam bao hanh", "doi tra", "bao hanh chinh hang"],
+      "answer": "Bảo hành EAUT PHONE:\n• Xem danh sách trung tâm bảo hành, địa chỉ, điện thoại và giờ làm việc tại mục Bảo hành trên menu.\n• Mang máy, hóa đơn/ thông tin đơn khi đến trung tâm (theo quy định cửa hàng).",
+      "actions": [{ "label": "Trung tâm bảo hành", "url": "trungtambaohanh.html" }]
+    },
+    {
+      "keywords": ["lien he", "hotline", "email", "dia chi cua hang", "gui thong tin", "cskh", "ho tro"],
+      "answer": "Liên hệ EAUT PHONE:\n• Menu Liên hệ: địa chỉ Hà Nội, hotline demo, email 20223036@eaut.edu.vn.\n• Có thể gửi biểu mẫu liên hệ trên trang Liên hệ (form kiểm tra dữ liệu phía trình duyệt).\n• Câu hỏi phức tạp nên gọi hotline hoặc gửi form.",
+      "actions": [{ "label": "Trang liên hệ", "url": "lienhe.html" }]
+    },
+    {
+      "keywords": ["gio hang", "cart", "them vao gio", "xem gio"],
+      "answer": "Giỏ hàng:\n• Sau khi chọn màu, thêm sản phẩm từ trang chi tiết.\n• Biểu tượng Giỏ hàng trên header hiển thị số lượng.\n• Trong giỏ có thể tăng/giảm số lượng, xóa sản phẩm và mở Xác nhận thanh toán.",
+      "actions": [{ "label": "Giỏ hàng", "url": "giohang.html" }]
+    },
+    {
+      "keywords": ["tim kiem", "loc san pham", "filter", "gia", "hang", "samsung", "iphone", "huawei", "oppo", "xiaomi", "nokia", "vivo", "realme"],
+      "answer": "Tìm & lọc sản phẩm:\n• Ô tìm kiếm trên header hoặc từ khóa gợi ý trên Trang chủ.\n• Lọc theo Giá, Khuyến mãi, Số sao, Hãng.\n• Gõ tên máy (ví dụ iPhone, Samsung) — em có thể chuyển bạn sang trang tìm kiếm.",
+      "actions": [{ "label": "Trang chủ", "url": "index.html" }]
+    },
+    {
+      "keywords": ["khach vang lai", "chua dang nhap", "phai dang nhap", "tai sao khong mua duoc"],
+      "answer": "Khách vãng lai (chưa đăng nhập):\n• Vẫn xem sản phẩm, tìm kiếm, lọc, xem chi tiết.\n• Cần đăng nhập để thêm giỏ, đặt hàng, xem lịch sử và đánh giá.\n• Bấm Tài khoản → Đăng ký miễn phí nếu chưa có tài khoản.",
+      "actions": [{ "label": "Mở đăng nhập", "action": "openLogin" }]
+    },
+    {
+      "keywords": ["quen mat khau", "reset mat khau", "mat khau", "forgot"],
+      "answer": "Quên mật khẩu:\n• Trên form Đăng nhập, chọn Quên mật khẩu.\n• Nhập email đã đăng ký — hệ thống gửi mật khẩu mới qua email (cần cấu hình SMTP trên server).",
+      "actions": [{ "label": "Quên mật khẩu", "url": "forgot-pass.html" }]
+    },
+    {
+      "keywords": ["thanh toan that bai", "huy thanh toan", "failed", "loi vnpay", "khong thanh toan duoc"],
+      "answer": "Thanh toán VNPay thất bại / hủy:\n• Đơn có thể ở trạng thái Đã hủy thanh toán hoặc Failed.\n• Bạn có thể đặt lại đơn mới hoặc chọn COD nếu muốn thanh toán khi nhận.\n• Kiểm tra lại trong Trang người dùng.",
+      "actions": [{ "label": "Trang người dùng", "url": "nguoidung.html" }]
+    },
+    {
+      "keywords": ["da nhan hang", "xac nhan nhan", "hoan thanh don", "nhan hang roi"],
+      "answer": "Xác nhận đã nhận hàng:\n• Trên Trang người dùng, với đơn shop đã giao, bấm xác nhận đã nhận.\n• Trạng thái đơn chuyển Hoàn thành — sau đó bạn có thể đánh giá sản phẩm tương ứng.",
+      "actions": [{ "label": "Trang người dùng", "url": "nguoidung.html" }]
+    },
+    {
+      "keywords": ["ton kho", "het hang", "con hang", "so luong"],
+      "answer": "Tồn kho:\n• Mỗi màu sản phẩm có số lượng riêng trên trang chi tiết.\n• Hết hàng — không thêm giỏ hoặc thanh toán vượt tồn.\n• Admin cập nhật kho qua trang quản trị (khách không cần thao tác).",
+      "actions": [{ "label": "Trang chủ", "url": "index.html" }]
+    },
+    {
+      "keywords": ["khuyen mai", "giam gia", "gia re", "uu dai"],
+      "answer": "Khuyến mãi:\n• Trang chủ có bộ lọc Khuyến mãi (giảm giá, giá rẻ online, trả góp…).\n• Giá khuyến mãi hiển thị trên thẻ sản phẩm và trang chi tiết khi có chương trình.",
+      "actions": [{ "label": "Trang chủ", "url": "index.html" }]
+    },
+    {
+      "keywords": ["xin chao", "hello", "hi", "chao", "tro giup", "giup toi", "huong dan"],
+      "answer": "Chào bạn! Em là trợ lý EAUT PHONE. Bạn cần hỗ trợ về mua hàng, thanh toán, tài khoản, đơn hàng hay bảo hành? Chọn nút bên dưới nhé.",
+      "actions": []
+    }
+  ],
+  "searchHints": {
+    "iphone": "iPhone",
+    "samsung": "Samsung",
+    "huawei": "Huawei",
+    "oppo": "Oppo",
+    "xiaomi": "Xiaomi",
+    "nokia": "Nokia",
+    "vivo": "Vivo",
+    "realme": "Realme",
+    "mobi": "Mobi"
+  }
+}
