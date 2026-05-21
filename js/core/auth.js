@@ -12,9 +12,10 @@ function logIn(form) {
 
     // Gửi dữ liệu sang PHP
     fetch('php/login.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: name, pass: pass })
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: name, pass: pass })
     })
     .then(response => response.json())
     .then(data => {
@@ -87,10 +88,15 @@ function signUp(form) {
 
 // --- CÁC HÀM HỖ TRỢ CŨ (GIỮ NGUYÊN) ---
 function logOut() {
-    if(window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-        window.localStorage.removeItem('CurrentUser');
-        window.localStorage.removeItem('admin');
-        location.reload();
+    if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+        fetch('php/logout.php', {
+            method: 'POST',
+            credentials: 'same-origin'
+        }).finally(() => {
+            window.localStorage.removeItem('CurrentUser');
+            window.localStorage.removeItem('admin');
+            location.href = 'index.html';
+        });
     }
 }
 

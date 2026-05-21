@@ -1,68 +1,69 @@
 <?php
+// php/update-user-info.php
 header('Content-Type: application/json; charset=utf-8');
+
+require_once(__DIR__ . '/auth_session.php');
 require_once('../connect.php');
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 try {
-    $data = json_decode(file_get_contents("php://input"), true);
+    $currentUser = require_login();
+    $username = $currentUser['username'];
 
-    if (!is_array($data)) {
-        throw new Exception("Không nhận được dữ liệu JSON hợp lệ!");
-    }
+    $data = read_json_body();
 
-    $username = trim($data['username'] ?? '');
     $ho = trim($data['ho'] ?? '');
     $ten = trim($data['ten'] ?? '');
 
-    if ($username === '') {
-        throw new Exception("Thiếu username!");
-    }
-
     if ($ho === '' && $ten === '') {
-        throw new Exception("Họ tên không được để trống!");
+        json_response(false, 'Họ tên không được để trống!', [], 400);
     }
 
-    // Kiểm tra tài khoản có tồn tại không
     $stmtCheck = $conn->prepare("SELECT username FROM users WHERE username = ? LIMIT 1");
     $stmtCheck->bind_param("s", $username);
     $stmtCheck->execute();
     $resultCheck = $stmtCheck->get_result();
 
     if ($resultCheck->num_rows === 0) {
-        throw new Exception("Không tìm thấy tài khoản cần cập nhật!");
+        json_response(false, 'Không tìm thấy tài khoản cần cập nhật!', [], 404);
     }
 
     $stmtCheck->close();
 
-    // Cập nhật họ tên
     $stmtUpdate = $conn->prepare("UPDATE users SET ho = ?, ten = ? WHERE username = ?");
     $stmtUpdate->bind_param("sss", $ho, $ten, $username);
     $stmtUpdate->execute();
     $stmtUpdate->close();
 
-    // Lấy lại thông tin mới nhất để cập nhật localStorage phía JS
-    $stmtUser = $conn->prepare("SELECT username, ho, ten, email, role FROM users WHERE username = ? LIMIT 1");
+    $stmtUser = $conn->prepare("
+        SELECT username, ho, ten, email, role, trang_thai
+        FROM users
+        WHERE username = ?
+        LIMIT 1
+    ");
     $stmtUser->bind_param("s", $username);
     $stmtUser->execute();
+
     $resultUser = $stmtUser->get_result();
     $user = $resultUser->fetch_assoc();
     $stmtUser->close();
 
-    echo json_encode([
-        "status" => true,
-        "message" => "Cập nhật họ tên thành công!",
-        "user" => $user
-    ], JSON_UNESCAPED_UNICODE);
+    $user['off'] = ((int)($user['trang_thai'] ?? 1) === 0);
+
+    $_SESSION['user'] = $user;
+
+    json_response(true, 'Cập nhật họ tên thành công!', [
+        'user' => $user
+    ]);
 
 } catch (Throwable $e) {
-    http_response_code(400);
+    error_log('Update user info error: ' . $e->getMessage());
+    json_response(false, 'Có lỗi xảy ra khi cập nhật thông tin!', [], 400);
 
-    echo json_encode([
-        "status" => false,
-        "message" => $e->getMessage()
-    ], JSON_UNESCAPED_UNICODE);
+} finally {
+    if (isset($conn) && $conn instanceof mysqli) {
+        $conn->close();
+    }
 }
-
-$conn->close();
 ?>

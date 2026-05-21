@@ -427,16 +427,14 @@ function processPayment() {
         tongTien += price * item.soluong;
 
         return {
-            masp: item.ma,
-            variant_id: item.variant_id || null,
-            mau_sac: item.mau_sac || null,
-            so_luong: item.soluong,
-            gia: price
+        masp: item.ma,
+        variant_id: item.variant_id || null,
+        mau_sac: item.mau_sac || null,
+        so_luong: item.soluong
         };
     });
 
-    var dataToSend = {
-        username: user.username,
+        var dataToSend = {
         tong_tien: tongTien,
         ho_ten: hoten,
         sdt: sdt,
@@ -444,15 +442,16 @@ function processPayment() {
         phuong_thuc: pttt,
         payment_method_code: pttt,
         san_pham: danhSachSanPhamGuiDi
-    };
+        };
 
     isSubmittingPayment = true;
 
-    fetch('php/thanhtoan.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend)
-    })
+     fetch('php/thanhtoan.php', {
+     method: 'POST',
+     credentials: 'same-origin',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify(dataToSend)
+     })
     .then(r => r.json())
     .then(data => {
         if (data.status == true) {

@@ -60,13 +60,20 @@ function renderOrderTable(list) {
                     : null;
                 var tenSP = productInfo ? productInfo.name : it.ma_sp;
 
+                var safeTenSP = escapeHtml(tenSP);
+                var safeMau = escapeHtml(mau || '');
+                var safeVariantId = escapeHtml(it.variant_id || '');
+
                 var mau = (it.mau_sac && String(it.mau_sac).trim() !== '') ? String(it.mau_sac).trim() : null;
                 var vtxt = '';
 
-                if (mau) vtxt = ` <span style="color:#0056b3;">(${mau})</span>`;
-                else if (it.variant_id) vtxt = ` <span style="color:#777;">(Variant #${it.variant_id})</span>`;
+                if (mau) {
+                    vtxt = ` <span style="color:#0056b3;">(${safeMau})</span>`;
+                } else if (it.variant_id) {
+                    vtxt = ` <span style="color:#777;">(Variant #${safeVariantId})</span>`;
+                }
 
-                return `<p style="margin:0; font-size:12px;">- ${tenSP}${vtxt} <b>x${it.so_luong}</b></p>`;
+                return `<p style="margin:0; font-size:12px;">- ${safeTenSP}${vtxt} <b>x${parseInt(it.so_luong || 0)}</b></p>`;
             }).join('');
 
             var paymentMethodHtml = renderPaymentMethod(d.pttt);
@@ -180,16 +187,16 @@ function capNhatTrangThai(maDon, trangThaiMoi) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ maDon: maDon, trangThai: trangThaiMoi })
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status) {
-            alert(data.message);
-            addTableDonHang();
-        } else {
-            alert("Lỗi: " + data.message);
-        }
-    })
-    .catch(() => alert("Lỗi kết nối Server!"));
+        .then(res => res.json())
+        .then(data => {
+            if (data.status) {
+                alert(data.message);
+                addTableDonHang();
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        })
+        .catch(() => alert("Lỗi kết nối Server!"));
 }
 
 function xoaDonHangVinhVien(maDon) {
@@ -200,17 +207,17 @@ function xoaDonHangVinhVien(maDon) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ maDon: maDon })
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status) {
-            alert(data.message);
-            currentOrderList = currentOrderList.filter(d => d.maDon != maDon);
-            renderOrderTable(currentOrderList);
-        } else {
-            alert("Lỗi: " + data.message);
-        }
-    })
-    .catch(() => alert("Lỗi kết nối Server!"));
+        .then(res => res.json())
+        .then(data => {
+            if (data.status) {
+                alert(data.message);
+                currentOrderList = currentOrderList.filter(d => d.maDon != maDon);
+                renderOrderTable(currentOrderList);
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        })
+        .catch(() => alert("Lỗi kết nối Server!"));
 }
 
 function updateOrderFooterUI() {

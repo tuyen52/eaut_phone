@@ -94,6 +94,12 @@ function sortTable(key, list, renderFunc) {
 }
 
 function logOutAdmin() {
-    window.localStorage.removeItem('admin');
-    window.location.href = 'index.html';
+    fetch('php/logout.php', {
+        method: 'POST',
+        credentials: 'same-origin'
+    }).finally(() => {
+        window.localStorage.removeItem('CurrentUser');
+        window.localStorage.removeItem('admin');
+        window.location.href = 'index.html';
+    });
 }

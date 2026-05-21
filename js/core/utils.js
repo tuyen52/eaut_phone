@@ -13,6 +13,21 @@ function stringToNum(str, char) {
     return Number(numStr) || 0;
 }
 
+// Escape HTML để chống XSS cơ bản khi hiển thị dữ liệu từ DB/người dùng
+function escapeHtml(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Dùng cho src/href/title/alt nếu cần
+function escapeAttr(value) {
+    return escapeHtml(value);
+}
+
 // Copy 1 object (tránh tham chiếu vùng nhớ)
 function copyObject(o) {
     try {

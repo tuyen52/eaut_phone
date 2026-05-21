@@ -2,17 +2,14 @@
 // php/get-order-history.php
 header('Content-Type: application/json; charset=utf-8');
 
+require_once(__DIR__ . '/auth_session.php');
 require_once('../connect.php');
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 try {
-    $username = trim((string)($_GET['username'] ?? ''));
-
-    if ($username === '') {
-        echo json_encode([], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
+    $currentUser = require_login();
+    $username = $currentUser['username'];
 
     $dateCol = 'ngay_mua';
     $chk = $conn->query("SHOW COLUMNS FROM orders LIKE 'ngaymua'");
@@ -89,12 +86,14 @@ try {
     echo json_encode($orders, JSON_UNESCAPED_UNICODE);
 
 } catch (Throwable $e) {
-    http_response_code(400);
+    error_log('Get order history error: ' . $e->getMessage());
 
+    http_response_code(401);
     echo json_encode([
         "status" => false,
-        "message" => $e->getMessage()
+        "message" => "Bạn cần đăng nhập để xem lịch sử đơn hàng."
     ], JSON_UNESCAPED_UNICODE);
+
 } finally {
     if (isset($conn) && $conn instanceof mysqli) {
         $conn->close();

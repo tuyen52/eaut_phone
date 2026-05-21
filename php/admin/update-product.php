@@ -1,123 +1,319 @@
 <?php
 // php/admin/update-product.php
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+
+require_once(__DIR__ . '/admin_auth.php');
 require_once('../../connect.php');
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+function parse_admin_price_update($value) {
+    $raw = (string)$value;
+    $num = preg_replace('/[^\d]/', '', $raw);
+    return (int)$num;
+}
+
+function normalize_hex_color_update($hex) {
+    $hex = trim((string)$hex);
+    if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) {
+        return '#000000';
+    }
+    return $hex;
+}
+
+function normalize_variant_row_update($v, $defaultImg) {
+    if (!is_array($v)) return null;
+
+    $tenMau = trim((string)($v['ten_mau'] ?? ''));
+    if ($tenMau === '') return null;
+
+    $variantId = (int)($v['variant_id'] ?? 0);
+    $hex = normalize_hex_color_update($v['ma_mau_hex'] ?? '#000000');
+
+    $img = trim((string)($v['hinh_anh'] ?? ''));
+    if ($img === '') {
+        $img = $defaultImg;
+    }
+
+    $stock = (int)($v['so_luong_ton'] ?? 0);
+    if ($stock < 0) {
+        $stock = 0;
+    }
+
+    return [
+        'variant_id' => $variantId,
+        'ten_mau' => $tenMau,
+        'ma_mau_hex' => $hex,
+        'hinh_anh' => $img,
+        'so_luong_ton' => $stock
+    ];
+}
+
+function sync_product_stock_update(mysqli $conn, $masp) {
+    $stmtSync = $conn->prepare("
+        UPDATE products
+        SET so_luong_ton = (
+            SELECT IFNULL(SUM(v.so_luong_ton), 0)
+            FROM product_variants v
+            WHERE v.masp = ?
+        )
+        WHERE masp = ?
+    ");
+    $stmtSync->bind_param("ss", $masp, $masp);
+    $stmtSync->execute();
+    $stmtSync->close();
+}
+
 try {
-    $data = json_decode(file_get_contents("php://input"), true);
-    if (!$data) throw new Exception("Không nhận được dữ liệu!");
+    $data = read_json_body();
 
-    $masp = $conn->real_escape_string(trim($data['masp'] ?? ''));
-    if ($masp === '') throw new Exception("Thiếu mã sản phẩm!");
+    $masp = trim((string)($data['masp'] ?? ''));
 
-    $ten  = $conn->real_escape_string(trim($data['name'] ?? ''));
-    $hang = $conn->real_escape_string(trim($data['company'] ?? ''));
-    $hinh = $conn->real_escape_string(trim($data['img'] ?? ''));
+    if ($masp === '') {
+        json_response(false, 'Thiếu mã sản phẩm!', [], 400);
+    }
 
-    $gia_raw = (string)($data['price'] ?? '0');
-    $gia = (int)str_replace('.', '', $gia_raw);
+    $ten = trim((string)($data['name'] ?? ''));
+    $hang = trim((string)($data['company'] ?? ''));
+    $hinh = trim((string)($data['img'] ?? ''));
 
-    $km_loai = $conn->real_escape_string(trim($data['promo']['name'] ?? ''));
-    $km_gt   = $conn->real_escape_string(trim($data['promo']['value'] ?? ''));
+    $gia = parse_admin_price_update($data['price'] ?? 0);
 
-    $d = $data['detail'] ?? [];
-    $screen   = $conn->real_escape_string(trim($d['screen'] ?? ''));
-    $os       = $conn->real_escape_string(trim($d['os'] ?? ''));
-    $cam      = $conn->real_escape_string(trim($d['camara'] ?? ''));
-    $camFront = $conn->real_escape_string(trim($d['camaraFront'] ?? ''));
-    $cpu      = $conn->real_escape_string(trim($d['cpu'] ?? ''));
-    $ram      = $conn->real_escape_string(trim($d['ram'] ?? ''));
-    $rom      = $conn->real_escape_string(trim($d['rom'] ?? ''));
-    $bat      = $conn->real_escape_string(trim($d['battery'] ?? ''));
+    $promo = is_array($data['promo'] ?? null) ? $data['promo'] : [];
+    $kmLoai = trim((string)($promo['name'] ?? ''));
+    $kmGt = trim((string)($promo['value'] ?? ''));
+
+    $detail = is_array($data['detail'] ?? null) ? $data['detail'] : [];
+
+    $screen = trim((string)($detail['screen'] ?? ''));
+    $os = trim((string)($detail['os'] ?? ''));
+    $camera = trim((string)($detail['camara'] ?? ''));
+    $cameraFront = trim((string)($detail['camaraFront'] ?? ''));
+    $cpu = trim((string)($detail['cpu'] ?? ''));
+    $ram = trim((string)($detail['ram'] ?? ''));
+    $rom = trim((string)($detail['rom'] ?? ''));
+    $battery = trim((string)($detail['battery'] ?? ''));
+
+    if ($ten === '' || $hang === '' || $hinh === '') {
+        json_response(false, 'Thiếu thông tin sản phẩm bắt buộc!', [], 400);
+    }
+
+    if ($gia < 0) {
+        json_response(false, 'Giá sản phẩm không hợp lệ!', [], 400);
+    }
 
     $hasVariantsKey = array_key_exists('variants', $data);
     $variantsReplace = ((int)($data['variants_replace'] ?? 0) === 1);
-    $variants = $data['variants'] ?? [];
-    if (!is_array($variants)) $variants = [];
+    $variants = is_array($data['variants'] ?? null) ? $data['variants'] : [];
 
     $conn->begin_transaction();
 
-    // Update base product
-    $sql = "UPDATE products SET
-            ten_sp='$ten',
-            hang_sx='$hang',
-            hinh_anh='$hinh',
-            gia=$gia,
-            khuyen_mai_loai='$km_loai',
-            khuyen_mai_gia_tri='$km_gt',
-            screen='$screen',
-            os='$os',
-            camera='$cam',
-            camera_front='$camFront',
-            cpu='$cpu',
-            ram='$ram',
-            rom='$rom',
-            battery='$bat'
-            WHERE masp='$masp'";
-    $conn->query($sql);
+    // Kiểm tra sản phẩm tồn tại
+    $stmtCheckProduct = $conn->prepare("SELECT masp FROM products WHERE masp = ? LIMIT 1");
+    $stmtCheckProduct->bind_param("s", $masp);
+    $stmtCheckProduct->execute();
+    $rsProduct = $stmtCheckProduct->get_result();
 
-    // Replace variants nếu client gửi
+    if ($rsProduct->num_rows === 0) {
+        throw new Exception('Không tìm thấy sản phẩm cần cập nhật!');
+    }
+
+    $stmtCheckProduct->close();
+
+    // Cập nhật thông tin cơ bản sản phẩm
+    $stmtProduct = $conn->prepare("
+        UPDATE products
+        SET ten_sp = ?,
+            hang_sx = ?,
+            hinh_anh = ?,
+            gia = ?,
+            khuyen_mai_loai = ?,
+            khuyen_mai_gia_tri = ?,
+            screen = ?,
+            os = ?,
+            camera = ?,
+            camera_front = ?,
+            cpu = ?,
+            ram = ?,
+            rom = ?,
+            battery = ?
+        WHERE masp = ?
+    ");
+
+    $stmtProduct->bind_param(
+        "sssisssssssssss",
+        $ten,
+        $hang,
+        $hinh,
+        $gia,
+        $kmLoai,
+        $kmGt,
+        $screen,
+        $os,
+        $camera,
+        $cameraFront,
+        $cpu,
+        $ram,
+        $rom,
+        $battery,
+        $masp
+    );
+
+    $stmtProduct->execute();
+    $stmtProduct->close();
+
+    /*
+        Nếu frontend gửi variants_replace = 1 thì thay thế danh sách màu.
+        Giữ nguyên chức năng cũ:
+        - variant_id > 0: sửa variant cũ nếu thuộc sản phẩm
+        - variant_id <= 0: thêm variant mới
+        - variant không còn trong danh sách gửi lên sẽ bị xóa
+        - luôn đảm bảo còn ít nhất 1 variant
+    */
     if ($hasVariantsKey && $variantsReplace) {
-        $keepIds = [];
+        $normalizedVariants = [];
 
         foreach ($variants as $v) {
-            $variant_id = (int)($v['variant_id'] ?? 0);
-            $ten_mau = trim($v['ten_mau'] ?? '');
-            if ($ten_mau === '') continue;
+            $row = normalize_variant_row_update($v, $hinh);
+            if ($row !== null) {
+                $normalizedVariants[] = $row;
+            }
+        }
 
-            $hex = trim($v['ma_mau_hex'] ?? '#000000');
-            if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) $hex = '#000000';
+        if (count($normalizedVariants) === 0) {
+            $normalizedVariants[] = [
+                'variant_id' => 0,
+                'ten_mau' => 'Mặc định',
+                'ma_mau_hex' => '#000000',
+                'hinh_anh' => $hinh,
+                'so_luong_ton' => 0
+            ];
+        }
 
-            $imgV = trim($v['hinh_anh'] ?? '');
-            if ($imgV === '') $imgV = $hinh;
+        $keepIds = [];
 
-            $stock = (int)($v['so_luong_ton'] ?? 0);
-            if ($stock < 0) $stock = 0;
+        $stmtCheckVariant = $conn->prepare("
+            SELECT variant_id
+            FROM product_variants
+            WHERE variant_id = ? AND masp = ?
+            LIMIT 1
+        ");
 
-            $ten_mau_sql = $conn->real_escape_string($ten_mau);
-            $hex_sql = $conn->real_escape_string($hex);
-            $img_sql = $conn->real_escape_string($imgV);
+        $stmtUpdateVariant = $conn->prepare("
+            UPDATE product_variants
+            SET ten_mau = ?,
+                ma_mau_hex = ?,
+                hinh_anh = ?,
+                so_luong_ton = ?
+            WHERE variant_id = ? AND masp = ?
+        ");
 
-            if ($variant_id > 0) {
-                $conn->query("UPDATE product_variants
-                              SET ten_mau='$ten_mau_sql', ma_mau_hex='$hex_sql', hinh_anh='$img_sql', so_luong_ton=$stock
-                              WHERE variant_id=$variant_id AND masp='$masp'");
-                $keepIds[] = $variant_id;
-            } else {
-                $conn->query("INSERT INTO product_variants (masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton)
-                              VALUES ('$masp', '$ten_mau_sql', '$hex_sql', '$img_sql', $stock)");
+        $stmtInsertVariant = $conn->prepare("
+            INSERT INTO product_variants (
+                masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton
+            )
+            VALUES (?, ?, ?, ?, ?)
+        ");
+
+        foreach ($normalizedVariants as $v) {
+            $variantId = (int)$v['variant_id'];
+            $tenMau = $v['ten_mau'];
+            $hex = $v['ma_mau_hex'];
+            $imgVariant = $v['hinh_anh'];
+            $stock = (int)$v['so_luong_ton'];
+
+            $updatedExisting = false;
+
+            if ($variantId > 0) {
+                $stmtCheckVariant->bind_param("is", $variantId, $masp);
+                $stmtCheckVariant->execute();
+                $rsVariant = $stmtCheckVariant->get_result();
+
+                if ($rsVariant->num_rows > 0) {
+                    $stmtUpdateVariant->bind_param(
+                        "sssiis",
+                        $tenMau,
+                        $hex,
+                        $imgVariant,
+                        $stock,
+                        $variantId,
+                        $masp
+                    );
+
+                    $stmtUpdateVariant->execute();
+                    $keepIds[] = $variantId;
+                    $updatedExisting = true;
+                }
+            }
+
+            if (!$updatedExisting) {
+                $stmtInsertVariant->bind_param(
+                    "ssssi",
+                    $masp,
+                    $tenMau,
+                    $hex,
+                    $imgVariant,
+                    $stock
+                );
+
+                $stmtInsertVariant->execute();
                 $keepIds[] = (int)$conn->insert_id;
             }
         }
 
-        if (count($keepIds) === 0) {
-            // đảm bảo có 1 variant
-            $ten_mau_sql = $conn->real_escape_string('Mặc định');
-            $hex_sql = $conn->real_escape_string('#000000');
-            $img_sql = $conn->real_escape_string($hinh);
+        $stmtCheckVariant->close();
+        $stmtUpdateVariant->close();
+        $stmtInsertVariant->close();
 
-            $conn->query("INSERT INTO product_variants (masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton)
-                          VALUES ('$masp', '$ten_mau_sql', '$hex_sql', '$img_sql', 0)");
-            $keepIds[] = (int)$conn->insert_id;
+        /*
+            Xóa các variant cũ không còn trong danh sách giữ lại.
+            Không dùng chuỗi user input, keepIds toàn số nguyên do server tạo/kiểm tra.
+        */
+        $stmtListOld = $conn->prepare("
+            SELECT variant_id
+            FROM product_variants
+            WHERE masp = ?
+        ");
+        $stmtListOld->bind_param("s", $masp);
+        $stmtListOld->execute();
+        $rsOld = $stmtListOld->get_result();
+
+        $stmtDeleteOld = $conn->prepare("
+            DELETE FROM product_variants
+            WHERE variant_id = ? AND masp = ?
+        ");
+
+        while ($old = $rsOld->fetch_assoc()) {
+            $oldId = (int)$old['variant_id'];
+
+            if (!in_array($oldId, $keepIds, true)) {
+                $stmtDeleteOld->bind_param("is", $oldId, $masp);
+                $stmtDeleteOld->execute();
+            }
         }
 
-        $idsStr = implode(',', array_map('intval', $keepIds));
-        $conn->query("DELETE FROM product_variants WHERE masp='$masp' AND variant_id NOT IN ($idsStr)");
+        $stmtListOld->close();
+        $stmtDeleteOld->close();
     }
 
-    // Sync tồn kho tổng theo SUM variants
-    $conn->query("UPDATE products SET so_luong_ton = (
-                    SELECT IFNULL(SUM(v.so_luong_ton),0) FROM product_variants v WHERE v.masp='$masp'
-                  ) WHERE masp='$masp'");
+    // Đồng bộ tồn kho tổng
+    sync_product_stock_update($conn, $masp);
 
     $conn->commit();
-    echo json_encode(["status" => true, "message" => "Cập nhật sản phẩm + màu + ảnh theo màu thành công!"]);
-} catch (Exception $e) {
-    try { $conn->rollback(); } catch (Exception $ignore) {}
-    echo json_encode(["status" => false, "message" => $e->getMessage()]);
-}
 
-$conn->close();
+    json_response(true, 'Cập nhật sản phẩm + màu + ảnh theo màu thành công!');
+
+} catch (Throwable $e) {
+    if (isset($conn) && $conn instanceof mysqli) {
+        try { $conn->rollback(); } catch (Throwable $ignore) {}
+    }
+
+    error_log('Update product error: ' . $e->getMessage());
+    json_response(false, $e->getMessage(), [], 400);
+
+} finally {
+    if (isset($conn) && $conn instanceof mysqli) {
+        $conn->close();
+    }
+}
 ?>

@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
-header("Access-Control-Allow-Origin: *"); // Cho phép gọi API từ mọi nguồn (nếu cần)
+header("Access-Control-Allow-Origin: *");
+require_once(__DIR__ . '/admin_auth.php'); // Cho phép gọi API từ mọi nguồn (nếu cần)
 require_once('../../connect.php'); // Gọi file kết nối ở thư mục gốc
 
 // Lấy tất cả user ngoại trừ admin để hiển thị
