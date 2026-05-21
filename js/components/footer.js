@@ -1,6 +1,17 @@
 // js/components/footer.js
 
+function loadEautChatbotAssets() {
+    if (window.__eautChatbotAssetsLoaded) return;
+    var path = (window.location.pathname || '').toLowerCase();
+    if (path.indexOf('admin.html') !== -1) return;
+
+    window.__eautChatbotAssetsLoaded = true;
+    document.write('<link rel="stylesheet" href="css/chatbot.css">');
+    document.write('<script src="js/components/chatbot.js"><\/script>');
+}
+
 function addFooter() {
+    loadEautChatbotAssets();
     document.write(`
     <div id="alert" style="opacity: 0; z-index: -1;"> 
         <span id="closebtn">&otimes;</span> 

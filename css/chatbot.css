@@ -1,0 +1,224 @@
+/* EAUT PHONE — Trợ lý chat rule-based (khách hàng) */
+
+#eaut-chatbot-toggle {
+    position: fixed;
+    bottom: 70px;
+    right: 15px;
+    z-index: 150;
+    width: 52px;
+    height: 52px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f7941e 0%, #e86b00 100%);
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(247, 148, 30, 0.45);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#eaut-chatbot-toggle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 18px rgba(247, 148, 30, 0.55);
+}
+
+#eaut-chatbot-toggle.is-open {
+    background: #555;
+}
+
+#eaut-chatbot-panel {
+    position: fixed;
+    bottom: 132px;
+    right: 15px;
+    z-index: 151;
+    width: 340px;
+    max-width: calc(100vw - 24px);
+    max-height: min(480px, calc(100vh - 150px));
+    display: none;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+}
+
+#eaut-chatbot-panel.is-open {
+    display: flex;
+}
+
+.eaut-chat-header {
+    background: linear-gradient(135deg, #288ad6 0%, #1a6bb5 100%);
+    color: #fff;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.eaut-chat-header strong {
+    font-size: 15px;
+}
+
+.eaut-chat-header span {
+    font-size: 11px;
+    opacity: 0.9;
+    display: block;
+    margin-top: 2px;
+}
+
+.eaut-chat-close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.eaut-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    background: #f5f7fa;
+    min-height: 200px;
+}
+
+.eaut-chat-msg {
+    margin-bottom: 10px;
+    max-width: 92%;
+    clear: both;
+}
+
+.eaut-chat-msg.bot {
+    float: left;
+}
+
+.eaut-chat-msg.user {
+    float: right;
+}
+
+.eaut-chat-bubble {
+    padding: 10px 12px;
+    border-radius: 12px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.eaut-chat-msg.bot .eaut-chat-bubble {
+    background: #fff;
+    color: #333;
+    border: 1px solid #e8ecf0;
+    border-bottom-left-radius: 4px;
+}
+
+.eaut-chat-msg.user .eaut-chat-bubble {
+    background: #288ad6;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.eaut-chat-actions {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    clear: both;
+}
+
+.eaut-chat-actions button {
+    border: 1px solid #288ad6;
+    background: #fff;
+    color: #288ad6;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.eaut-chat-actions button:hover {
+    background: #288ad6;
+    color: #fff;
+}
+
+.eaut-chat-quick {
+    padding: 8px 10px;
+    border-top: 1px solid #eee;
+    background: #fff;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 88px;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.eaut-chat-quick button {
+    font-size: 11px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    border-radius: 12px;
+    cursor: pointer;
+    color: #444;
+}
+
+.eaut-chat-quick button:hover {
+    border-color: #f7941e;
+    color: #e86b00;
+}
+
+.eaut-chat-input-row {
+    display: flex;
+    padding: 10px;
+    gap: 8px;
+    border-top: 1px solid #eee;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.eaut-chat-input-row input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px;
+    outline: none;
+}
+
+.eaut-chat-input-row input:focus {
+    border-color: #288ad6;
+}
+
+.eaut-chat-input-row button {
+    border: none;
+    background: #f7941e;
+    color: #fff;
+    width: 40px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.eaut-chat-input-row button:hover {
+    background: #e86b00;
+}
+
+@media (max-width: 480px) {
+    #eaut-chatbot-panel {
+        right: 8px;
+        bottom: 128px;
+        width: calc(100vw - 16px);
+    }
+
+    #eaut-chatbot-toggle {
+        right: 12px;
+        bottom: 64px;
+    }
+}
