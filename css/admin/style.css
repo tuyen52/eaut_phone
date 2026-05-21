@@ -25,51 +25,70 @@ a {
     color: #222;
 }
 
-/* header */
+/* ===== Header (khung trên) ===== */
 header {
     z-index: 10;
     width: 100%;
-    /* position: sticky; */
-    padding: 20px 10px;
-    background-color: #3a4149;
-    border-bottom: 1px solid #23282c;
+    box-sizing: border-box;
+    padding: 16px 22px;
+    background-color: #343a40;
+    border-bottom: 1px solid #2c3136;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 header h2 {
     display: block;
-    font-size: 1.5em;
-    font-weight: bold;
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
     color: #fff;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
 }
 
-/* =========== Menu ================= */
+/* ===== Sidebar / Menu điều hướng (khung trái) ===== */
 .sidebar {
     float: left;
     width: 170px;
+    box-sizing: border-box;
+    background-color: #343a40;
+    min-height: calc(100vh - 58px);
+    padding-bottom: 18px;
+}
+
+.sidebar .nav {
+    list-style: none;
+    margin: 0;
+    padding: 6px 0 10px;
 }
 
 .sidebar .nav-title {
-    padding: 1.1rem 1rem;
-    font-size: 1.5em;
+    padding: 14px 16px 10px;
+    font-size: 0.8rem;
     font-weight: 700;
     color: #e4e7ea;
-    text-align: center;
+    text-align: left;
     text-transform: uppercase;
+    letter-spacing: 0.14em;
 }
 
 .sidebar .nav-item {
     position: relative;
     margin: 0;
-    transition: background .3s ease-in-out;
 }
 
 .sidebar .nav-link {
     display: block;
-    padding: 1em 1em;
-    color: #73818f;
+    padding: 11px 14px;
+    margin: 3px 10px;
+    color: #adb5bd;
     text-decoration: none;
-    background: 0 0;
+    background: transparent;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .sidebar .nav-link.active,
@@ -80,17 +99,27 @@ header h2 {
 
 .sidebar .nav-link:hover:not(.active),
 .sidebar .nav-link:hover:not(.active) i {
-    background-color: #4a7b8d;
+    background-color: rgba(255, 255, 255, 0.07);
     color: #fff;
 }
 
 .sidebar .nav-link i {
     display: inline-block;
     width: 1.09375em;
-    margin: 0 .5rem 0 0;
+    margin: 0 0.5rem 0 0;
     font-size: 1em;
-    color: #73818f;
+    color: inherit;
     text-align: center;
+    vertical-align: middle;
+}
+
+.sidebar .nav-item hr {
+    margin: 12px 14px;
+    padding: 0;
+    height: 0;
+    border: none;
+    border-top: 1px solid #4a5258;
+    background: transparent;
 }
 
 /* ==================== main ==================== */
@@ -105,11 +134,281 @@ header h2 {
     display: none;
 }
 
-/* ===================== HOME ================== */
-.home .canvasContainer {
-    display: inline-block;
-    width: 49%;
-    margin: 50px 0;
+/* ===================== DASHBOARD (tab Trang Chủ) ================== */
+.home .dashWrap {
+    padding: 18px 16px 24px;
+    box-sizing: border-box;
+}
+
+.home .dashWrap * {
+    box-sizing: border-box;
+}
+
+/* --- Bộ lọc ngày & nút báo cáo --- */
+.home .dashFilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 16px;
+    align-items: flex-end;
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.home .dashFilters > div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.home .dashFilters label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b5563;
+    display: block;
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+}
+
+.home .dashFilters input,
+.home .dashFilters select {
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    min-width: 168px;
+    background: #fff;
+    font-size: 13px;
+    color: #111827;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home .dashFilters input:focus,
+.home .dashFilters select:focus {
+    border-color: #20a8d8;
+    box-shadow: 0 0 0 3px rgba(32, 168, 216, 0.15);
+    outline: none;
+}
+
+.home .dashFilters > div:last-child {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    padding-bottom: 1px;
+}
+
+.home .dashFilters .btnPrimary,
+.home .dashFilters .btnGhost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.home .dashFilters .btnPrimary {
+    background: #0d6efd;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.35);
+}
+
+.home .dashFilters .btnPrimary:hover {
+    background: #0b5ed7;
+    box-shadow: 0 3px 10px rgba(13, 110, 253, 0.4);
+}
+
+.home .dashFilters .btnPrimary:active {
+    transform: scale(0.98);
+}
+
+.home .dashFilters .btnGhost {
+    background: #f3f4f6;
+    color: #1f2937;
+    border: 1px solid #e5e7eb;
+}
+
+.home .dashFilters .btnGhost:hover {
+    background: #e5e7eb;
+}
+
+.home .dashFilters .btnGhost:active {
+    transform: scale(0.98);
+}
+
+.home #statsLoading {
+    display: none;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.home #statsError {
+    display: none;
+    color: #b00020;
+    background: #ffe9e9;
+    border: 1px solid #ffc9c9;
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+/* --- Thẻ KPI --- */
+.home .dashKpis {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.home .kpiCard {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 82px;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.home .kpiCard:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+}
+
+.home .kpiCard:nth-child(1) { border-left: 4px solid #20a8d8; }
+.home .kpiCard:nth-child(2) { border-left: 4px solid #0d6efd; }
+.home .kpiCard:nth-child(3) { border-left: 4px solid #28a745; }
+.home .kpiCard:nth-child(4) { border-left: 4px solid #6f42c1; }
+.home .kpiCard:nth-child(5) { border-left: 4px solid #fd7e14; }
+.home .kpiCard:nth-child(6) { border-left: 4px solid #dc3545; }
+
+.home .kpiTitle {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.home .kpiValue {
+    font-size: 21px;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Biểu đồ --- */
+.home .dashGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.home .dashGrid .canvasContainer {
+    display: block;
+    width: 100%;
+    margin: 0;
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    height: 360px;
+    position: relative;
+}
+
+.home .dashGrid .canvasContainer canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* --- Bảng top SP / variant --- */
+.home .dashTables {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.home .tableCard {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.home .dashTableTitle {
+    margin: 4px 0 12px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+@media (max-width: 1300px) {
+    .home .dashKpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1100px) {
+    .home .dashGrid,
+    .home .dashTables {
+        grid-template-columns: 1fr;
+    }
+
+    .home .dashFilters > div:last-child {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+@media (max-width: 900px) {
+    .home .dashKpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .home .dashKpis {
+        grid-template-columns: 1fr;
+    }
+
+    .home .dashFilters input,
+    .home .dashFilters select {
+        min-width: 100%;
+        width: 100%;
+    }
+
+    .home .dashFilters > div {
+        width: 100%;
+    }
+
+    .home .dashFilters .btnPrimary,
+    .home .dashFilters .btnGhost {
+        flex: 1 1 auto;
+        min-width: calc(50% - 6px);
+    }
 }
 
 .flexContain {

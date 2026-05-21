@@ -88,14 +88,14 @@ function renderOrderTable(list) {
 
             s += `<tr>
                 <td style="text-align:center"><b>#${d.maDon}</b></td>
-                <td>${escapeHtml(d.khachHang || '')}</td>
-                <td>${contactInfo}</td>
+                <td title="${escapeHtml(d.khachHang || '')}">${escapeHtml(d.khachHang || '')}</td>
+                <td title="${escapeHtml(d.sdt || '')} — ${escapeHtml(d.diaChi || '')}">${contactInfo}</td>
                 <td>${spString}</td>
                 <td style="color:#d0021b; font-weight:bold;">${numToString(parseInt(d.tongTien || 0))}₫</td>
                 <td style="font-size:12px;">${formatDateTime(d.ngayMua)}</td>
                 <td>${paymentMethodHtml}</td>
                 <td>${paymentStatusHtml}</td>
-                <td><span style="color:${getColorByStatus(d.tinhTrang)}; font-weight:bold; font-size:12px;">${escapeHtml(d.tinhTrang || '')}</span></td>
+                <td title="${escapeHtml(d.tinhTrang || '')}"><span style="color:${getColorByStatus(d.tinhTrang)}; font-weight:bold; font-size:12px;">${escapeHtml(d.tinhTrang || '')}</span></td>
                 <td style="text-align:center">${btnAction}</td>
             </tr>`;
         });

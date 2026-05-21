@@ -57,9 +57,9 @@ function renderUserTable(list) {
 
             s += `<tr>
                 <td style="width: 5%">${i + 1}</td>
-                <td style="width: 25%">${u.ho} ${u.ten}</td>
-                <td style="width: 30%">${u.email}</td>
-                <td style="width: 15%">${u.username}</td>
+                <td style="width: 25%" title="${u.ho} ${u.ten}">${u.ho} ${u.ten}</td>
+                <td style="width: 30%" title="${u.email}">${u.email}</td>
+                <td style="width: 15%" title="${u.username}">${u.username}</td>
                 <td style="width: 15%">
                     <div class="tooltip">
                         <label class="switch">
