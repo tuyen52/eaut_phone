@@ -9,17 +9,24 @@ var selectedVariant = null;
 
 // --- [MỚI] Đổi ảnh theo màu (variant image swap) ---
 function applyVariantImage(p, v) {
-    // Ưu tiên ảnh theo màu, fallback ảnh sản phẩm
     var img = (v && v.hinh_anh && String(v.hinh_anh).trim() !== '') ? v.hinh_anh : (p && p.img ? p.img : '');
+    if (!img) return;
 
     var smallImg = document.querySelector('.picture img');
-    if (smallImg && img) smallImg.src = img;
+    if (smallImg) {
+        smallImg.src = img;
+        smallImg.removeAttribute('width');
+        smallImg.removeAttribute('height');
+    }
 
     var bigImg = document.getElementById('bigimg');
-    if (bigImg && img) bigImg.src = img;
+    if (bigImg) {
+        bigImg.src = img;
+        bigImg.removeAttribute('width');
+        bigImg.removeAttribute('height');
+    }
 
-    // Refresh thumbnail carousel nếu có
-    if (typeof renderSmallImages === 'function' && img) {
+    if (typeof renderSmallImages === 'function') {
         renderSmallImages(img);
     }
 }
