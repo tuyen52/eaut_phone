@@ -5,49 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quên mật khẩu - EAUT Phone</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/premium-home.css">
     <style>
         body {
-            background-color: #f1f1f1;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
+            justify-content: center;
         }
         .forgot-box {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 400px;
+            width: min(440px, calc(100vw - 28px));
+            background: rgba(255,255,255,.9);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 24px;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
+            padding: 28px;
             text-align: center;
+            backdrop-filter: blur(14px);
         }
-        .forgot-box h2 { color: #333; margin-bottom: 20px; }
+        .forgot-box h2 { color: #101828; margin-bottom: 12px; letter-spacing: .4px; }
+        .forgot-box p { color: #667085; line-height: 1.6; margin-bottom: 18px; }
         .forgot-box input {
             width: 100%;
-            padding: 12px;
+            padding: 12px 14px;
             margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            border-radius: 14px;
             box-sizing: border-box;
+            background: #fff;
+        }
+        .forgot-box input:focus {
+            border-color: rgba(11, 87, 208, 0.35);
+            box-shadow: 0 0 0 4px rgba(11, 87, 208, 0.08);
         }
         .forgot-box button {
             width: 100%;
             padding: 12px;
-            background-color: #f7941e; /* Màu cam chủ đạo */
+            background: linear-gradient(135deg, #0b57d0 0%, #3b82f6 100%);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 14px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 10px 24px rgba(11, 87, 208, 0.18);
         }
-        .forgot-box button:hover { background-color: #e68a1c; }
+        .forgot-box button:hover { filter: brightness(1.02); }
         .back-link {
-            display: block;
+            display: inline-block;
             margin-top: 15px;
-            color: #666;
+            color: #0b57d0;
             text-decoration: none;
+            font-weight: 600;
         }
         .back-link:hover { text-decoration: underline; }
     </style>

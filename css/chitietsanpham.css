@@ -11,6 +11,65 @@
     /*tăng khoảng cách dòng*/
 }
 
+/* ===== Premium product detail layout ===== */
+.chitietSanpham {
+    padding: 18px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(14px);
+}
+
+.chitietSanpham .picture,
+.chitietSanpham .price_sale {
+    width: 50%;
+    box-sizing: border-box;
+}
+
+.chitietSanpham .picture { padding-right: 18px; }
+.chitietSanpham .price_sale { padding-left: 18px; }
+.chitietSanpham .picture img {
+    border-radius: 20px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+}
+.chitietSanpham h1 {
+    float: none;
+    margin: 0;
+    width: auto;
+    font-size: clamp(24px, 2.4vw, 34px);
+    line-height: 1.25;
+    font-weight: 800;
+    color: #0f172a;
+}
+.chitietSanpham .rating { float: none; margin: 10px 0 0; line-height: 1; }
+.chitietSanpham .rowdetail { border-top: 1px solid rgba(15, 23, 42, 0.08); padding: 18px 0; margin-top: 18px; }
+.area_price { padding: 0 0 12px; }
+.area_price strong { font-size: 30px; letter-spacing: -0.02em; }
+.area_price span { font-size: 17px; color: #94a3b8; }
+.ship,
+.area_promo {
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+.area_promo strong { padding-top: 14px; padding-bottom: 12px; font-size: 14px; letter-spacing: 0.04em; color: #0f172a; }
+.area_promo .promo { font-size: 13px; line-height: 1.6; color: #334155; }
+.area_order { margin: 14px 0 0; }
+.area_order .buyNow,
+.area_order .addCart,
+.area_order button { border-radius: 14px; box-shadow: 0 12px 24px rgba(11, 87, 208, 0.12); }
+@media (max-width: 980px) {
+    .chitietSanpham .picture,
+    .chitietSanpham .price_sale { width: 100%; padding-left: 0; padding-right: 0; float: none; }
+    .chitietSanpham .picture { margin-bottom: 16px; }
+}
+
+
 .rating {
     float: left;
     margin-left: 15px;
