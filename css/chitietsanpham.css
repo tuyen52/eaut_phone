@@ -69,6 +69,76 @@
     .chitietSanpham .picture { margin-bottom: 16px; }
 }
 
+/* ===== Technical specs panel ===== */
+.chitietSanpham .info_product {
+    clear: both;
+    width: 100%;
+    margin-top: 22px;
+    padding: 18px;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+    box-sizing: border-box;
+}
+
+.chitietSanpham .info_product h2 {
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.chitietSanpham .info {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+
+.chitietSanpham .info li {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.chitietSanpham .info li:nth-child(odd) {
+    background: #f8fafc;
+}
+
+.chitietSanpham .info li p,
+.chitietSanpham .info li div {
+    padding: 12px 14px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #334155;
+    box-sizing: border-box;
+}
+
+.chitietSanpham .info li p {
+    width: 42%;
+    min-width: 130px;
+    font-weight: 700;
+    color: #0f172a;
+    border-right: 1px solid rgba(15, 23, 42, 0.06);
+    background: rgba(11, 87, 208, 0.04);
+}
+
+.chitietSanpham .info li div {
+    width: 58%;
+}
+
+@media (max-width: 980px) {
+    .chitietSanpham .info {
+        grid-template-columns: 1fr;
+    }
+}
+
 
 .rating {
     float: left;

@@ -124,7 +124,10 @@ function addKhungSuaSanPham(masp) {
 
             <tr><td>Hình:</td><td>
                 <img class="hinhDaiDien" id="anhSua" src="${sp.img}">
-                <input type="file" accept="image/*" onchange="capNhatAnhSanPham(this.files, 'anhSua')">
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
+                    <input class="admin-image-file" type="file" accept="image/*" data-target="anhSua">
+                    <button type="button" onclick="uploadAdminImage(this.previousElementSibling, 'anhSua')">Upload ảnh</button>
+                </div>
             </td></tr>
 
             <tr><td>Giá tiền:</td><td><input type="text" value="${sp.price}" required></td></tr>
@@ -162,7 +165,7 @@ function addKhungSuaSanPham(masp) {
                         <div style="margin-top:8px">
                             <button type="button" onclick="addVariantRow('khungSuaSanPham')">+ Thêm màu</button>
                             <small style="display:block;color:#777;margin-top:6px">
-                                Có thể dán link ảnh (img/...jpg) hoặc chọn file để lưu dạng base64.
+                                Có thể dán link ảnh (img/...jpg) hoặc chọn file để upload lên server.
                             </small>
                         </div>
                     </div>
@@ -244,7 +247,7 @@ function ensureVariantSection(frameId) {
                     <div style="margin-top:8px">
                         <button type="button" onclick="addVariantRow('${frameId}')">+ Thêm màu</button>
                         <small style="display:block;color:#777;margin-top:6px">
-                            Có thể dán link ảnh (img/...jpg) hoặc chọn file để lưu dạng base64.
+                            Có thể dán link ảnh (img/...jpg) hoặc chọn file để upload lên server.
                         </small>
                     </div>
                 </div>
@@ -309,7 +312,7 @@ function addVariantRow(frameId, v) {
 
         <div class="variant_imgwrap" style="flex:2; display:flex; gap:6px; align-items:center;">
             <img class="variant_preview" src="${escapeHtml(imgV)}" style="width:34px;height:34px;object-fit:cover;border:1px solid #ddd;border-radius:4px; ${previewStyle}">
-            <input class="variant_img" style="flex:1" type="text" placeholder="Ảnh màu (img/...jpg hoặc data:image...)" value="${escapeHtml(imgV)}">
+            <input class="variant_img" style="flex:1" type="text" placeholder="Ảnh màu (img/...jpg hoặc URL)" value="${escapeHtml(imgV)}">
             <label title="Chọn ảnh" style="width:38px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid #ddd;border-radius:4px;cursor:pointer;background:#fff;">
                 <input class="variant_file" type="file" accept="image/*" style="display:none;">
                 <i class="fa fa-image"></i>
@@ -348,14 +351,17 @@ function addVariantRow(frameId, v) {
 
     fileInput.addEventListener('change', () => {
         if (!fileInput.files || !fileInput.files[0]) return;
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var dataUrl = e.target.result;
-            imgInput.value = dataUrl;
-            previewImg.style.display = '';
-            previewImg.src = dataUrl;
-        };
-        reader.readAsDataURL(fileInput.files[0]);
+        uploadImageFile(fileInput.files[0]).then(function (res) {
+            if (res && res.status && res.path) {
+                imgInput.value = res.path;
+                previewImg.style.display = '';
+                previewImg.src = res.path;
+            } else {
+                alert((res && res.message) ? res.message : 'Upload ảnh thất bại.');
+            }
+        }).catch(function () {
+            alert('Không thể upload ảnh.');
+        });
     });
 
     updateInventoryFromVariants(frameId);
@@ -456,6 +462,7 @@ function layThongTinSanPhamTuTable(idFrame) {
         var ten_mau = (r.querySelector('.variant_name')?.value || '').trim();
         var hex = (r.querySelector('.variant_hex')?.value || '').trim();
         var imgV = (r.querySelector('.variant_img')?.value || '').trim();
+        if (imgV.indexOf('data:image') === 0) imgV = '';
         var stock = parseInt(r.querySelector('.variant_stock')?.value || '0');
 
         if (!ten_mau) return;
@@ -541,14 +548,21 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-function capNhatAnhSanPham(files, idImg) {
-    if (files && files[0]) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            document.getElementById(idImg).src = e.target.result;
-        };
-        reader.readAsDataURL(files[0]);
-    }
+function uploadAdminImage(fileInput, idImg) {
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) return;
+
+    var file = fileInput.files[0];
+    uploadImageFile(file).then(function (res) {
+        if (res && res.status && res.path) {
+            var img = document.getElementById(idImg);
+            if (img) img.src = res.path;
+            fileInput.setAttribute('data-uploaded-path', res.path);
+        } else {
+            alert((res && res.message) ? res.message : 'Upload ảnh thất bại.');
+        }
+    }).catch(function () {
+        alert('Không thể upload ảnh.');
+    });
 }
 
 function autoMaSanPham(company) {
