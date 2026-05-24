@@ -2,6 +2,7 @@
 // php/admin/get-statistics.php
 header('Content-Type: application/json');
 require_once(__DIR__ . '/admin_auth.php');
+require_once(__DIR__ . '/../order_helpers.php');
 require_once('../../connect.php');
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
@@ -37,13 +38,13 @@ try {
     $endDT   = $end   . ' 23:59:59';
 
     // Revenue scope condition
-    // - completed: Hoàn thành + Đã nhận hàng
-    // - all: trừ các trạng thái có chữ "hủy"
+    // - completed: completed + (legacy) Hoàn thành/Đã nhận hàng
+    // - all: trừ cancelled/delivery_failed và legacy trạng thái hủy
     $scopeWhere = "";
     if ($scope === 'all') {
-        $scopeWhere = "LOWER(o.tinh_trang) NOT LIKE '%hủy%'";
+        $scopeWhere = "NOT (LOWER(o.tinh_trang) IN ('cancelled','delivery_failed') OR LOWER(o.tinh_trang) LIKE '%hủy%')";
     } else {
-        $scopeWhere = "o.tinh_trang IN ('Hoàn thành','Đã nhận hàng')";
+        $scopeWhere = "(LOWER(o.tinh_trang) IN ('completed') OR o.tinh_trang IN ('Hoàn thành','Đã nhận hàng'))";
         $scope = 'completed';
     }
 
@@ -52,7 +53,7 @@ try {
         SELECT
             COUNT(DISTINCT o.ma_don) AS orders,
             IFNULL(SUM(od.so_luong), 0) AS units,
-            IFNULL(SUM(od.so_luong * od.don_gia), 0) AS revenue
+            IFNULL(SUM(od.so_luong * COALESCE(NULLIF(od.product_price_snapshot, 0), od.don_gia)), 0) AS revenue
         FROM orders o
         JOIN order_details od ON o.ma_don = od.ma_don
         WHERE o.$dateCol BETWEEN ? AND ?
@@ -71,12 +72,22 @@ try {
 
     // Orders by status (all statuses)
     $sqlStatus = "
-        SELECT o.tinh_trang AS status,
+        SELECT
+            CASE
+                WHEN LOWER(o.tinh_trang) = 'completed' THEN 'completed'
+                WHEN o.tinh_trang IN ('Hoàn thành','Đã nhận hàng') THEN 'completed_legacy'
+                WHEN LOWER(o.tinh_trang) = 'shipping' THEN 'shipping'
+                WHEN LOWER(o.tinh_trang) = 'processing' THEN 'processing'
+                WHEN LOWER(o.tinh_trang) = 'confirmed' THEN 'confirmed'
+                WHEN LOWER(o.tinh_trang) = 'pending' THEN 'pending'
+                WHEN LOWER(o.tinh_trang) IN ('cancelled','delivery_failed') OR LOWER(o.tinh_trang) LIKE '%hủy%' THEN 'cancelled'
+                ELSE LOWER(o.tinh_trang)
+            END AS status,
                COUNT(*) AS count_orders,
                IFNULL(SUM(o.tong_tien), 0) AS sum_total
         FROM orders o
         WHERE o.$dateCol BETWEEN ? AND ?
-        GROUP BY o.tinh_trang
+        GROUP BY status
         ORDER BY count_orders DESC
     ";
     $stmt = $conn->prepare($sqlStatus);
@@ -90,7 +101,7 @@ try {
         $cnt = (int)$row['count_orders'];
         $st = $row['status'];
         $totalAllOrders += $cnt;
-        if (mb_stripos($st, 'hủy') !== false) $cancelOrders += $cnt;
+        if (in_array($st, ['cancelled', 'delivery_failed'], true) || mb_stripos($st, 'hủy') !== false) $cancelOrders += $cnt;
 
         $statusBreakdown[] = [
             "status" => $st,
@@ -111,7 +122,7 @@ try {
 
     $sqlSeries = "
         SELECT $periodExpr AS period,
-               IFNULL(SUM(od.so_luong * od.don_gia), 0) AS revenue,
+               IFNULL(SUM(od.so_luong * COALESCE(NULLIF(od.product_price_snapshot, 0), od.don_gia)), 0) AS revenue,
                IFNULL(SUM(od.so_luong), 0) AS units,
                COUNT(DISTINCT o.ma_don) AS orders
         FROM orders o
@@ -138,15 +149,16 @@ try {
 
     // ---------- Brand summary ----------
     $sqlBrand = "
-        SELECT p.hang_sx AS brand,
+        SELECT COALESCE(NULLIF(od.product_name_snapshot, ''), p.ten_sp) AS product_name,
+               p.hang_sx AS brand,
                IFNULL(SUM(od.so_luong), 0) AS units,
-               IFNULL(SUM(od.so_luong * od.don_gia), 0) AS revenue
+               IFNULL(SUM(od.so_luong * COALESCE(NULLIF(od.product_price_snapshot, 0), od.don_gia)), 0) AS revenue
         FROM orders o
         JOIN order_details od ON o.ma_don = od.ma_don
-        JOIN products p ON od.masp = p.masp
+        LEFT JOIN products p ON od.masp = p.masp
         WHERE o.$dateCol BETWEEN ? AND ?
           AND $scopeWhere
-        GROUP BY p.hang_sx
+        GROUP BY product_name, p.hang_sx
         ORDER BY revenue DESC
     ";
     $stmt = $conn->prepare($sqlBrand);
@@ -156,7 +168,7 @@ try {
     $brandSummary = [];
     while ($row = $rs->fetch_assoc()) {
         $brandSummary[] = [
-            "brand" => $row['brand'],
+            "brand" => $row['brand'] ?: 'Không rõ',
             "units" => (int)$row['units'],
             "revenue" => (float)$row['revenue']
         ];
@@ -165,15 +177,17 @@ try {
 
     // ---------- Top products ----------
     $sqlTopProducts = "
-        SELECT p.masp, p.ten_sp AS name, p.hang_sx AS brand,
+        SELECT od.masp,
+               COALESCE(NULLIF(od.product_name_snapshot, ''), p.ten_sp, od.masp) AS name,
+               p.hang_sx AS brand,
                IFNULL(SUM(od.so_luong), 0) AS units,
-               IFNULL(SUM(od.so_luong * od.don_gia), 0) AS revenue
+               IFNULL(SUM(od.so_luong * COALESCE(NULLIF(od.product_price_snapshot, 0), od.don_gia)), 0) AS revenue
         FROM orders o
         JOIN order_details od ON o.ma_don = od.ma_don
-        JOIN products p ON od.masp = p.masp
+        LEFT JOIN products p ON od.masp = p.masp
         WHERE o.$dateCol BETWEEN ? AND ?
           AND $scopeWhere
-        GROUP BY p.masp, p.ten_sp, p.hang_sx
+        GROUP BY od.masp, name, p.hang_sx
         ORDER BY revenue DESC
         LIMIT 10
     ";
@@ -197,18 +211,18 @@ try {
     $sqlTopVariants = "
         SELECT od.variant_id,
                od.masp,
-               p.ten_sp AS product_name,
-               COALESCE(pv.ten_mau, od.mau_sac, 'N/A') AS color_name,
+               COALESCE(NULLIF(od.product_name_snapshot, ''), p.ten_sp, od.masp) AS product_name,
+               COALESCE(NULLIF(od.variant_name_snapshot, ''), pv.ten_mau, od.mau_sac, 'N/A') AS color_name,
                pv.ma_mau_hex AS color_hex,
                IFNULL(SUM(od.so_luong), 0) AS units,
-               IFNULL(SUM(od.so_luong * od.don_gia), 0) AS revenue
+               IFNULL(SUM(od.so_luong * COALESCE(NULLIF(od.product_price_snapshot, 0), od.don_gia)), 0) AS revenue
         FROM orders o
         JOIN order_details od ON o.ma_don = od.ma_don
-        JOIN products p ON od.masp = p.masp
+        LEFT JOIN products p ON od.masp = p.masp
         LEFT JOIN product_variants pv ON od.variant_id = pv.variant_id
         WHERE o.$dateCol BETWEEN ? AND ?
           AND $scopeWhere
-        GROUP BY od.variant_id, od.masp, p.ten_sp, color_name, pv.ma_mau_hex
+        GROUP BY od.variant_id, od.masp, product_name, color_name, pv.ma_mau_hex
         ORDER BY units DESC, revenue DESC
         LIMIT 10
     ";

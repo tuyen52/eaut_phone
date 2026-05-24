@@ -72,6 +72,16 @@ function loadStatistics() {
                 showStatsError(data.message || 'Lỗi thống kê');
                 return;
             }
+            if (data && data.meta) {
+                var startEl2 = document.getElementById('statsStart');
+                var endEl2 = document.getElementById('statsEnd');
+                var groupEl2 = document.getElementById('statsGroup');
+                var scopeEl2 = document.getElementById('statsScope');
+                if (startEl2) startEl2.value = data.meta.start || startEl2.value;
+                if (endEl2) endEl2.value = data.meta.end || endEl2.value;
+                if (groupEl2) groupEl2.value = data.meta.group || groupEl2.value;
+                if (scopeEl2) scopeEl2.value = data.meta.scope || scopeEl2.value;
+            }
 
             renderKPIs(data.kpis || {});
             renderCharts(data);
@@ -102,6 +112,7 @@ function renderKPIs(k) {
     var aov = Number(k.aov || 0);
     var cancelOrders = Number(k.cancel_orders || 0);
     var cancelRate = Number(k.cancel_rate || 0);
+    var totalAllOrders = Number(k.total_orders_all_status || 0);
 
     setText('kpiRevenue', numToString(Math.round(revenue)) + ' ₫');
     setText('kpiOrders', orders.toString());
@@ -109,6 +120,10 @@ function renderKPIs(k) {
     setText('kpiAov', numToString(Math.round(aov)) + ' ₫');
     setText('kpiCancel', cancelOrders.toString());
     setText('kpiCancelRate', Math.round(cancelRate * 100) + '%');
+    var statusInfo = document.getElementById('statsLoading');
+    if (statusInfo && totalAllOrders >= 0) {
+        statusInfo.title = 'Tổng đơn theo mọi trạng thái: ' + totalAllOrders;
+    }
 }
 
 // Charts

@@ -204,7 +204,7 @@ try {
 
         try {
             $tinhTrang = 'Chờ xử lý';
-            $paymentStatus = 'Pending';
+            $paymentStatus = 'unpaid';
             $pttt = 'COD';
 
             $stmtOrder = $conn->prepare("
