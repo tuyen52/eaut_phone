@@ -38,7 +38,7 @@ function get_current_user_session() {
 function require_login() {
     $user = get_current_user_session();
 
-    if (!$user || empty($user['username'])) {
+    if (!$user || (empty($user['user_id']) && empty($user['username']))) {
         json_response(false, 'Bạn cần đăng nhập để thực hiện chức năng này!', [], 401);
     }
 

@@ -14,24 +14,55 @@ try {
         $col_ngay_mua = 'ngaymua';
     }
 
-    $sql = "
-        SELECT 
-            ma_don,
-            username,
-            so_dien_thoai,
-            dia_chi,
-            phuong_thuc_tt,
-            payment_status,
-            tong_tien,
-            $col_ngay_mua AS ngay_mua_view,
-            tinh_trang,
-            vnp_txn_ref,
-            vnp_transaction_no,
-            vnp_response_code,
-            paid_at
-        FROM orders
-        ORDER BY $col_ngay_mua DESC, ma_don DESC
-    ";
+    $ordersHasUserId = false;
+    $checkUserId = $conn->query("SHOW COLUMNS FROM orders LIKE 'user_id'");
+    if ($checkUserId && $checkUserId->num_rows > 0) {
+        $ordersHasUserId = true;
+    }
+
+    if ($ordersHasUserId) {
+        $sql = "
+            SELECT 
+                o.ma_don,
+                o.user_id,
+                o.username,
+                o.so_dien_thoai,
+                o.dia_chi,
+                o.phuong_thuc_tt,
+                o.payment_status,
+                o.tong_tien,
+                o.$col_ngay_mua AS ngay_mua_view,
+                o.tinh_trang,
+                o.vnp_txn_ref,
+                o.vnp_transaction_no,
+                o.vnp_response_code,
+                o.paid_at,
+                u.ho,
+                u.ten
+            FROM orders o
+            LEFT JOIN users u ON o.user_id = u.user_id
+            ORDER BY o.$col_ngay_mua DESC, o.ma_don DESC
+        ";
+    } else {
+        $sql = "
+            SELECT 
+                ma_don,
+                username,
+                so_dien_thoai,
+                dia_chi,
+                phuong_thuc_tt,
+                payment_status,
+                tong_tien,
+                $col_ngay_mua AS ngay_mua_view,
+                tinh_trang,
+                vnp_txn_ref,
+                vnp_transaction_no,
+                vnp_response_code,
+                paid_at
+            FROM orders
+            ORDER BY $col_ngay_mua DESC, ma_don DESC
+        ";
+    }
 
     $result = $conn->query($sql);
 
@@ -84,9 +115,16 @@ try {
         $rsTimeline->free();
         $stmtTimeline->close();
 
+        $displayName = trim((string)($row['ho'] ?? '') . ' ' . (string)($row['ten'] ?? ''));
+        if ($displayName === '') {
+            $displayName = $row['username'] ?? '';
+        }
+
         $orders[] = [
             'maDon'            => $ma_don,
-            'khachHang'        => $row['username'],
+            'userId'           => isset($row['user_id']) ? (int)$row['user_id'] : null,
+            'khachHang'        => $displayName,
+            'username'         => $row['username'] ?? null,
             'sdt'              => $row['so_dien_thoai'] ?? '',
             'diaChi'           => $row['dia_chi'] ?? '',
             'pttt'             => $row['phuong_thuc_tt'] ?? 'COD',

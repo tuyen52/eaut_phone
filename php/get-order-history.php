@@ -10,7 +10,8 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 try {
     $currentUser = require_login();
-    $username = $currentUser['username'];
+    $userId = (int)($currentUser['user_id'] ?? 0);
+    $username = (string)($currentUser['username'] ?? '');
 
     $dateCol = 'ngay_mua';
     $chk = $conn->query("SHOW COLUMNS FROM orders LIKE 'ngaymua'");
@@ -18,16 +19,35 @@ try {
         $dateCol = 'ngaymua';
     }
 
-    $stmtOrders = $conn->prepare("
-        SELECT ma_don, $dateCol AS ngay_mua_view, tinh_trang, tong_tien,
-               phuong_thuc_tt, payment_status, vnp_txn_ref,
-               vnp_transaction_no, vnp_response_code, paid_at,
-               dia_chi, so_dien_thoai
-        FROM orders
-        WHERE username = ?
-        ORDER BY $dateCol DESC, ma_don DESC
-    ");
-    $stmtOrders->bind_param("s", $username);
+    $ordersHasUserId = false;
+    $chkUserId = $conn->query("SHOW COLUMNS FROM orders LIKE 'user_id'");
+    if ($chkUserId && $chkUserId->num_rows > 0) {
+        $ordersHasUserId = true;
+    }
+
+    if ($ordersHasUserId && $userId > 0) {
+        $stmtOrders = $conn->prepare("
+            SELECT ma_don, $dateCol AS ngay_mua_view, tinh_trang, tong_tien,
+                   phuong_thuc_tt, payment_status, vnp_txn_ref,
+                   vnp_transaction_no, vnp_response_code, paid_at,
+                   dia_chi, so_dien_thoai
+            FROM orders
+            WHERE user_id = ?
+            ORDER BY $dateCol DESC, ma_don DESC
+        ");
+        $stmtOrders->bind_param("i", $userId);
+    } else {
+        $stmtOrders = $conn->prepare("
+            SELECT ma_don, $dateCol AS ngay_mua_view, tinh_trang, tong_tien,
+                   phuong_thuc_tt, payment_status, vnp_txn_ref,
+                   vnp_transaction_no, vnp_response_code, paid_at,
+                   dia_chi, so_dien_thoai
+            FROM orders
+            WHERE username = ?
+            ORDER BY $dateCol DESC, ma_don DESC
+        ");
+        $stmtOrders->bind_param("s", $username);
+    }
     $stmtOrders->execute();
     $rsOrders = $stmtOrders->get_result();
 

@@ -7,7 +7,8 @@ require_once('../connect.php');
 
 try {
     $currentUser = require_login();
-    $username = $currentUser['username'];
+    $userId = (int)($currentUser['user_id'] ?? 0);
+    $username = (string)($currentUser['username'] ?? '');
 
     $data = read_json_body();
 
@@ -22,8 +23,19 @@ try {
         json_response(false, 'Mật khẩu mới phải có ít nhất 6 ký tự!', [], 400);
     }
 
-    $stmt = $conn->prepare("SELECT password FROM users WHERE username = ? LIMIT 1");
-    $stmt->bind_param("s", $username);
+    $hasUserId = false;
+    $chkUserId = $conn->query("SHOW COLUMNS FROM users LIKE 'user_id'");
+    if ($chkUserId && $chkUserId->num_rows > 0) {
+        $hasUserId = true;
+    }
+
+    if ($hasUserId && $userId > 0) {
+        $stmt = $conn->prepare("SELECT password FROM users WHERE user_id = ? LIMIT 1");
+        $stmt->bind_param("i", $userId);
+    } else {
+        $stmt = $conn->prepare("SELECT password FROM users WHERE username = ? LIMIT 1");
+        $stmt->bind_param("s", $username);
+    }
     $stmt->execute();
 
     $rs = $stmt->get_result();
@@ -55,8 +67,13 @@ try {
 
     $newHash = password_hash($newPass, PASSWORD_DEFAULT);
 
-    $stmtUpdate = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
-    $stmtUpdate->bind_param("ss", $newHash, $username);
+    if ($hasUserId && $userId > 0) {
+        $stmtUpdate = $conn->prepare("UPDATE users SET password = ? WHERE user_id = ?");
+        $stmtUpdate->bind_param("si", $newHash, $userId);
+    } else {
+        $stmtUpdate = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
+        $stmtUpdate->bind_param("ss", $newHash, $username);
+    }
     $stmtUpdate->execute();
     $stmtUpdate->close();
 

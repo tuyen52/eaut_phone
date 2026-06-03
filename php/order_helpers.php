@@ -563,10 +563,10 @@ if (!function_exists('calculate_cart_total_amount')) {
 }
 
 if (!function_exists('create_cart_signature')) {
-    function create_cart_signature($username, $tongTien, $sanPham, $secret = '')
+    function create_cart_signature($userKey, $tongTien, $sanPham, $secret = '')
     {
         $payload = json_encode([
-            'username' => $username,
+            'user_key' => $userKey,
             'tong_tien' => (int)$tongTien,
             'san_pham' => $sanPham
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -640,7 +640,7 @@ if (!function_exists('load_order_for_vnpay_result')) {
     function load_order_for_vnpay_result($conn, $maDon)
     {
         $stmt = $conn->prepare("
-            SELECT ma_don, username, ngay_mua, tinh_trang, phuong_thuc_tt, payment_status,
+            SELECT ma_don, user_id, username, ngay_mua, tinh_trang, phuong_thuc_tt, payment_status,
                    tong_tien, dia_chi, so_dien_thoai, vnp_txn_ref, vnp_transaction_no,
                    vnp_response_code, paid_at
             FROM orders
@@ -664,34 +664,67 @@ if (!function_exists('create_order_from_vnpay_session')) {
         $sanPham = json_decode($session['cart_json'], true);
         $sanPham = normalize_cart_items_for_order($sanPham);
 
+        $userId = isset($session['user_id']) ? (int)$session['user_id'] : 0;
         $username = (string)$session['username'];
         $tongTien = (float)$session['tong_tien'];
         $txnRef = (string)$session['txn_ref'];
         $diaChi = (string)$session['dia_chi'];
         $sdt = (string)$session['so_dien_thoai'];
 
-        $stmt = $conn->prepare("
-            INSERT INTO orders (
-                username, tong_tien, tinh_trang, phuong_thuc_tt, payment_status,
-                vnp_txn_ref, vnp_transaction_no, vnp_response_code, paid_at,
-                dia_chi, so_dien_thoai
-            )
-            VALUES (?, ?, ?, 'VNPAY', ?, ?, ?, ?, ?, ?, ?)
-        ");
+        $hasUserId = false;
+        $chkUserId = $conn->query("SHOW COLUMNS FROM orders LIKE 'user_id'");
+        if ($chkUserId && $chkUserId->num_rows > 0) {
+            $hasUserId = true;
+        }
 
-        $stmt->bind_param(
-            "sdssssssss",
-            $username,
-            $tongTien,
-            $tinhTrang,
-            $paymentStatus,
-            $txnRef,
-            $vnpTransactionNo,
-            $vnpResponseCode,
-            $paidAt,
-            $diaChi,
-            $sdt
-        );
+        if ($hasUserId && $userId > 0) {
+            $stmt = $conn->prepare("
+                INSERT INTO orders (
+                    user_id, username, tong_tien, tinh_trang, phuong_thuc_tt, payment_status,
+                    vnp_txn_ref, vnp_transaction_no, vnp_response_code, paid_at,
+                    dia_chi, so_dien_thoai
+                )
+                VALUES (?, ?, ?, ?, 'VNPAY', ?, ?, ?, ?, ?, ?, ?)
+            ");
+
+            $stmt->bind_param(
+                "isdssssssss",
+                $userId,
+                $username,
+                $tongTien,
+                $tinhTrang,
+                $paymentStatus,
+                $txnRef,
+                $vnpTransactionNo,
+                $vnpResponseCode,
+                $paidAt,
+                $diaChi,
+                $sdt
+            );
+        } else {
+            $stmt = $conn->prepare("
+                INSERT INTO orders (
+                    username, tong_tien, tinh_trang, phuong_thuc_tt, payment_status,
+                    vnp_txn_ref, vnp_transaction_no, vnp_response_code, paid_at,
+                    dia_chi, so_dien_thoai
+                )
+                VALUES (?, ?, ?, 'VNPAY', ?, ?, ?, ?, ?, ?, ?)
+            ");
+
+            $stmt->bind_param(
+                "sdssssssss",
+                $username,
+                $tongTien,
+                $tinhTrang,
+                $paymentStatus,
+                $txnRef,
+                $vnpTransactionNo,
+                $vnpResponseCode,
+                $paidAt,
+                $diaChi,
+                $sdt
+            );
+        }
 
         $stmt->execute();
         $maDon = (int)$conn->insert_id;
@@ -790,7 +823,7 @@ if (!function_exists('process_vnpay_session_result')) {
 
         try {
             $stmtSession = $conn->prepare("
-                SELECT session_id, txn_ref, username, tong_tien, ho_ten, dia_chi, so_dien_thoai,
+                SELECT session_id, txn_ref, user_id, username, tong_tien, ho_ten, dia_chi, so_dien_thoai,
                        cart_json, cart_signature, session_status, order_id,
                        vnp_transaction_no, vnp_response_code, paid_at, created_at, expires_at
                 FROM vnpay_payment_sessions
@@ -833,46 +866,55 @@ if (!function_exists('process_vnpay_session_result')) {
 
             $isSuccess = ($vnpResponseCode === '00' && $vnpTransactionStatus === '00');
 
-            if ($isSuccess) {
-                $paymentStatus = 'paid';
-                $tinhTrang = 'Chờ xử lý';
-                $paidAt = parse_vnpay_paydate_to_mysql($vnpPayDate);
-                if ($paidAt === null) $paidAt = date('Y-m-d H:i:s');
-
-                $maDon = create_order_from_vnpay_session(
-                    $conn,
-                    $session,
-                    $paymentStatus,
-                    $tinhTrang,
-                    $vnpTransactionNo,
-                    $vnpResponseCode,
-                    $paidAt,
-                    true
-                );
-
-                $sessionStatus = 'Paid';
-            } else {
-                $paymentStatus = 'failed';
-                $tinhTrang = 'Đã hủy thanh toán';
+            if (!$isSuccess) {
+                $stmtUpdateSession = $conn->prepare("
+                    UPDATE vnpay_payment_sessions
+                    SET session_status = 'Failed',
+                        vnp_transaction_no = ?,
+                        vnp_response_code = ?,
+                        paid_at = ?
+                    WHERE session_id = ?
+                ");
                 $paidAt = null;
-
-                $maDon = create_order_from_vnpay_session(
-                    $conn,
-                    $session,
-                    $paymentStatus,
-                    $tinhTrang,
+                $stmtUpdateSession->bind_param(
+                    "sssi",
                     $vnpTransactionNo,
                     $vnpResponseCode,
                     $paidAt,
-                    false
+                    $session['session_id']
                 );
+                $stmtUpdateSession->execute();
+                $stmtUpdateSession->close();
 
-                $sessionStatus = 'Failed';
+                $conn->commit();
+
+                return [
+                    'session' => $session,
+                    'order' => null,
+                    'already_processed' => false,
+                    'success' => false
+                ];
             }
+
+            $paymentStatus = 'paid';
+            $tinhTrang = 'pending';
+            $paidAt = parse_vnpay_paydate_to_mysql($vnpPayDate);
+            if ($paidAt === null) $paidAt = date('Y-m-d H:i:s');
+
+            $maDon = create_order_from_vnpay_session(
+                $conn,
+                $session,
+                $paymentStatus,
+                $tinhTrang,
+                $vnpTransactionNo,
+                $vnpResponseCode,
+                $paidAt,
+                true
+            );
 
             $stmtUpdateSession = $conn->prepare("
                 UPDATE vnpay_payment_sessions
-                SET session_status = ?,
+                SET session_status = 'Paid',
                     order_id = ?,
                     vnp_transaction_no = ?,
                     vnp_response_code = ?,
@@ -880,8 +922,7 @@ if (!function_exists('process_vnpay_session_result')) {
                 WHERE session_id = ?
             ");
             $stmtUpdateSession->bind_param(
-                "sisssi",
-                $sessionStatus,
+                "isssi",
                 $maDon,
                 $vnpTransactionNo,
                 $vnpResponseCode,
@@ -899,7 +940,7 @@ if (!function_exists('process_vnpay_session_result')) {
                 'session' => $session,
                 'order' => $order,
                 'already_processed' => false,
-                'success' => $isSuccess
+                'success' => true
             ];
 
         } catch (Throwable $e) {

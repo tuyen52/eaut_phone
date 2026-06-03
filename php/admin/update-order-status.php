@@ -33,7 +33,8 @@ function sync_product_stock(mysqli $conn, array $maspList)
 try {
     $currentUser = require_login();
     $isAdmin = (($currentUser['role'] ?? '') === 'admin');
-    $currentUsername = $currentUser['username'] ?? '';
+    $currentUserId = (int)($currentUser['user_id'] ?? 0);
+    $currentUsername = (string)($currentUser['username'] ?? '');
 
     $data = read_json_body();
 
@@ -85,13 +86,29 @@ try {
 
     $conn->begin_transaction();
 
-    $stmtOrder = $conn->prepare("
-        SELECT ma_don, username, tinh_trang, phuong_thuc_tt, payment_status
-        FROM orders
-        WHERE ma_don = ?
-        LIMIT 1
-        FOR UPDATE
-    ");
+    $hasOrderUserId = false;
+    $chkOrderUserId = $conn->query("SHOW COLUMNS FROM orders LIKE 'user_id'");
+    if ($chkOrderUserId && $chkOrderUserId->num_rows > 0) {
+        $hasOrderUserId = true;
+    }
+
+    if ($hasOrderUserId) {
+        $stmtOrder = $conn->prepare("
+            SELECT ma_don, user_id, username, tinh_trang, phuong_thuc_tt, payment_status
+            FROM orders
+            WHERE ma_don = ?
+            LIMIT 1
+            FOR UPDATE
+        ");
+    } else {
+        $stmtOrder = $conn->prepare("
+            SELECT ma_don, username, tinh_trang, phuong_thuc_tt, payment_status
+            FROM orders
+            WHERE ma_don = ?
+            LIMIT 1
+            FOR UPDATE
+        ");
+    }
     $stmtOrder->bind_param("i", $maDon);
     $stmtOrder->execute();
     $rs = $stmtOrder->get_result();
@@ -104,9 +121,18 @@ try {
     $stmtOrder->close();
 
     $orderUsername = (string)($order['username'] ?? '');
+    $orderUserId = (int)($order['user_id'] ?? 0);
 
-    if (!$isAdmin && $orderUsername !== $currentUsername) {
-        throw new Exception("Bạn không có quyền cập nhật đơn hàng này!");
+    if (!$isAdmin) {
+        if ($hasOrderUserId && $orderUserId > 0) {
+            if ($orderUserId !== $currentUserId) {
+                throw new Exception("Bạn không có quyền cập nhật đơn hàng này!");
+            }
+        } else {
+            if ($orderUsername !== $currentUsername) {
+                throw new Exception("Bạn không có quyền cập nhật đơn hàng này!");
+            }
+        }
     }
 
     $trangThaiCu = normalize_order_status($order['tinh_trang']);
