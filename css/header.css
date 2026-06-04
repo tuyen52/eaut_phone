@@ -232,4 +232,77 @@
 			/* ======= End Check Order ======= */
 		/* ======= End Tools Member ======= */
 	/* ======= End Content ========= */
+
+	/* Top navigation bar */
+	.top-nav {
+		background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 45%, #2563eb 100%);
+		border-bottom: 1px solid rgba(255,255,255,.08);
+		box-shadow: 0 6px 18px rgba(15, 23, 42, .12);
+	}
+	.top-nav section {
+		max-width: 1205px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 10px 14px;
+		gap: 18px;
+	}
+	.top-nav .social-top-nav {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		flex-shrink: 0;
+	}
+	.top-nav .social-top-nav a {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		font-size: 15px;
+		color: #fff;
+		background: rgba(255,255,255,.12);
+		backdrop-filter: blur(4px);
+		box-shadow: 0 2px 8px rgba(0,0,0,.16);
+		transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+	}
+	.top-nav .social-top-nav a:hover {
+		transform: translateY(-2px) scale(1.06);
+		box-shadow: 0 10px 18px rgba(0,0,0,.22);
+	}
+	.top-nav .social-top-nav .fa-facebook { background: linear-gradient(135deg, #1877f2, #0b5bd3); }
+	.top-nav .social-top-nav .fa-twitter { background: linear-gradient(135deg, #1da1f2, #0e87d6); }
+	.top-nav .social-top-nav .fa-google { background: linear-gradient(135deg, #ea4335, #c5221f); }
+	.top-nav .social-top-nav .fa-youtube { background: linear-gradient(135deg, #ff0033, #c8001f); }
+	.top-nav .top-nav-quicklink {
+		list-style: none;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 8px 12px;
+		margin: 0;
+		padding: 0;
+	}
+	.top-nav .top-nav-quicklink li a {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 7px 12px;
+		border-radius: 999px;
+		color: rgba(255,255,255,.92);
+		font-size: 14px;
+		font-weight: 600;
+		transition: background .2s ease, transform .2s ease, color .2s ease;
+	}
+	.top-nav .top-nav-quicklink li a:hover {
+		background: rgba(255,255,255,.14);
+		color: #fff;
+		transform: translateY(-1px);
+	}
+	.top-nav .top-nav-quicklink li a i {
+		color: #dbeafe;
+	}
 /* ======= End header ======== */

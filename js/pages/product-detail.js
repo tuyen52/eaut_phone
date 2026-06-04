@@ -434,19 +434,40 @@ function setupReviewForm() {
         return;
     }
 
-    // Check đã mua chưa
-    if (!checkDaMuaSanPham(user, sanPhamHienTai.masp)) {
-        formDiv.style.display = 'none';
-        loginMsg.style.display = 'none';
-        notBoughtMsg.style.display = 'block';
-        notBoughtMsg.innerText = 'Bạn cần mua và nhận hàng sản phẩm này để có thể viết đánh giá.';
-        return;
-    }
+    fetch('php/check-bought-product.php?masp=' + encodeURIComponent(sanPhamHienTai.masp), {
+        method: 'GET',
+        credentials: 'same-origin'
+    })
+        .then(function (res) {
+            if (!res.ok) throw new Error('CHECK_BUY_FAILED');
+            return res.json();
+        })
+        .then(function (data) {
+            if (data && data.bought === true) {
+                formDiv.style.display = 'block';
+                loginMsg.style.display = 'none';
+                notBoughtMsg.style.display = 'none';
+            } else {
+                formDiv.style.display = 'none';
+                loginMsg.style.display = 'none';
+                notBoughtMsg.style.display = 'block';
+                notBoughtMsg.innerText = 'Bạn cần mua và nhận hàng sản phẩm này để có thể viết đánh giá.';
+            }
+        })
+        .catch(function () {
+            // Fallback cũ để không làm thay đổi logic website
+            if (!checkDaMuaSanPham(user, sanPhamHienTai.masp)) {
+                formDiv.style.display = 'none';
+                loginMsg.style.display = 'none';
+                notBoughtMsg.style.display = 'block';
+                notBoughtMsg.innerText = 'Bạn cần mua và nhận hàng sản phẩm này để có thể viết đánh giá.';
+                return;
+            }
 
-    // OK
-    formDiv.style.display = 'block';
-    loginMsg.style.display = 'none';
-    notBoughtMsg.style.display = 'none';
+            formDiv.style.display = 'block';
+            loginMsg.style.display = 'none';
+            notBoughtMsg.style.display = 'none';
+        });
 }
 
 function submitReview() {
