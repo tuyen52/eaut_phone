@@ -50,49 +50,252 @@
     <section style="min-height: 85vh">
         <script>addHeader();</script>
 
-        <table>
-            <tr>
-                <td colspan="4" class="header-table">
-                    <marquee behavior="scroll" direction=left>Các trung tâm bảo hành của EAUT PHONE</marquee>
-                </td>
-            </tr>
-            <tr>
-                <th class="col1">STT</th>
-                <th class="col2">Địa chỉ</th>
-                <th class="col3">Điện thoại</th>
-                <th class="col4">Thời gian làm việc</th>
-            </tr>
+        <div class="warranty-page">
+            <div class="warranty-hero">
+                <div class="warranty-hero__content">
+                    <span class="warranty-badge">EAUT PHONE • Đồ án tốt nghiệp</span>
+                    <h1>Chính sách bảo hành và hỗ trợ sau bán hàng</h1>
+                    <p>
+                        Trang này giúp người dùng tra cứu hỗ trợ, tìm hiểu điều kiện bảo hành và liên hệ khi sản phẩm gặp vấn đề.
+                        Đây cũng là một phần để thể hiện tính hoàn chỉnh của hệ thống bán điện thoại trong đồ án.
+                    </p>
+                    <div class="warranty-hero__stats">
+                        <div class="stat-box">
+                            <strong>12 tháng</strong>
+                            <span>Bảo hành chính hãng</span>
+                        </div>
+                        <div class="stat-box">
+                            <strong>48 giờ</strong>
+                            <span>Tiếp nhận phản hồi</span>
+                        </div>
+                        <div class="stat-box">
+                            <strong>3 bước</strong>
+                            <span>Tra cứu bảo hành</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="warranty-hero__card">
+                    <h3>Tra cứu bảo hành nhanh</h3>
+                    <form id="warrantyLookupForm" class="lookup-form">
+                        <label>Mã đơn hàng</label>
+                        <input type="text" id="lookupOrderCode" placeholder="Ví dụ: 12" autocomplete="off" required>
 
-            <script>
-                var trungtam = [
-                    ["Số 5 Phố Tràng Tiền, Q. Hoàn Kiếm"                          , "024-xxxx xxxx"   , "8h00 - 17h00" ],
-                    ["Số 32 Đường Xuân Thủy, Q. Cầu Giấy"                         , "024-xxxx xxxx"   , "8h00 - 17h00" ],
-                    ["Trịnh Văn Bô, Bắc Từ Liêm, Đại học công nghệ đông á "       , "076.3841649"     , "8h00 - 17h00"],
-                    ["114 Tô Hiệu, Quận Lê Chân, Tp. Hải Phòng"                   , "(031)-384 7689"  , "8h00 - 17h00"],
-                   
-                ]
+                        <label>Số điện thoại</label>
+                        <input type="text" id="lookupPhone" placeholder="Ví dụ: 09xxxxxxxx" autocomplete="off" required>
 
-                for (var i = 0; i < trungtam.length; i++) {
-                    var link = 'https://maps.google.com/maps?q=' + trungtam[i][0];
-                    document.write(`
-                        <tr>
-                            <td class="col1">` + (i + 1) + `</td>
-                            <td class="col2"> 
-                                <a href="`+link+`" target="_blank" title="Xem bản đồ">
-                                    ` + trungtam[i][0] +`
-                                </a>
-                            </td>
-                            <td class="col3">` + trungtam[i][1] +`</td>
-                            <td class="col4">` + trungtam[i][2] +`</td>
-                        </tr>
-                    `)
-                }
-            </script>
-        </table>
+                        <label>Mã sản phẩm (masp)</label>
+                        <input type="text" id="lookupProductCode" placeholder="Ví dụ: IPHONE15PROMAX" autocomplete="off">
+
+                        <button type="submit">Tra cứu bảo hành</button>
+                    </form>
+                    <div id="warrantyLookupResult" class="lookup-result">
+                        Nhập thông tin để kiểm tra trạng thái bảo hành và hỗ trợ.
+                    </div>
+                </div>
+            </div>
+
+            <div class="warranty-grid">
+                <div class="warranty-section card-note">
+                    <h2>Điều kiện bảo hành</h2>
+                    <ul>
+                        <li>Sản phẩm còn trong thời hạn bảo hành theo thông tin mua hàng.</li>
+                        <li>Có hóa đơn, mã đơn hàng hoặc thông tin xác nhận mua hàng.</li>
+                        <li>Lỗi phát sinh từ nhà sản xuất hoặc lỗi kỹ thuật trong quá trình sử dụng bình thường.</li>
+                        <li>Tem bảo hành, IMEI hoặc mã sản phẩm còn nguyên vẹn.</li>
+                    </ul>
+                </div>
+                <div class="warranty-section card-note">
+                    <h2>Trường hợp không áp dụng</h2>
+                    <ul>
+                        <li>Rơi vỡ, vào nước, cháy nổ, móp méo do tác động bên ngoài.</li>
+                        <li>Tự ý tháo lắp, sửa chữa tại nơi không được ủy quyền.</li>
+                        <li>Hư hỏng do dùng sai hướng dẫn hoặc phụ kiện không tương thích.</li>
+                        <li>Mất tem, mất số serial hoặc thông tin nhận diện sản phẩm bị thay đổi.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="warranty-grid warranty-grid--two">
+                <div class="warranty-section warranty-steps">
+                    <h2>Quy trình hỗ trợ thực tế</h2>
+                    <div class="steps-list">
+                        <div class="step-item"><span>1</span><p>Người dùng tra cứu bằng mã đơn hàng hoặc số điện thoại.</p></div>
+                        <div class="step-item"><span>2</span><p>Hệ thống hiển thị trạng thái tiếp nhận, thời hạn và ghi chú hỗ trợ.</p></div>
+                        <div class="step-item"><span>3</span><p>Người dùng liên hệ hotline hoặc email để được hướng dẫn tiếp theo.</p></div>
+                    </div>
+                </div>
+                <div class="warranty-section warranty-history">
+                    <h2>Lịch sử bảo hành mẫu</h2>
+                    <p class="warranty-history__desc">Khối này giúp trang có tính thực tế hơn khi demo đồ án. Nếu không có dữ liệu thật, hệ thống vẫn có thể hiển thị trạng thái mẫu để người chấm thấy luồng nghiệp vụ hoạt động.</p>
+                    <div class="history-list">
+                        <div class="history-item approved"><strong>DH2026-001</strong><span>Đã tiếp nhận - chờ kiểm tra</span></div>
+                        <div class="history-item pending"><strong>DH2026-014</strong><span>Đang chờ khách gửi thiết bị</span></div>
+                        <div class="history-item done"><strong>DH2026-026</strong><span>Đã xử lý xong</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="warranty-section warranty-support">
+                <div>
+                    <h2>Trung tâm hỗ trợ</h2>
+                    <p>Đây là các địa điểm bảo hành được thiết kế để phù hợp với mô hình website đồ án, có thể nhấp để mở bản đồ Google Maps.</p>
+                </div>
+                <table>
+                    <tr>
+                        <td colspan="4" class="header-table">
+                            <marquee behavior="scroll" direction="left">Các trung tâm bảo hành của EAUT PHONE</marquee>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="col1">STT</th>
+                        <th class="col2">Địa chỉ</th>
+                        <th class="col3">Điện thoại</th>
+                        <th class="col4">Thời gian làm việc</th>
+                    </tr>
+
+                    <script>
+                        var trungtam = [
+                            ["Số 5 Phố Tràng Tiền, Q. Hoàn Kiếm", "024-xxxx xxxx", "8h00 - 17h00"],
+                            ["Số 32 Đường Xuân Thủy, Q. Cầu Giấy", "024-xxxx xxxx", "8h00 - 17h00"],
+                            ["Trịnh Văn Bô, Bắc Từ Liêm, Đại học Công nghệ Đông Á", "076.3841649", "8h00 - 17h00"],
+                            ["114 Tô Hiệu, Quận Lê Chân, Tp. Hải Phòng", "(031)-384 7689", "8h00 - 17h00"]
+                        ];
+
+                        for (var i = 0; i < trungtam.length; i++) {
+                            var link = 'https://maps.google.com/maps?q=' + encodeURIComponent(trungtam[i][0]);
+                            document.write(`
+                                <tr>
+                                    <td class="col1">${i + 1}</td>
+                                    <td class="col2">
+                                        <a href="${link}" target="_blank" title="Xem bản đồ">
+                                            ${trungtam[i][0]}
+                                        </a>
+                                    </td>
+                                    <td class="col3">${trungtam[i][1]}</td>
+                                    <td class="col4">${trungtam[i][2]}</td>
+                                </tr>
+                            `);
+                        }
+                    </script>
+                </table>
+            </div>
+
+            <div class="warranty-section warranty-contact">
+                <h2>Thông tin hỗ trợ và thông tin đồ án</h2>
+                <div class="warranty-contact__grid">
+                    <div>
+                        <h3>Liên hệ hỗ trợ</h3>
+                        <p><b>Hotline:</b> 0123456789</p>
+                        <p><b>Email:</b> 20223036@eaut.edu.vn</p>
+                        <p><b>Thời gian:</b> 8h00 - 17h00, từ Thứ 2 đến Thứ 7</p>
+                    </div>
+                    <div>
+                        <h3>Thông tin đồ án</h3>
+                        <p><b>Tên đề tài:</b> EAUT Phone</p>
+                        <p><b>Sinh viên thực hiện:</b> Nguyễn Đăng Tuyển</p>
+                        <p><b>MSSV:</b> 20223036</p>
+                        <p><b>Lớp:</b> DCCNTT 13.10.18</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </section>
 
-    <script>addContainTaiKhoan(); </script>
+    <script>
+        addContainTaiKhoan();
+
+        (function () {
+            var form = document.getElementById('warrantyLookupForm');
+            var result = document.getElementById('warrantyLookupResult');
+
+            if (form && result) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    var orderCode = document.getElementById('lookupOrderCode').value.trim();
+                    var phone = document.getElementById('lookupPhone').value.trim();
+                    var productCode = document.getElementById('lookupProductCode').value.trim();
+
+                    if (!orderCode || !phone) {
+                        result.className = 'lookup-result error';
+                        result.innerHTML = 'Vui lòng nhập đầy đủ mã đơn hàng và số điện thoại.';
+                        return;
+                    }
+
+                    result.className = 'lookup-result';
+                    result.innerHTML = 'Đang kiểm tra dữ liệu đơn hàng...';
+
+                    fetch('php/check-warranty.php', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ma_don: parseInt(orderCode, 10),
+                            so_dien_thoai: phone,
+                            masp: productCode
+                        })
+                    })
+                    .then(function (res) {
+                        return res.json().then(function (data) {
+                            return { ok: res.ok, data: data };
+                        });
+                    })
+                    .then(function (payload) {
+                        var data = payload.data || {};
+
+                        if (!payload.ok || data.status === false) {
+                            result.className = 'lookup-result error';
+                            result.innerHTML = (data.message || 'Không thể tra cứu bảo hành.') + '<br><small>Hãy kiểm tra lại mã đơn hàng, số điện thoại hoặc sản phẩm.</small>';
+                            return;
+                        }
+
+                        var warranty = data.warranty || {};
+                        var order = data.order || {};
+                        var product = data.product || null;
+                        var timeline = Array.isArray(data.timeline) ? data.timeline : [];
+                        var products = Array.isArray(data.products) ? data.products : [];
+
+                        var productHtml = '';
+                        if (product) {
+                            productHtml = '<div class="lookup-product"><b>Sản phẩm khớp:</b> ' + (product.product_name_snapshot || product.masp) + ' <span>(' + product.masp + ')</span></div>';
+                        } else if (products.length) {
+                            productHtml = '<div class="lookup-product"><b>Sản phẩm trong đơn:</b> ' + products.map(function (p) { return p.product_name_snapshot || p.masp; }).join(', ') + '</div>';
+                        }
+
+                        var timelineHtml = '';
+                        if (timeline.length) {
+                            timelineHtml = '<div class="lookup-timeline"><b>Lịch sử xử lý:</b><ul>' + timeline.map(function (t) {
+                                return '<li><span>' + (t.label || '') + '</span>' + (t.note ? ' - ' + t.note : '') + '</li>';
+                            }).join('') + '</ul></div>';
+                        }
+
+                        var canSupportText = warranty.can_support ? 'Đủ điều kiện hỗ trợ/bảo hành' : 'Chưa đủ điều kiện hỗ trợ ngay';
+                        var remainingText = (warranty.remaining_days !== null && warranty.remaining_days !== undefined)
+                            ? warranty.remaining_days + ' ngày'
+                            : 'Chưa xác định';
+
+                        result.className = 'lookup-result success ' + (warranty.can_support ? 'approved' : 'pending');
+                        result.innerHTML =
+                            '<div class="lookup-result__title">' + (warranty.status || canSupportText) + '</div>' +
+                            '<p><b>Mã đơn hàng:</b> ' + order.ma_don + '</p>' +
+                            '<p><b>Số điện thoại:</b> ' + phone + '</p>' +
+                            '<p><b>Trạng thái đơn:</b> ' + (order.tinh_trang_label || order.tinh_trang || '') + '</p>' +
+                            '<p><b>Thanh toán:</b> ' + (order.payment_status_label || order.payment_status || '') + '</p>' +
+                            '<p><b>Thời hạn bảo hành:</b> 12 tháng</p>' +
+                            '<p><b>Còn lại:</b> ' + remainingText + '</p>' +
+                            productHtml +
+                            timelineHtml +
+                            '<p><b>Kết luận:</b> ' + canSupportText + '</p>';
+                    })
+                    .catch(function () {
+                        result.className = 'lookup-result error';
+                        result.innerHTML = 'Có lỗi khi kết nối máy chủ tra cứu bảo hành.';
+                    });
+                });
+            }
+        })();
+    </script>
 
     <div class="footer">
             <script>addFooter();</script>

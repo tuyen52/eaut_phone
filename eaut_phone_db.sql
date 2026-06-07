@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 24, 2026 at 03:57 PM
+-- Generation Time: Jun 07, 2026 at 05:04 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -58,19 +58,6 @@ CREATE TABLE `orders` (
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `orders`
---
-
-INSERT INTO `orders` (`ma_don`, `username`, `ngay_mua`, `tinh_trang`, `phuong_thuc_tt`, `payment_status`, `vnp_txn_ref`, `vnp_transaction_no`, `vnp_response_code`, `paid_at`, `payment_expired_at`, `dia_chi`, `so_dien_thoai`, `tong_tien`, `updated_at`) VALUES
-(1, 'tuyen', '2026-05-21 23:37:50', '', 'VNPAY', 'paid', 'GD202605212336008867', '15550607', '00', '2026-05-21 23:37:46', NULL, 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', 18990000, '2026-05-24 12:09:28'),
-(2, 'tuyen', '2026-05-21 23:39:15', '', 'COD', 'unpaid', NULL, NULL, NULL, NULL, NULL, 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', 3990000, '2026-05-24 12:09:28'),
-(3, 'tuyen', '2026-05-22 00:02:44', '', 'COD', 'unpaid', NULL, NULL, NULL, NULL, NULL, 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', 8990000, '2026-05-24 12:09:28'),
-(4, 'tuyen', '2026-05-24 11:47:15', '', 'COD', 'unpaid', NULL, NULL, NULL, NULL, NULL, 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', 18990000, '2026-05-24 12:09:28'),
-(5, 'tuyen', '2026-05-24 12:33:54', 'completed', 'COD', 'unpaid', NULL, NULL, NULL, NULL, NULL, 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', 33490000, '2026-05-24 12:52:59'),
-(6, 'tuyen', '2026-05-24 13:00:47', 'completed', 'COD', 'unpaid', NULL, NULL, NULL, NULL, NULL, 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', 18990000, '2026-05-24 13:02:24'),
-(7, 'tuyen', '2026-05-24 14:59:08', 'completed', 'COD', 'paid', NULL, NULL, NULL, NULL, NULL, 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', 7490000, '2026-05-24 15:00:20');
-
 -- --------------------------------------------------------
 
 --
@@ -91,19 +78,6 @@ CREATE TABLE `order_details` (
   `variant_name_snapshot` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `order_details`
---
-
-INSERT INTO `order_details` (`detail_id`, `ma_don`, `masp`, `variant_id`, `mau_sac`, `so_luong`, `don_gia`, `product_name_snapshot`, `product_price_snapshot`, `product_image_snapshot`, `variant_name_snapshot`) VALUES
-(1, 1, 'APP16', 7, 'Xanh dương', 1, 18990000, 'iPhone 16 128GB', 18990000, 'img/products/uploads/ip16xanhduong-1779440286.jpg', 'Xanh dương'),
-(2, 2, 'HMDPULSEP', 49, 'Tím twilight', 1, 3990000, 'HMD Pulse Pro 6GB/128GB', 3990000, 'img/products/uploads/t---i-xu---ng-1779441784.jpg', 'Tím twilight'),
-(3, 3, 'REDMI15P5G', 24, 'Tím khói', 1, 8990000, 'REDMI Note 15 Pro 5G 12GB/256GB', 8990000, 'img/products/uploads/t---i-xu---ng--9-1779442401.jpg', 'Tím khói'),
-(4, 4, 'APP16', 8, 'Trắng', 1, 18990000, 'iPhone 16 128GB', 18990000, 'img/products/uploads/ip16xanhduong-1779440286.jpg', 'Trắng'),
-(5, 5, 'APP17P', 5, 'Xanh đậm', 1, 33490000, 'iPhone 17 Pro 256GB', 33490000, 'img/products/uploads/shopping-1779441651.webp', 'Xanh đậm'),
-(6, 6, 'APP16', 7, 'Xanh dương', 1, 18990000, 'iPhone 16 128GB', 18990000, 'img/products/uploads/ip16xanhduong-1779440286.jpg', 'Xanh dương'),
-(7, 7, 'HMDXR21', 53, 'Xanh midnight', 1, 7490000, 'Nokia XR21 5G 6GB/128GB', 7490000, 'img/products/uploads/t---i-xu---ng--1-1779441853.jpg', 'Xanh midnight');
-
 -- --------------------------------------------------------
 
 --
@@ -117,24 +91,6 @@ CREATE TABLE `order_status_logs` (
   `note` varchar(255) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `order_status_logs`
---
-
-INSERT INTO `order_status_logs` (`log_id`, `ma_don`, `status`, `note`, `created_at`) VALUES
-(1, 5, 'confirmed', 'updated_by_admin', '2026-05-24 12:52:29'),
-(2, 5, 'processing', 'updated_by_admin', '2026-05-24 12:52:42'),
-(3, 5, 'shipping', 'updated_by_admin', '2026-05-24 12:52:52'),
-(4, 5, 'completed', 'updated_by_admin', '2026-05-24 12:52:59'),
-(5, 6, 'confirmed', 'updated_by_admin', '2026-05-24 13:01:06'),
-(6, 6, 'processing', 'updated_by_admin', '2026-05-24 13:01:48'),
-(7, 6, 'shipping', 'updated_by_admin', '2026-05-24 13:01:52'),
-(8, 6, 'completed', 'updated_by_admin', '2026-05-24 13:02:24'),
-(9, 7, 'confirmed', 'updated_by_admin', '2026-05-24 14:59:22'),
-(10, 7, 'processing', 'updated_by_admin', '2026-05-24 14:59:24'),
-(11, 7, 'shipping', 'updated_by_admin', '2026-05-24 14:59:28'),
-(12, 7, 'completed', 'updated_by_admin', '2026-05-24 15:00:20');
 
 -- --------------------------------------------------------
 
@@ -170,9 +126,9 @@ CREATE TABLE `products` (
 
 INSERT INTO `products` (`masp`, `ten_sp`, `hang_sx`, `hinh_anh`, `gia`, `so_luong_ton`, `so_sao`, `so_danh_gia`, `khuyen_mai_loai`, `khuyen_mai_gia_tri`, `screen`, `os`, `camera`, `camera_front`, `cpu`, `ram`, `rom`, `micro_usb`, `battery`) VALUES
 ('APP16', 'iPhone 16 128GB', 'Apple', 'img/products/uploads/ip16xanhduong-1779440286.jpg', 18990000, 21, 0, 0, 'giamgia', '1000000', 'Super Retina XDR 6.1 inch', 'iOS 26', 'Camera kép 48 MP', 'TrueDepth 12 MP', 'Apple A18', '8 GB', '128 GB', 'Không hỗ trợ thẻ nhớ', 'Pin tốt, sạc nhanh USB-C'),
-('APP17', 'iPhone 17 256GB', 'Apple', 'img/products/uploads/t---i-xu---ng--2-1779441601.webp', 24990000, 21, 0, 0, 'moiramat', '', 'Super Retina XDR 6.3 inch 120Hz', 'iOS 26', 'Camera kép 48 MP, quay 4K', 'TrueDepth 24 MP', 'Apple A19', '8 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin cả ngày, sạc nhanh USB-C'),
+('APP17', 'iPhone 17 256GB', 'Apple', 'img/products/uploads/t---i-xu---ng--2-1779441601.webp', 24990000, 20, 0, 0, 'moiramat', '', 'Super Retina XDR 6.3 inch 120Hz', 'iOS 26', 'Camera kép 48 MP, quay 4K', 'TrueDepth 24 MP', 'Apple A19', '8 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin cả ngày, sạc nhanh USB-C'),
 ('APP17P', 'iPhone 17 Pro 256GB', 'Apple', 'img/products/uploads/shopping-1779441651.webp', 34990000, 11, 0, 0, 'giareonline', '33490000', 'OLED ProMotion 6.3 inch 120Hz', 'iOS 26', 'Camera Pro Fusion 48 MP', 'TrueDepth 24 MP', 'Apple A19 Pro', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin Pro, sạc nhanh USB-C'),
-('HMDPULSEP', 'HMD Pulse Pro 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng-1779441784.jpg', 3990000, 23, 5, 1, 'giamgia', '200000', 'LCD 6.65 inch 90Hz', 'Android 15', 'Camera sau 50 MP', 'Camera selfie 50 MP', 'Unisoc T606', '6 GB', '128 GB', 'MicroSD hỗ trợ', '5000 mAh, pin lâu'),
+('HMDPULSEP', 'HMD Pulse Pro 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng-1779441784.jpg', 3990000, 23, 0, 0, 'giamgia', '200000', 'LCD 6.65 inch 90Hz', 'Android 15', 'Camera sau 50 MP', 'Camera selfie 50 MP', 'Unisoc T606', '6 GB', '128 GB', 'MicroSD hỗ trợ', '5000 mAh, pin lâu'),
 ('HMDXR21', 'Nokia XR21 5G 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng--1-1779441853.jpg', 7490000, 15, 0, 0, 'tragop', '0', 'LCD 6.49 inch 120Hz', 'Android 14', 'Camera kép 64 MP', 'Camera 16 MP', 'Snapdragon 695 5G', '6 GB', '128 GB', 'MicroSD hỗ trợ', '4800 mAh, bền bỉ'),
 ('HWMATEX6', 'Huawei Mate X6 12GB/512GB', 'Huawei', 'img/products/uploads/t---i-xu---ng--2-1779441895.jpg', 41990000, 12, 0, 0, 'tragop', '0', 'Màn hình gập OLED 7.93 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera Ultra Chroma 50 MP', 'Camera 8 MP', 'Kirin flagship', '12 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', 'Pin kép, sạc nhanh SuperCharge'),
 ('HWPR80', 'Huawei Pura 80 12GB/256GB', 'Huawei', 'img/products/uploads/t---i-xu---ng--3-1779441927.webp', 18990000, 12, 0, 0, 'moiramat', '', 'OLED 6.6 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera XMAGE 50 MP', 'Camera 13 MP', 'Kirin series', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin lớn, sạc nhanh SuperCharge'),
@@ -214,7 +170,7 @@ CREATE TABLE `product_variants` (
 --
 
 INSERT INTO `product_variants` (`variant_id`, `masp`, `ten_mau`, `ma_mau_hex`, `hinh_anh`, `so_luong_ton`, `created_at`, `updated_at`) VALUES
-(1, 'APP17', 'Xanh lưu ly', '#8DB9E8', 'img/products/modern/APP17_1.svg', 8, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
+(1, 'APP17', 'Xanh lưu ly', '#8DB9E8', 'img/products/modern/APP17_1.svg', 7, '2026-05-21 12:57:27', '2026-06-03 18:55:17'),
 (2, 'APP17', 'Đen', '#202124', 'img/products/modern/APP17_2.svg', 7, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
 (3, 'APP17', 'Hồng đào', '#F6B8B8', 'img/products/modern/APP17_3.svg', 6, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
 (4, 'APP17P', 'Titan tự nhiên', '#B8B0A3', 'img/products/modern/APP17P_1.svg', 6, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
@@ -340,13 +296,6 @@ CREATE TABLE `rate` (
   `ngay_dg` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `rate`
---
-
-INSERT INTO `rate` (`id`, `masp`, `variant_id`, `mau_sac`, `username`, `so_sao`, `binh_luan`, `ngay_dg`) VALUES
-(1, 'HMDPULSEP', 49, 'Tím twilight', 'tuyen', 5, 'sản phẩm rẻ nhưng hiệu năng tốt', '2026-05-22 00:09:42');
-
 -- --------------------------------------------------------
 
 --
@@ -398,15 +347,6 @@ CREATE TABLE `vnpay_payment_sessions` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `expires_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `vnpay_payment_sessions`
---
-
-INSERT INTO `vnpay_payment_sessions` (`session_id`, `txn_ref`, `username`, `tong_tien`, `ho_ten`, `dia_chi`, `so_dien_thoai`, `cart_json`, `cart_signature`, `session_status`, `order_id`, `vnp_transaction_no`, `vnp_response_code`, `paid_at`, `created_at`, `expires_at`) VALUES
-(1, 'GD202605212330223252', 'tuyen', 18990000, 'tuyen', 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', '[{\"masp\":\"APP16\",\"variant_id\":7,\"mau_sac\":\"Xanh dương\",\"so_luong\":1,\"gia\":18990000}]', 'f470ec57403f72a553e0b58048dcbb8f8584e2e4ccd42e43362160c97c96b628', 'Pending', NULL, NULL, NULL, NULL, '2026-05-21 23:30:22', '2026-05-21 23:45:22'),
-(2, 'GD202605212336008867', 'tuyen', 18990000, 'tuyen', 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', '[{\"masp\":\"APP16\",\"variant_id\":7,\"mau_sac\":\"Xanh dương\",\"so_luong\":1,\"gia\":18990000}]', 'f470ec57403f72a553e0b58048dcbb8f8584e2e4ccd42e43362160c97c96b628', 'Paid', 1, '15550607', '00', '2026-05-21 23:37:46', '2026-05-21 23:36:00', '2026-05-21 23:51:00'),
-(3, 'GD202605241039395187', 'tuyen', 18990000, 'tuyen12', 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', '[{\"masp\":\"APP16\",\"variant_id\":7,\"mau_sac\":\"Xanh dương\",\"so_luong\":1,\"gia\":18990000}]', 'f470ec57403f72a553e0b58048dcbb8f8584e2e4ccd42e43362160c97c96b628', 'Pending', NULL, NULL, NULL, NULL, '2026-05-24 10:39:39', '2026-05-24 10:54:39');
 
 --
 -- Indexes for dumped tables
@@ -498,19 +438,19 @@ ALTER TABLE `nhap_kho`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `ma_don` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `ma_don` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `order_details`
 --
 ALTER TABLE `order_details`
-  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `order_status_logs`
 --
 ALTER TABLE `order_status_logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `product_variants`
@@ -522,7 +462,7 @@ ALTER TABLE `product_variants`
 -- AUTO_INCREMENT for table `rate`
 --
 ALTER TABLE `rate`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -534,7 +474,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `vnpay_payment_sessions`
 --
 ALTER TABLE `vnpay_payment_sessions`
-  MODIFY `session_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `session_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
