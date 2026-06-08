@@ -600,35 +600,28 @@
 
 /* CSS cho việc chọn sao */
 .star-rating {
-    display: inline-block;
-    font-size: 1.8em; /* Điều chỉnh kích thước sao */
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 1.8em;
     line-height: 1;
     margin-bottom: 15px;
-    vertical-align: middle; /* Căn giữa theo chiều dọc */
+    vertical-align: middle;
 }
 
 .star-rating .fa {
-    color: #ccc; /* Màu sao mặc định */
+    color: #ccc;
     cursor: pointer;
-    transition: color 0.2s;
-    margin: 0 1px; /* Thêm khoảng cách nhỏ */
+    transition: color 0.15s ease, transform 0.15s ease;
+    margin: 0;
 }
 
-/* Đổi màu sao khi hover hoặc được chọn */
-/* Giữ :hover cuối cùng để ưu tiên */
-.star-rating .fa.selected,
-.star-rating .fa.hovered,
-.star-rating:hover .fa {
+.star-rating .fa.selected {
     color: orange;
 }
 
-/* Reset màu các sao phía sau sao được hover */
-.star-rating:hover .fa:hover ~ .fa {
-    color: #ccc;
-}
-/* Giữ màu cho các sao đã chọn khi hover ra ngoài */
-.star-rating:not(:hover) .fa.selected ~ .fa {
-     color: #ccc;
+.star-rating .fa:hover {
+    transform: none;
 }
 
 

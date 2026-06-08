@@ -85,8 +85,7 @@ function renderOrderTable(list) {
             `;
 
             var btnAction = buildOrderActions(d);
-            var detailId = 'order-detail-' + d.maDon;
-            var detailToggleBtn = `<button type="button" class="btnGhost" style="padding:4px 8px; font-size:12px; margin-left:8px;" onclick="toggleOrderDetails('${detailId}')">Xem chi tiết</button>`;
+            var detailButton = `<button type="button" class="btnGhost" style="padding:4px 8px; font-size:12px; margin-left:8px;" onclick='openOrderDetailModal(${JSON.stringify(d).replace(/'/g, "&#39;")})'>Xem chi tiết</button>`;
             s += `<tr>
                 <td style="text-align:center"><b>#${d.maDon}</b></td>
                 <td title="${escapeHtml(d.khachHang || '')}">${escapeHtml(d.khachHang || '')}</td>
@@ -97,10 +96,7 @@ function renderOrderTable(list) {
                 <td>${paymentMethodHtml}</td>
                 <td>${paymentStatusHtml}</td>
                 <td title="${escapeHtml(d.tinhTrang || '')}">${statusLabelHtml}</td>
-                <td style="text-align:center">${btnAction}${detailToggleBtn}</td>
-            </tr>
-            <tr id="${detailId}" style="display:none; background:#fafafa;">
-                <td colspan="10">${statusTimelineHtml}</td>
+                <td style="text-align:center">${btnAction}${detailButton}</td>
             </tr>`;
         });
     }
@@ -263,21 +259,32 @@ function renderCompactTimelineSummary(timeline) {
 function renderTimeline(timeline) {
     if (!Array.isArray(timeline) || timeline.length === 0) return '<div style="padding:8px; color:#777; font-size:12px;">Chưa có timeline.</div>';
 
-    var html = '<div style="margin:8px 0 0; padding:10px; background:#fafafa; border:1px solid #eee; border-radius:8px;">';
-    html += '<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">';
-    html += '<div style="font-size:12px; font-weight:bold; color:#555;">Timeline trạng thái</div>';
-    html += '<div style="font-size:11px; color:#777;">Chế độ chi tiết</div>';
-    html += '</div>';
-    html += '<div style="display:flex; flex-wrap:wrap; gap:8px;">';
+    var latest = timeline[timeline.length - 1] || {};
+    var latestMeta = metaByStatusCompact(latest.status || latest.label);
 
+    var html = '<div style="margin:8px 0 0; padding:10px 12px; background:linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%); border:1px solid #e9edf3; border-radius:12px; box-shadow:0 4px 14px rgba(15, 23, 42, 0.04); overflow-x:auto;">';
+    html += '<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; min-width:fit-content;">';
+    html += '<div style="display:flex; flex-direction:column; gap:2px; min-width:max-content;">';
+    html += '<div style="font-size:12px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:.3px;">Timeline trạng thái</div>';
+    html += '<div style="font-size:11px; color:#64748b;">Dòng tiến trình ngang</div>';
+    html += '</div>';
+    html += '<div style="display:inline-flex; align-items:center; gap:8px; padding:5px 10px; border-radius:999px; background:' + latestMeta.color + '12; color:' + latestMeta.color + '; border:1px solid ' + latestMeta.color + '25; font-size:11px; font-weight:800; white-space:nowrap; min-width:max-content;">';
+    html += '<i class="fa ' + latestMeta.icon + '"></i>' + escapeHtml(latestMeta.label);
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap:8px;">';
     timeline.forEach(function (item) {
         var meta = metaByStatusCompact(item.status || item.label);
-        html += '<span title="' + escapeHtml((item.label || meta.label || '') + (item.created_at ? ' - ' + formatDateTime(item.created_at) : '')) + '" style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px; background:' + meta.color + '15; color:' + meta.color + '; font-weight:bold; font-size:11px; border:1px solid ' + meta.color + '30; white-space:nowrap;">';
-        html += '<i class="fa ' + meta.icon + '"></i>';
-        html += escapeHtml(meta.label);
-        html += '</span>';
+        var timeText = item.created_at ? formatDateTime(item.created_at) : '';
+        html += '<div title="' + escapeHtml((item.label || meta.label || '') + (timeText ? ' - ' + timeText : '')) + '" style="display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border-radius:12px; background:' + meta.color + '10; color:' + meta.color + '; border:1px solid ' + meta.color + '20; min-width:0;">';
+        html += '<div style="width:28px; height:28px; flex:0 0 28px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:#fff; box-shadow:0 3px 10px rgba(15, 23, 42, 0.08); color:' + meta.color + ';"><i class="fa ' + meta.icon + '"></i></div>';
+        html += '<div style="min-width:0; flex:1;">';
+        html += '<div style="font-size:11px; font-weight:800; line-height:1.15; word-break:break-word;">' + escapeHtml(meta.label) + '</div>';
+        html += '<div style="font-size:9px; opacity:.82; margin-top:2px; line-height:1.15; word-break:break-word;">' + (timeText ? escapeHtml(timeText) : 'Chưa có thời gian') + '</div>';
+        html += '</div>';
+        html += '</div>';
     });
-
     html += '</div>';
     html += '</div>';
     return html;
@@ -295,10 +302,91 @@ function metaByStatusCompact(status) {
     return { icon: 'fa-circle', color: '#777', label: status || '' };
 }
 
-function toggleOrderDetails(id) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'table-row' : 'none';
+function openOrderDetailModal(order) {
+    if (!order) return;
+
+    var existing = document.getElementById('orderDetailModal');
+    if (existing) existing.remove();
+
+    var products = (order.sp || []).map(function (it) {
+        var tenSP = it.product_name_snapshot || it.ma_sp || '';
+        var variant = it.variant_name_snapshot || it.mau_sac || '';
+        var qty = parseInt(it.so_luong || 0);
+        var price = parseInt(it.don_gia || 0);
+        return `
+            <div style="display:flex; gap:12px; padding:12px 0; border-bottom:1px solid #eef2f7;">
+                <div style="width:54px; height:54px; border-radius:12px; background:#f4f7fb; display:flex; align-items:center; justify-content:center; overflow:hidden; flex:0 0 54px;">
+                    <i class="fa fa-mobile" style="color:#94a3b8; font-size:20px;"></i>
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-weight:700; color:#1f2937; font-size:14px; line-height:1.4;">${escapeHtml(tenSP)}</div>
+                    <div style="margin-top:4px; font-size:12px; color:#64748b;">${variant ? 'Màu: ' + escapeHtml(variant) : 'Không có màu'}</div>
+                </div>
+                <div style="text-align:right; flex:0 0 auto;">
+                    <div style="font-size:12px; color:#64748b;">x${qty}</div>
+                    <div style="font-size:13px; font-weight:700; color:#dc2626;">${numToString(price)}đ</div>
+                </div>
+            </div>`;
+    }).join('');
+
+    var timeline = renderTimeline(order.timeline || []);
+
+    var html = `
+        <div id="orderDetailModal" style="position:fixed; inset:0; z-index:99999; background:rgba(15,23,42,.55); display:flex; align-items:center; justify-content:center; padding:20px;">
+            <div style="width:min(980px, 100%); max-height:92vh; overflow:hidden; background:#fff; border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.22); display:flex; flex-direction:column;">
+                <div style="padding:18px 22px; border-bottom:1px solid #edf2f7; display:flex; align-items:center; justify-content:space-between; gap:12px; background:linear-gradient(180deg,#ffffff 0%,#fbfdff 100%);">
+                    <div>
+                        <div style="font-size:12px; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:.4px;">Chi tiết đơn hàng</div>
+                        <div style="font-size:20px; font-weight:800; color:#0f172a; margin-top:4px;">#${escapeHtml(order.maDon)}</div>
+                    </div>
+                    <button type="button" onclick="document.getElementById('orderDetailModal').remove()" style="width:38px; height:38px; border:none; border-radius:12px; background:#f1f5f9; color:#334155; cursor:pointer; font-size:18px;">&times;</button>
+                </div>
+
+                <div style="padding:18px 22px; overflow:auto;">
+                    <div style="display:grid; grid-template-columns: 1.2fr .8fr; gap:18px;">
+                        <div style="min-width:0;">
+                            <div style="padding:16px; border:1px solid #e5eaf2; border-radius:16px; background:#fff; margin-bottom:16px;">
+                                <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">Thông tin đơn hàng</div>
+                                <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; font-size:13px; color:#334155;">
+                                    <div><span style="color:#64748b;">Khách hàng:</span><br><b>${escapeHtml(order.khachHang || '')}</b></div>
+                                    <div><span style="color:#64748b;">Ngày mua:</span><br><b>${formatDateTime(order.ngayMua)}</b></div>
+                                    <div><span style="color:#64748b;">Số điện thoại:</span><br><b>${escapeHtml(order.sdt || '')}</b></div>
+                                    <div><span style="color:#64748b;">Thanh toán:</span><br><b>${escapeHtml(order.pttt || '')}</b></div>
+                                    <div><span style="color:#64748b;">Trạng thái đơn:</span><br>${renderOrderStatusLabel(order.tinhTrang)}</div>
+                                    <div><span style="color:#64748b;">Trạng thái thanh toán:</span><br>${renderPaymentStatus(order.paymentStatus)}</div>
+                                </div>
+                                <div style="margin-top:12px; font-size:13px; color:#334155;"><span style="color:#64748b;">Địa chỉ:</span><br><b>${escapeHtml(order.diaChi || '')}</b></div>
+                            </div>
+
+                            <div style="padding:16px; border:1px solid #e5eaf2; border-radius:16px; background:#fff;">
+                                <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:6px;">Sản phẩm trong đơn</div>
+                                <div style="max-height:300px; overflow:auto; padding-right:4px;">${products || '<div style="padding:10px 0; color:#64748b; font-size:13px;">Không có sản phẩm.</div>'}</div>
+                            </div>
+                        </div>
+
+                        <div style="min-width:0;">
+                            <div style="padding:16px; border:1px solid #e5eaf2; border-radius:16px; background:#f8fbff; margin-bottom:16px;">
+                                <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">Tóm tắt thanh toán</div>
+                                <div style="display:flex; flex-direction:column; gap:10px; font-size:13px; color:#334155;">
+                                    <div style="display:flex; justify-content:space-between; gap:10px;"><span>Tổng tiền</span><b style="color:#dc2626;">${numToString(parseInt(order.tongTien || 0))}đ</b></div>
+                                    <div style="display:flex; justify-content:space-between; gap:10px;"><span>Mã VNPay</span><b>${escapeHtml(order.vnp_txn_ref || '')}</b></div>
+                                    <div style="display:flex; justify-content:space-between; gap:10px;"><span>Mã giao dịch</span><b>${escapeHtml(order.vnp_transaction_no || '')}</b></div>
+                                    <div style="display:flex; justify-content:space-between; gap:10px;"><span>Mã phản hồi</span><b>${escapeHtml(order.vnp_response_code || '')}</b></div>
+                                    <div style="display:flex; justify-content:space-between; gap:10px;"><span>Thanh toán lúc</span><b>${escapeHtml(order.paid_at || 'Chưa ghi nhận')}</b></div>
+                                </div>
+                            </div>
+
+                            <div style="padding:16px; border:1px solid #e5eaf2; border-radius:16px; background:#fff;">
+                                <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">Timeline xử lý</div>
+                                ${timeline}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', html);
 }
 
 function updateOrderFooterUI() {
