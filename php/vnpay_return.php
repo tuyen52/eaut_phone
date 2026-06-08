@@ -59,12 +59,12 @@ try {
         throw new Exception('Không thể tạo hoặc đọc đơn hàng từ phiên VNPay.');
     }
 
-    if (($order['payment_status'] ?? '') === 'Paid') {
+    if (($order['payment_status'] ?? '') === 'paid') {
         $statusTitle = 'Thanh toán thành công';
         $statusClass = 'success';
         $statusMessage = 'Đơn hàng của bạn đã được thanh toán thành công qua VNPay. Hệ thống đã tạo đơn hàng và trừ kho.';
         $shouldClearCart = true;
-    } elseif (($order['payment_status'] ?? '') === 'Failed') {
+    } elseif (($order['payment_status'] ?? '') === 'failed') {
         $statusTitle = 'Thanh toán thất bại / đã hủy';
         $statusClass = 'failed';
         $statusMessage = vnpay_response_message($order['vnp_response_code'] ?? $vnpResponseCode);

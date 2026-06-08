@@ -9,7 +9,8 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 try {
     $currentUser = require_login();
-    $username = $currentUser['username'];
+    $userId = (int)($currentUser['user_id'] ?? 0);
+    $username = (string)($currentUser['username'] ?? '');
 
     $data = read_json_body();
 
@@ -39,17 +40,37 @@ try {
         Kiểm tra user đã mua và nhận hàng sản phẩm này chưa.
         Lấy luôn variant/màu từ đơn hợp lệ gần nhất.
     */
-    $stmtBought = $conn->prepare("
-        SELECT od.variant_id, od.mau_sac
-        FROM orders o
-        INNER JOIN order_details od ON o.ma_don = od.ma_don
-        WHERE o.username = ?
-          AND od.masp = ?
-          AND o.tinh_trang IN ('Đã nhận hàng', 'Hoàn thành')
-        ORDER BY o.$dateCol DESC, od.detail_id DESC
-        LIMIT 1
-    ");
-    $stmtBought->bind_param("ss", $username, $masp);
+    $ordersHasUserId = false;
+    $chkUserId = $conn->query("SHOW COLUMNS FROM orders LIKE 'user_id'");
+    if ($chkUserId && $chkUserId->num_rows > 0) {
+        $ordersHasUserId = true;
+    }
+
+    if ($ordersHasUserId && $userId > 0) {
+        $stmtBought = $conn->prepare("
+            SELECT od.variant_id, od.mau_sac
+            FROM orders o
+            INNER JOIN order_details od ON o.ma_don = od.ma_don
+            WHERE o.user_id = ?
+              AND od.masp = ?
+              AND o.tinh_trang = 'completed'
+            ORDER BY o.$dateCol DESC, od.detail_id DESC
+            LIMIT 1
+        ");
+        $stmtBought->bind_param("is", $userId, $masp);
+    } else {
+        $stmtBought = $conn->prepare("
+            SELECT od.variant_id, od.mau_sac
+            FROM orders o
+            INNER JOIN order_details od ON o.ma_don = od.ma_don
+            WHERE o.username = ?
+              AND od.masp = ?
+              AND o.tinh_trang IN ('Đã nhận hàng', 'Hoàn thành', 'completed')
+            ORDER BY o.$dateCol DESC, od.detail_id DESC
+            LIMIT 1
+        ");
+        $stmtBought->bind_param("ss", $username, $masp);
+    }
     $stmtBought->execute();
 
     $rsBought = $stmtBought->get_result();
@@ -66,32 +87,70 @@ try {
 
     $conn->begin_transaction();
 
-    $stmtInsert = $conn->prepare("
-        INSERT INTO rate (masp, username, variant_id, mau_sac, so_sao, binh_luan, ngay_dg)
-        VALUES (?, ?, ?, ?, ?, ?, NOW())
-    ");
+    $rateHasUserId = false;
+    $chkRateUserId = $conn->query("SHOW COLUMNS FROM rate LIKE 'user_id'");
+    if ($chkRateUserId && $chkRateUserId->num_rows > 0) {
+        $rateHasUserId = true;
+    }
 
-    if ($variantId === null || $variantId <= 0) {
-        $nullVariant = null;
-        $stmtInsert->bind_param(
-            "ssisis",
-            $masp,
-            $username,
-            $nullVariant,
-            $mauSac,
-            $star,
-            $comment
-        );
+    if ($rateHasUserId && $userId > 0) {
+        $stmtInsert = $conn->prepare("
+            INSERT INTO rate (masp, user_id, username, variant_id, mau_sac, so_sao, binh_luan, ngay_dg)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        ");
+
+        if ($variantId === null || $variantId <= 0) {
+            $nullVariant = null;
+            $stmtInsert->bind_param(
+                "sisssis",
+                $masp,
+                $userId,
+                $username,
+                $nullVariant,
+                $mauSac,
+                $star,
+                $comment
+            );
+        } else {
+            $stmtInsert->bind_param(
+                "sisssis",
+                $masp,
+                $userId,
+                $username,
+                $variantId,
+                $mauSac,
+                $star,
+                $comment
+            );
+        }
     } else {
-        $stmtInsert->bind_param(
-            "ssisis",
-            $masp,
-            $username,
-            $variantId,
-            $mauSac,
-            $star,
-            $comment
-        );
+        $stmtInsert = $conn->prepare("
+            INSERT INTO rate (masp, username, variant_id, mau_sac, so_sao, binh_luan, ngay_dg)
+            VALUES (?, ?, ?, ?, ?, ?, NOW())
+        ");
+
+        if ($variantId === null || $variantId <= 0) {
+            $nullVariant = null;
+            $stmtInsert->bind_param(
+                "ssisis",
+                $masp,
+                $username,
+                $nullVariant,
+                $mauSac,
+                $star,
+                $comment
+            );
+        } else {
+            $stmtInsert->bind_param(
+                "ssisis",
+                $masp,
+                $username,
+                $variantId,
+                $mauSac,
+                $star,
+                $comment
+            );
+        }
     }
 
     $stmtInsert->execute();

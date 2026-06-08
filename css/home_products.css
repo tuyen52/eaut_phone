@@ -15,6 +15,8 @@
 	.sanPham {
 		width: 238px;
 		border: 1px solid #eee;
+		position: relative;
+		overflow: visible;
     	-webkit-transition-duration: .3s;
     	     -o-transition-duration: .3s;
     	        transition-duration: .3s;
@@ -22,8 +24,8 @@
 	.sanPham a {
 		display: block;
 		position: relative;
-		padding: 10px 0;
-		height: 310px;
+		padding: 10px 0 56px;
+		height: 366px;
 	}
 	.sanPham a .price span {
 	    display: inline-block;
@@ -151,21 +153,35 @@
 	/* ===== Them Vao Gio Hang ==== */
 		/* tooltip được css bên style.css */
 		.themvaogio {
-			z-index: 20;
-			border: 1px solid #e3e7eb;
+			z-index: 25;
+			position: absolute;
+			right: 12px;
+			bottom: 18px;
+			border: 1.5px solid #d7e3ff;
 			border-radius: 50%;
-			width: 1.5em;
-			height: 1.5em;
-			font-size: 1.5em;
-			color: rgb(163, 161, 161);
-			background: none;
-			transition-duration: .2s;
+			width: 40px;
+			height: 40px;
+			font-size: 22px;
+			line-height: 1;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			color: #1160e6;
+			background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+			box-shadow: 0 2px 8px rgba(17, 96, 230, 0.12);
+			box-sizing: border-box;
+			transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
 			cursor: pointer;
 		}
+		.themvaogio i {
+			font-weight: 700;
+			line-height: 1;
+		}
 		.themvaogio:hover {
-			color: black;
-			background-color: #e6e6e6;
-			box-shadow: 0px 8px 10px 0px rgba(0,0,0,0.2);
+			color: #0b4ec4;
+			background: #eef5ff;
+			box-shadow: 0 6px 14px rgba(17, 96, 230, 0.18);
+			transform: translateY(-1px);
 		}
 		.themvaogio:active {
 			box-shadow: none;

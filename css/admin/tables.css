@@ -1,0 +1,812 @@
+/**
+ * EAUT PHONE Admin — Bảng dữ liệu (Sản phẩm, Đơn hàng, Kho, Bình luận, Khách hàng)
+ * Chỉ CSS; không sửa logic JS. Override style inline bằng selector scoped.
+ */
+
+/* ========== Khối dùng chung ========== */
+.sanpham .table-content,
+.donhang .table-content,
+.khachhang .table-content,
+.khohang .table-content,
+.binhluan .table-content {
+    min-height: 200px;
+    max-height: 550px;
+    overflow: auto;
+    margin: 0 auto;
+    width: 100%;
+    border: 1px solid #2c3136;
+    border-radius: 0 0 8px 8px;
+    background: #2f353a;
+}
+
+/* Header/body Sản phẩm: tránh lệch cột khi có scrollbar dọc */
+.sanpham .table-content {
+    scrollbar-gutter: stable;
+}
+
+.sanpham .table-outline,
+.donhang .table-outline,
+.khachhang .table-outline,
+.khohang .table-outline,
+.binhluan .table-outline {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: none;
+}
+
+.sanpham .table-outline thead th,
+.donhang .table-outline thead th,
+.khachhang .table-outline thead th,
+.khohang .table-outline thead th,
+.binhluan .table-outline thead th,
+.sanpham > table.table-header th {
+    color: #e4e7ea;
+    background-color: #3e464d;
+    padding: 12px 10px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 13px;
+    font-weight: 700;
+    border-bottom: 2px solid #23282c;
+}
+
+.sanpham .table-outline thead th,
+.donhang .table-outline thead th,
+.khachhang .table-outline thead th,
+.khohang .table-outline thead th,
+.binhluan .table-outline thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.sanpham > table.table-header {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sanpham > table.table-header th {
+    cursor: pointer;
+}
+
+.sanpham > table.table-header th i.fa-sort,
+.sanpham .table-outline thead th i.fa-sort,
+.donhang .table-outline thead th i.fa-sort,
+.khachhang .table-outline thead th i.fa-sort {
+    margin-left: 4px;
+    opacity: 0.85;
+    transform: scale(1);
+}
+
+.sanpham .table-outline tbody tr,
+.donhang .table-outline tbody tr,
+.khachhang .table-outline tbody tr,
+.khohang .table-outline tbody tr,
+.binhluan .table-outline tbody tr {
+    background-color: #3a4149;
+    transition: background-color 0.15s ease;
+}
+
+.sanpham .table-outline tbody tr:nth-of-type(even),
+.donhang .table-outline tbody tr:nth-of-type(even),
+.khachhang .table-outline tbody tr:nth-of-type(even),
+.khohang .table-outline tbody tr:nth-of-type(even),
+.binhluan .table-outline tbody tr:nth-of-type(even) {
+    background-color: #343a40;
+}
+
+.sanpham .table-outline tbody tr:hover,
+.donhang .table-outline tbody tr:hover,
+.khachhang .table-outline tbody tr:hover,
+.khohang .table-outline tbody tr:hover,
+.binhluan .table-outline tbody tr:hover {
+    background-color: #454d55;
+}
+
+.sanpham .table-outline tbody td,
+.donhang .table-outline tbody td,
+.khachhang .table-outline tbody td,
+.khohang .table-outline tbody td,
+.binhluan .table-outline tbody td {
+    padding: 11px 12px;
+    text-align: center;
+    vertical-align: middle;
+    color: #e4e7ea;
+    border-bottom: 1px solid #2c3136;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.sanpham .table-content > div,
+.donhang .table-content > div,
+.khachhang .table-content > div,
+.khohang .table-content > div,
+.binhluan .table-content > div {
+    color: #e4e7ea;
+    text-align: center;
+    padding: 20px;
+}
+
+.sanpham .table-content h3,
+.donhang .table-content h3,
+.khachhang .table-content h3,
+.khohang .table-content h3,
+.binhluan .table-content h3 {
+    color: #f86c6b;
+    text-align: center;
+}
+
+/* Footer tìm kiếm / lọc */
+.sanpham .table-footer,
+.donhang .table-footer,
+.khachhang .table-footer {
+    background-color: #3e464d;
+    padding: 12px 14px;
+    border: 1px solid #2c3136;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.sanpham .table-footer select,
+.sanpham .table-footer input[type="text"],
+.donhang .table-footer select,
+.donhang .table-footer input[type="text"],
+.donhang .table-footer input[type="date"],
+.khachhang .table-footer select,
+.khachhang .table-footer input[type="text"] {
+    padding: 8px 12px;
+    border: 1px solid #5c636a;
+    border-radius: 6px;
+    background-color: #2f353a;
+    color: #e4e7ea;
+    font-size: 13px;
+}
+
+.sanpham .table-footer input[type="text"],
+.donhang .table-footer input[type="text"] {
+    flex: 1 1 200px;
+    max-width: 320px;
+    min-width: 160px;
+}
+
+.sanpham .table-footer select:focus,
+.sanpham .table-footer input:focus,
+.donhang .table-footer select:focus,
+.donhang .table-footer input:focus,
+.khachhang .table-footer select:focus,
+.khachhang .table-footer input:focus {
+    border-color: #20a8d8;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(32, 168, 216, 0.2);
+}
+
+.sanpham .table-footer button,
+.donhang .table-footer button,
+.donhang .timTheoNgay button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    background-color: #20a8d8;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.sanpham .table-footer button:hover,
+.donhang .table-footer button:hover,
+.donhang .timTheoNgay button:hover {
+    background-color: #1a92bc;
+}
+
+.sanpham .table-footer button:active,
+.donhang .table-footer button:active {
+    transform: scale(0.98);
+}
+
+.donhang .timTheoNgay,
+.donhang .timKiemDonHang {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: #e4e7ea;
+    font-size: 13px;
+}
+
+/* ========== Nút icon / hành động dùng chung ========== */
+.sanpham .table-outline tbody td:last-child {
+    display: table-cell;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    width: 15%;
+    min-width: 96px;
+    max-width: 110px;
+    padding: 8px 6px !important;
+    text-align: center;
+}
+
+.sanpham .table-outline tbody td:last-child .tooltip {
+    display: inline-block !important;
+    vertical-align: middle;
+    flex: none;
+    white-space: nowrap;
+}
+
+.donhang .table-outline tbody td:last-child,
+.khohang .table-outline tbody td:last-child,
+.binhluan .table-outline tbody td:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.donhang .table-outline tbody td:last-child .tooltip,
+.binhluan .table-outline tbody td:last-child .tooltip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Sửa — fa-wrench */
+.sanpham .table-outline .fa-wrench {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    color: #fff !important;
+    background-color: #17a2b8 !important;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(23, 162, 184, 0.35);
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.sanpham .table-outline .fa-wrench:hover {
+    background-color: #138496 !important;
+}
+
+/* Xóa sản phẩm */
+.sanpham .table-outline .fa-trash {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    color: #fff !important;
+    background-color: #6c757d !important;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.sanpham .table-outline .fa-trash:hover {
+    background-color: #5a6268 !important;
+}
+
+/* Icon hành động đơn hàng */
+.donhang .table-outline tbody td:last-child .tooltip > i {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    margin-left: 0 !important;
+    border-radius: 6px;
+    font-size: 14px !important;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease, color 0.15s ease;
+}
+
+.donhang .table-outline .fa-check,
+.donhang .table-outline .fa-check-circle {
+    color: #fff !important;
+    background-color: #28a745 !important;
+}
+
+.donhang .table-outline .fa-truck {
+    color: #fff !important;
+    background-color: #007bff !important;
+}
+
+.donhang .table-outline .fa-remove {
+    color: #fff !important;
+    background-color: #dc3545 !important;
+}
+
+.donhang .table-outline .fa-trash {
+    color: #fff !important;
+    background-color: #6c757d !important;
+}
+
+.donhang .table-outline tbody td:last-child span[style*="font-size:11px"] {
+    display: block;
+    width: 100%;
+    margin-bottom: 4px;
+    font-size: 11px !important;
+    font-weight: 600;
+}
+
+/* Kho hàng — Nhập theo màu / Xem màu */
+.khohang .table-outline tbody td:last-child button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px !important;
+    margin-left: 0 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.khohang .table-outline tbody td:last-child button[onclick*="nhapHangTheoMau"] {
+    background-color: #28a745 !important;
+    box-shadow: 0 1px 4px rgba(40, 167, 69, 0.35);
+}
+
+.khohang .table-outline tbody td:last-child button[onclick*="nhapHangTheoMau"]:hover {
+    background-color: #218838 !important;
+}
+
+.khohang .table-outline tbody td:last-child button[onclick*="xemChiTietMau"] {
+    background-color: #007bff !important;
+    box-shadow: 0 1px 4px rgba(0, 123, 255, 0.35);
+}
+
+.khohang .table-outline tbody td:last-child button[onclick*="xemChiTietMau"]:hover {
+    background-color: #0069d9 !important;
+}
+
+.khohang .table-outline tbody td:last-child button:active {
+    transform: scale(0.98);
+}
+
+.khohang .table-outline tbody td:nth-child(3) {
+    text-align: left !important;
+}
+
+.khohang .table-outline tbody td:nth-child(3) img {
+    width: 30px !important;
+    height: 30px !important;
+    object-fit: cover;
+    margin-right: 8px !important;
+    vertical-align: middle !important;
+    border-radius: 4px;
+    border: 1px solid #5c636a;
+}
+
+/* ========== Sản phẩm — khắc phục layout (DOM: a + img trong td, 2× .tooltip trong td cuối) ========== */
+
+/* Header tách khỏi .table-content — đồng bộ độ rộng cột khi có thanh cuộn */
+.sanpham > table.table-header,
+.sanpham .table-content table.table-outline {
+    table-layout: fixed !important;
+    width: 100% !important;
+    border-collapse: collapse;
+    box-sizing: border-box;
+}
+
+.sanpham > table.table-header th,
+.sanpham .table-content table.table-outline tbody td {
+    box-sizing: border-box;
+    padding: 10px 8px !important;
+}
+
+.sanpham > table.table-header th:nth-child(1),
+.sanpham .table-outline tbody td:nth-child(1) {
+    width: 5%;
+    text-align: center;
+}
+
+.sanpham > table.table-header th:nth-child(2),
+.sanpham .table-outline tbody td:nth-child(2) {
+    width: 10%;
+    text-align: center;
+}
+
+.sanpham > table.table-header th:nth-child(3),
+.sanpham .table-outline tbody td:nth-child(3) {
+    width: 36%;
+}
+
+.sanpham > table.table-header th:nth-child(4),
+.sanpham .table-outline tbody td:nth-child(4) {
+    width: 15%;
+    text-align: center;
+}
+
+.sanpham > table.table-header th:nth-child(5),
+.sanpham .table-outline tbody td:nth-child(5) {
+    width: 14%;
+    text-align: center;
+}
+
+.sanpham > table.table-header th:nth-child(6),
+.sanpham .table-outline tbody td:nth-child(6) {
+    width: 15%;
+    min-width: 96px;
+    text-align: center;
+}
+
+/* Ghi đè style.css: .table-content td { position:relative; vertical-align:top } */
+.sanpham .table-content table.table-outline tbody td {
+    position: static !important;
+    vertical-align: middle !important;
+    line-height: 1.3;
+    overflow: hidden;
+}
+
+.sanpham .table-content table.table-outline tbody tr {
+    height: 52px;
+}
+
+/* Vô hiệu hóa hoàn toàn .hideImg hover phóng ảnh trong tab Sản phẩm */
+.sanpham .hideImg td,
+.sanpham .table-outline.hideImg tbody td {
+    position: static !important;
+    overflow: visible;
+}
+
+.sanpham .hideImg td img,
+.sanpham .table-outline.hideImg td img,
+.sanpham .hideImg td:hover img,
+.sanpham .table-outline.hideImg td:hover img {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    float: none !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px !important;
+    max-height: 40px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    object-fit: contain;
+    border-radius: 6px;
+    border: 1px solid #5c636a;
+    background: #fff;
+    box-sizing: border-box;
+    z-index: auto !important;
+    transition: none !important;
+}
+
+/* Cột Tên + ảnh: flex một hàng, căn giữa dọc (ảnh | tên trong DOM là tên rồi ảnh) */
+.sanpham .table-outline tbody td:nth-child(3) {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start;
+    gap: 12px;
+    height: 52px;
+    max-height: 52px;
+    padding: 6px 10px !important;
+    text-align: left;
+    vertical-align: middle !important;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.sanpham .table-content td:nth-child(3) a {
+    display: flex !important;
+    align-items: center !important;
+    align-self: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 40px;
+    max-height: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap !important;
+    color: #63c2de !important;
+    margin: 0;
+    padding: 0 4px 0 0;
+    line-height: 40px;
+}
+
+.sanpham .table-content td:nth-child(3) a:hover {
+    text-decoration: underline;
+}
+
+.sanpham .table-outline tbody td:nth-child(3) img {
+    order: 2;
+    flex: 0 0 40px;
+    align-self: center;
+    margin: 0 !important;
+}
+
+.sanpham .table-outline tbody td:nth-child(3) a {
+    order: 1;
+}
+
+.sanpham .table-outline tbody td:nth-child(4),
+.sanpham .table-outline tbody td:nth-child(5) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle !important;
+}
+
+.sanpham .table-outline tbody td:nth-child(4) {
+    color: #f8b4b4;
+    font-weight: 700;
+}
+
+/* Cột Hành động: 2 .tooltip + icon — luôn một hàng ngang */
+.sanpham .table-outline tbody td:last-child {
+    display: table-cell !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+    text-align: center;
+    line-height: 1;
+    overflow: visible;
+}
+
+.sanpham .table-content td:last-child .tooltip {
+    display: inline-block !important;
+    position: relative;
+    vertical-align: middle;
+    margin: 0 3px;
+    white-space: nowrap;
+}
+
+.sanpham .table-content td:last-child .tooltiptext {
+    white-space: nowrap;
+}
+
+.sanpham .table-content td i {
+    padding: 0 !important;
+    vertical-align: middle;
+}
+
+.sanpham .table-outline .fa-wrench,
+.sanpham .table-outline .fa-trash {
+    vertical-align: middle;
+    box-sizing: border-box;
+}
+
+/* ========== Đơn hàng ========== */
+.donhang > table.table-header {
+    display: none;
+}
+
+.donhang .table-outline tbody td:nth-child(3) {
+    text-align: left;
+    vertical-align: top;
+}
+
+.donhang .table-outline tbody td:nth-child(3) div[style*="font-size:13px"] {
+    font-size: 13px !important;
+    color: #e4e7ea !important;
+}
+
+.donhang .table-outline tbody td:nth-child(3) div[style*="font-size:11px"] {
+    display: block;
+    max-width: 200px;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px !important;
+    color: #adb5bd !important;
+}
+
+.donhang .table-outline tbody td:nth-child(4) {
+    text-align: left;
+    vertical-align: top;
+    font-size: 12px;
+}
+
+.donhang .table-outline tbody td:nth-child(4) p {
+    margin: 0 0 4px 0 !important;
+    font-size: 12px !important;
+    line-height: 1.4;
+}
+
+.donhang .table-outline tbody td:nth-child(4) span[style*="color:#0056b3"] {
+    color: #63c2de !important;
+}
+
+.donhang .table-outline tbody td:nth-child(4) span[style*="color:#777"] {
+    color: #9ca3af !important;
+}
+
+.donhang .table-outline tbody td:nth-child(5) {
+    color: #ff6b6b !important;
+    font-weight: 700 !important;
+}
+
+.donhang .table-outline tbody td:nth-child(6) {
+    font-size: 12px !important;
+    color: #ced4da !important;
+}
+
+/* Badge PT thanh toán & TT thanh toán (override inline từ orders.js) */
+.donhang .table-outline tbody td:nth-child(7) span,
+.donhang .table-outline tbody td:nth-child(8) span {
+    display: inline-block !important;
+    padding: 4px 10px !important;
+    border-radius: 999px !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    letter-spacing: 0.02em;
+    border: 1px solid #ced4da;
+}
+
+.donhang .table-outline tbody td:nth-child(7) span[style*="background:#e8f1ff"],
+.donhang .table-outline tbody td:nth-child(7) span[style*="background:#f3f4f6"] {
+    background: #e9ecef !important;
+    color: #495057 !important;
+    border-color: #ced4da !important;
+}
+
+.donhang .table-outline tbody td:nth-child(8) span[style*="background:#fff4db"] {
+    background: #fff4db !important;
+    color: #b26a00 !important;
+    border-color: #f5d9a8 !important;
+}
+
+.donhang .table-outline tbody td:nth-child(8) span[style*="background:#e7f7ed"] {
+    background: #e7f7ed !important;
+    color: #1e7e34 !important;
+    border-color: #b8dfc4 !important;
+}
+
+.donhang .table-outline tbody td:nth-child(8) span[style*="background:#fdeaea"] {
+    background: #fdeaea !important;
+    color: #c82333 !important;
+    border-color: #f5c2c7 !important;
+}
+
+/* Trạng thái đơn — pill (override màu inline getColorByStatus) */
+.donhang .table-outline tbody td:nth-child(9) > span {
+    display: inline-block !important;
+    padding: 4px 10px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    border: 1px solid transparent;
+}
+
+.donhang .table-outline tbody td:nth-child(9) > span[style*="color:#28a745"] {
+    background: #e7f7ed !important;
+    color: #1e7e34 !important;
+    border-color: #b8dfc4 !important;
+}
+
+.donhang .table-outline tbody td:nth-child(9) > span[style*="color:#b26a00"],
+.donhang .table-outline tbody td:nth-child(9) > span[style*="color:#ff9800"] {
+    background: #fff4db !important;
+    color: #b26a00 !important;
+    border-color: #f5d9a8 !important;
+}
+
+.donhang .table-outline tbody td:nth-child(9) > span[style*="color:#17a2b8"],
+.donhang .table-outline tbody td:nth-child(9) > span[style*="color:#007bff"] {
+    background: #e8f4fc !important;
+    color: #0c5460 !important;
+    border-color: #bee5eb !important;
+}
+
+.donhang .table-outline tbody td:nth-child(9) > span[style*="color:#dc3545"] {
+    background: #fdeaea !important;
+    color: #c82333 !important;
+    border-color: #f5c2c7 !important;
+}
+
+.donhang .table-outline tbody td:nth-child(9) > span[style*="color:#333"] {
+    background: #e9ecef !important;
+    color: #495057 !important;
+    border-color: #ced4da !important;
+}
+
+/* ========== Bình luận ========== */
+.binhluan .table-outline tbody td:nth-child(3),
+.binhluan .table-outline tbody td:nth-child(4),
+.binhluan .table-outline tbody td:nth-child(5) {
+    text-align: left;
+}
+
+.binhluan .table-outline tbody td:nth-child(3) small,
+.binhluan .table-outline tbody small[style*="color:#777"] {
+    color: #9ca3af !important;
+}
+
+.binhluan .table-outline tbody td:nth-child(5) {
+    max-width: 280px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.binhluan .table-outline .fa-star,
+.binhluan .table-outline .fa-star-o {
+    color: #f59e0b !important;
+    font-size: 14px;
+}
+
+.binhluan .table-outline .fa-trash {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    color: #fff !important;
+    background-color: #dc3545 !important;
+    border-radius: 6px;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    margin: 0 !important;
+    box-shadow: 0 1px 4px rgba(220, 53, 69, 0.35);
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.binhluan .table-outline .fa-trash:hover {
+    background-color: #c82333 !important;
+}
+
+/* ========== Khách hàng (giữ hành vi đã có) ========== */
+.khachhang > table.table-header {
+    display: none;
+}
+
+.khachhang .table-outline tbody td:nth-child(2),
+.khachhang .table-outline tbody td:nth-child(3) {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.khachhang .table-outline tbody td:last-child .fa-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin-left: 0 !important;
+    padding: 0;
+    color: #fff !important;
+    background-color: #dc3545;
+    border-radius: 6px;
+    font-size: 15px;
+    line-height: 1;
+    box-shadow: 0 1px 4px rgba(220, 53, 69, 0.35);
+    transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.khachhang .table-outline tbody td:last-child .fa-remove:hover {
+    background-color: #c82333;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.45);
+}
+
+.khachhang .table-outline tbody td:last-child {
+    gap: 14px;
+}

@@ -97,11 +97,21 @@ function timKiemTheoTen(list, ten) {
 
 // [QUAN TRỌNG] Hàm thêm từ khóa vào khung tags
 function addTags(nameTag, link) {
-    var new_tag = `<a href="${link}">${nameTag}</a>`;
     var khung_tags = document.querySelector('.tags');
-    if (khung_tags) {
-        khung_tags.innerHTML += new_tag;
-    }
+    if (!khung_tags) return;
+
+    var safeName = String(nameTag || '').trim();
+    var safeLink = String(link || '').trim();
+    if (!safeName || !safeLink) return;
+
+    // Tránh thêm trùng từ khóa khi nhiều trang cùng gọi khởi tạo UI
+    var existed = Array.from(khung_tags.querySelectorAll('a')).some(function (a) {
+        return a.getAttribute('href') === safeLink && a.textContent.trim() === safeName;
+    });
+    if (existed) return;
+
+    var new_tag = `<a href="${safeLink}">${safeName}</a>`;
+    khung_tags.innerHTML += new_tag;
 }
 
 // Hàm tính toán sao đánh giá

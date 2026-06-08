@@ -16,6 +16,7 @@
 	<script src="data/products.js"></script>
 	<script src="js/classes.js"></script>
 	<script src="js/dungchung.js"></script>
+	<script src="js/components/image-upload.js"></script>
 
 	<style>
 		* { 
@@ -65,6 +66,7 @@
 			product = new Product(p.img, p.name, p.price, p.star, p.rateCount, promo); // Class product
 			addToWeb(product, id);
 		}
+
 		function getResult() {
 			var name = document.getElementById('name').value;
 			var company = document.getElementById('company').value;
@@ -75,21 +77,22 @@
 			var promoName = document.getElementById('promoName').value;
 			var promoValue = document.getElementById('promoValue').value;
 
-			if(img.indexOf('http') < 0) {
-				img = "img/products/"+ img;	
+			if (img.indexOf('http') < 0 && img.indexOf('data:') !== 0 && img.indexOf('img/') !== 0) {
+				img = "img/products/" + img;
 			}
-return {
-	"name": name,
-	"company": company,
-	"img": img,
-	"price": price,
-	"star": star,
-	"rateCount": rateCount,
-	"promo": {
-		"name": promoName,
-		"value": promoValue
-	}
-};
+
+			return {
+				"name": name,
+				"company": company,
+				"img": img,
+				"price": price,
+				"star": star,
+				"rateCount": rateCount,
+				"promo": {
+					"name": promoName,
+					"value": promoValue
+				}
+			};
 		}
 
 		function saveToDatabase() {
@@ -106,6 +109,23 @@ return {
 			else textarea.innerHTML += ',\n'+JSON.stringify(r, null, "\t");
 		}
 
+		function bindImageInput() {
+			var fileInput = document.getElementById('imgFile');
+			var preview = document.getElementById('imagePreview');
+			if (!fileInput || !preview) return;
+
+			fileInput.addEventListener('change', function () {
+				var file = this.files && this.files[0] ? this.files[0] : null;
+				if (!file) {
+					preview.src = '';
+					return;
+				}
+				readFileAsDataURL(file).then(function (dataUrl) {
+					preview.src = dataUrl;
+				});
+			});
+		}
+
 		function valueChange() {
 			document.getElementById('live').innerHTML = '';
 			addProduct(getResult(), 'live');
@@ -114,9 +134,12 @@ return {
 		window.onload = function() {
 			var inp = document.getElementsByTagName('input');
 			for(var i = 0; i < inp.length; i++) {
-				inp[i].onkeyup = valueChange;
+				if (inp[i].type === 'text' || inp[i].type === 'number') {
+					inp[i].onkeyup = valueChange;
+				}
 			}
 			document.getElementById('company').onchange = valueChange;
+			bindImageInput();
 		}
 	</script>
 
@@ -147,8 +170,17 @@ return {
 						</td>
 					</tr>
 					<tr>
-						<td>Tên file ảnh</td>
-						<td><input id="img" type="text"></td>
+						<td>Ảnh sản phẩm</td>
+						<td>
+							<input id="img" type="text" placeholder="img/products/ten-anh.jpg hoặc URL">
+							<div style="margin-top: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+								<input id="imgFile" type="file" accept="image/*">
+								<button type="button" onclick="uploadSelectedImage()">Upload ảnh từ máy</button>
+							</div>
+							<div style="margin-top: 10px;">
+								<img id="imagePreview" alt="Preview" style="max-width: 180px; max-height: 180px; object-fit: contain; border: 1px solid #ddd; border-radius: 10px; background: #fff;">
+							</div>
+						</td>
 					</tr>
 					<tr>
 						<td>Giá tiền:</td>

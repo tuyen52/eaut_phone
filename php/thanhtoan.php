@@ -142,7 +142,8 @@ function build_server_cart_items(mysqli $conn, array $items): array
 
 try {
     $currentUser = require_login();
-    $username = $currentUser['username'];
+    $userId = (int)($currentUser['user_id'] ?? 0);
+    $username = (string)($currentUser['username'] ?? '');
 
     $data = read_json_body();
 
@@ -183,7 +184,7 @@ try {
         throw new Exception("Tổng tiền gửi lên không khớp với dữ liệu sản phẩm trên server.");
     }
 
-    $stmtUser = $conn->prepare("SELECT username, trang_thai FROM users WHERE username = ? LIMIT 1");
+    $stmtUser = $conn->prepare("SELECT user_id, username, trang_thai FROM users WHERE username = ? LIMIT 1");
     $stmtUser->bind_param("s", $username);
     $stmtUser->execute();
     $rsUser = $stmtUser->get_result();
@@ -203,28 +204,56 @@ try {
         $conn->begin_transaction();
 
         try {
-            $tinhTrang = 'Chờ xử lý';
-            $paymentStatus = 'Pending';
+            $tinhTrang = 'pending';
+            $paymentStatus = 'unpaid';
             $pttt = 'COD';
 
-            $stmtOrder = $conn->prepare("
-                INSERT INTO orders (
-                    username, tong_tien, tinh_trang, phuong_thuc_tt,
-                    payment_status, dia_chi, so_dien_thoai
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ");
+            $hasUserId = false;
+            $chkUserId = $conn->query("SHOW COLUMNS FROM orders LIKE 'user_id'");
+            if ($chkUserId && $chkUserId->num_rows > 0) {
+                $hasUserId = true;
+            }
 
-            $stmtOrder->bind_param(
-                "sdsssss",
-                $username,
-                $tongTienServer,
-                $tinhTrang,
-                $pttt,
-                $paymentStatus,
-                $diaChi,
-                $sdt
-            );
+            if ($hasUserId && $userId > 0) {
+                $stmtOrder = $conn->prepare("
+                    INSERT INTO orders (
+                        user_id, username, tong_tien, tinh_trang, phuong_thuc_tt,
+                        payment_status, dia_chi, so_dien_thoai
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+
+                $stmtOrder->bind_param(
+                    "isdsssss",
+                    $userId,
+                    $username,
+                    $tongTienServer,
+                    $tinhTrang,
+                    $pttt,
+                    $paymentStatus,
+                    $diaChi,
+                    $sdt
+                );
+            } else {
+                $stmtOrder = $conn->prepare("
+                    INSERT INTO orders (
+                        username, tong_tien, tinh_trang, phuong_thuc_tt,
+                        payment_status, dia_chi, so_dien_thoai
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ");
+
+                $stmtOrder->bind_param(
+                    "sdsssss",
+                    $username,
+                    $tongTienServer,
+                    $tinhTrang,
+                    $pttt,
+                    $paymentStatus,
+                    $diaChi,
+                    $sdt
+                );
+            }
 
             $stmtOrder->execute();
             $maDon = (int)$conn->insert_id;
@@ -256,29 +285,59 @@ try {
 
     $txnRef = generate_vnp_session_ref();
     $cartJson = json_encode($sanPham, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    $cartSignature = create_cart_signature($username, $tongTienServer, $sanPham, $vnp_HashSecret);
+    $cartSignature = create_cart_signature($userId > 0 ? $userId : $username, $tongTienServer, $sanPham, $vnp_HashSecret);
     $expireAt = date('Y-m-d H:i:s', strtotime('+' . (int)$vnp_ExpireMinutes . ' minutes'));
 
-    $stmtSession = $conn->prepare("
-        INSERT INTO vnpay_payment_sessions (
-            txn_ref, username, tong_tien, ho_ten, dia_chi, so_dien_thoai,
-            cart_json, cart_signature, session_status, expires_at
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?)
-    ");
+    $hasUserId = false;
+    $chkUserId = $conn->query("SHOW COLUMNS FROM vnpay_payment_sessions LIKE 'user_id'");
+    if ($chkUserId && $chkUserId->num_rows > 0) {
+        $hasUserId = true;
+    }
 
-    $stmtSession->bind_param(
-        "ssdssssss",
-        $txnRef,
-        $username,
-        $tongTienServer,
-        $hoTen,
-        $diaChi,
-        $sdt,
-        $cartJson,
-        $cartSignature,
-        $expireAt
-    );
+    if ($hasUserId && $userId > 0) {
+        $stmtSession = $conn->prepare("
+            INSERT INTO vnpay_payment_sessions (
+                txn_ref, user_id, username, tong_tien, ho_ten, dia_chi, so_dien_thoai,
+                cart_json, cart_signature, session_status, expires_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?)
+        ");
+
+        $stmtSession->bind_param(
+            "sisdssssss",
+            $txnRef,
+            $userId,
+            $username,
+            $tongTienServer,
+            $hoTen,
+            $diaChi,
+            $sdt,
+            $cartJson,
+            $cartSignature,
+            $expireAt
+        );
+    } else {
+        $stmtSession = $conn->prepare("
+            INSERT INTO vnpay_payment_sessions (
+                txn_ref, username, tong_tien, ho_ten, dia_chi, so_dien_thoai,
+                cart_json, cart_signature, session_status, expires_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?)
+        ");
+
+        $stmtSession->bind_param(
+            "ssdssssss",
+            $txnRef,
+            $username,
+            $tongTienServer,
+            $hoTen,
+            $diaChi,
+            $sdt,
+            $cartJson,
+            $cartSignature,
+            $expireAt
+        );
+    }
 
     $stmtSession->execute();
     $sessionId = (int)$conn->insert_id;

@@ -2,7 +2,7 @@
 // php/vnpay_ipn.php
 // Luồng mới dùng vnpay_payment_sessions:
 // - VNPay success: tạo orders + order_details + trừ kho.
-// - VNPay fail/hủy: tạo orders Failed + order_details để lưu lịch sử, không trừ kho.
+// - VNPay fail/hủy/bỏ ngang: không tạo orders thật, không trừ kho.
 // - Không có callback/return: không tạo orders.
 
 header('Content-Type: application/json; charset=utf-8');

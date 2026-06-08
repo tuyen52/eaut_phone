@@ -204,6 +204,106 @@ if (!function_exists('sync_total_stock_for_products')) {
     }
 }
 
+if (!function_exists('restore_stock_for_order')) {
+    function restore_stock_for_order($conn, $maDon)
+    {
+        $stmt = $conn->prepare("
+            SELECT variant_id, so_luong, masp
+            FROM order_details
+            WHERE ma_don = ?
+            ORDER BY detail_id ASC
+        ");
+        $stmt->bind_param("i", $maDon);
+        $stmt->execute();
+        $rs = $stmt->get_result();
+
+        if ($rs->num_rows === 0) {
+            $stmt->close();
+            return;
+        }
+
+        $stmtUpdate = $conn->prepare("
+            UPDATE product_variants
+            SET so_luong_ton = so_luong_ton + ?
+            WHERE variant_id = ?
+        ");
+        $maspNeedSync = [];
+
+        while ($row = $rs->fetch_assoc()) {
+            $variantId = (int)$row['variant_id'];
+            $soLuong = (int)$row['so_luong'];
+            $masp = (string)$row['masp'];
+            if ($variantId > 0 && $soLuong > 0) {
+                $stmtUpdate->bind_param("ii", $soLuong, $variantId);
+                $stmtUpdate->execute();
+                $maspNeedSync[$masp] = true;
+            }
+        }
+
+        $rs->free();
+        $stmt->close();
+        $stmtUpdate->close();
+
+        if (!empty($maspNeedSync)) {
+            sync_total_stock_for_products($conn, array_keys($maspNeedSync));
+        }
+    }
+}
+
+if (!function_exists('checkExpiredPayments')) {
+    function checkExpiredPayments($conn)
+    {
+        $now = date('Y-m-d H:i:s');
+
+        $stmtOrders = $conn->prepare("
+            SELECT ma_don
+            FROM orders
+            WHERE phuong_thuc_tt = 'VNPAY'
+              AND payment_status = 'unpaid'
+              AND payment_expired_at IS NOT NULL
+              AND payment_expired_at <= ?
+              AND (tinh_trang IS NULL OR LOWER(tinh_trang) NOT LIKE 'cancelled')
+        ");
+        $stmtOrders->bind_param("s", $now);
+        $stmtOrders->execute();
+        $rs = $stmtOrders->get_result();
+
+        $expiredOrders = [];
+        while ($row = $rs->fetch_assoc()) {
+            $expiredOrders[] = (int)$row['ma_don'];
+        }
+        $rs->free();
+        $stmtOrders->close();
+
+        if (empty($expiredOrders)) {
+            return 0;
+        }
+
+        $stmtUpdate = $conn->prepare("
+            UPDATE orders
+            SET payment_status = 'failed',
+                tinh_trang = 'cancelled'
+            WHERE ma_don = ?
+        ");
+
+        foreach ($expiredOrders as $maDon) {
+            $conn->begin_transaction();
+            try {
+                restore_stock_for_order($conn, $maDon);
+                $stmtUpdate->bind_param("i", $maDon);
+                $stmtUpdate->execute();
+                $conn->commit();
+            } catch (Throwable $e) {
+                try { $conn->rollback(); } catch (Throwable $ignore) {}
+                throw $e;
+            }
+        }
+
+        $stmtUpdate->close();
+        return count($expiredOrders);
+    }
+}
+
 if (!function_exists('save_order_details_from_cart')) {
     function save_order_details_from_cart($conn, $maDon, $sanPham, $deductStockNow = false)
     {
@@ -229,8 +329,11 @@ if (!function_exists('save_order_details_from_cart')) {
         ");
 
         $stmtInsertDetail = $conn->prepare("
-            INSERT INTO order_details (ma_don, masp, variant_id, mau_sac, so_luong, don_gia)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO order_details (
+                ma_don, masp, variant_id, mau_sac, so_luong, don_gia,
+                product_name_snapshot, product_price_snapshot, product_image_snapshot, variant_name_snapshot
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $maspNeedSync = [];
@@ -303,8 +406,28 @@ if (!function_exists('save_order_details_from_cart')) {
             }
 
             $mauSacFinal = ($mauSacIn !== '') ? $mauSacIn : $tenMau;
+            $productNameSnapshot = '';
+            $productPriceSnapshot = $donGia;
+            $productImageSnapshot = null;
+            $variantNameSnapshot = $tenMau;
 
-            $stmtInsertDetail->bind_param("isisid", $maDon, $masp, $variantId, $mauSacFinal, $soLuong, $donGia);
+            $stmtProductSnapshot = $conn->prepare("SELECT ten_sp, hinh_anh, gia, khuyen_mai_loai, khuyen_mai_gia_tri FROM products WHERE masp = ? LIMIT 1");
+            $stmtProductSnapshot->bind_param("s", $masp);
+            $stmtProductSnapshot->execute();
+            $rsProductSnapshot = $stmtProductSnapshot->get_result();
+            if ($rsProductSnapshot->num_rows > 0) {
+                $productRow = $rsProductSnapshot->fetch_assoc();
+                $productNameSnapshot = (string)($productRow['ten_sp'] ?? '');
+                $productImageSnapshot = $productRow['hinh_anh'] ?? null;
+                $basePrice = (float)($productRow['gia'] ?? 0);
+                $promoType = trim((string)($productRow['khuyen_mai_loai'] ?? ''));
+                $promoValue = (float)($productRow['khuyen_mai_gia_tri'] ?? 0);
+                $productPriceSnapshot = ($promoType === 'giareonline' && $promoValue > 0) ? $promoValue : $basePrice;
+            }
+            $rsProductSnapshot->free();
+            $stmtProductSnapshot->close();
+
+            $stmtInsertDetail->bind_param("isisidssss", $maDon, $masp, $variantId, $mauSacFinal, $soLuong, $donGia, $productNameSnapshot, $productPriceSnapshot, $productImageSnapshot, $variantNameSnapshot);
             $stmtInsertDetail->execute();
         }
 
@@ -440,10 +563,10 @@ if (!function_exists('calculate_cart_total_amount')) {
 }
 
 if (!function_exists('create_cart_signature')) {
-    function create_cart_signature($username, $tongTien, $sanPham, $secret = '')
+    function create_cart_signature($userKey, $tongTien, $sanPham, $secret = '')
     {
         $payload = json_encode([
-            'username' => $username,
+            'user_key' => $userKey,
             'tong_tien' => (int)$tongTien,
             'san_pham' => $sanPham
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -517,7 +640,7 @@ if (!function_exists('load_order_for_vnpay_result')) {
     function load_order_for_vnpay_result($conn, $maDon)
     {
         $stmt = $conn->prepare("
-            SELECT ma_don, username, ngay_mua, tinh_trang, phuong_thuc_tt, payment_status,
+            SELECT ma_don, user_id, username, ngay_mua, tinh_trang, phuong_thuc_tt, payment_status,
                    tong_tien, dia_chi, so_dien_thoai, vnp_txn_ref, vnp_transaction_no,
                    vnp_response_code, paid_at
             FROM orders
@@ -541,6 +664,7 @@ if (!function_exists('create_order_from_vnpay_session')) {
         $sanPham = json_decode($session['cart_json'], true);
         $sanPham = normalize_cart_items_for_order($sanPham);
 
+        $userId = isset($session['user_id']) ? (int)$session['user_id'] : 0;
         $username = (string)$session['username'];
         $tongTien = (float)$session['tong_tien'];
         $txnRef = (string)$session['txn_ref'];
@@ -549,15 +673,16 @@ if (!function_exists('create_order_from_vnpay_session')) {
 
         $stmt = $conn->prepare("
             INSERT INTO orders (
-                username, tong_tien, tinh_trang, phuong_thuc_tt, payment_status,
+                user_id, username, tong_tien, tinh_trang, phuong_thuc_tt, payment_status,
                 vnp_txn_ref, vnp_transaction_no, vnp_response_code, paid_at,
                 dia_chi, so_dien_thoai
             )
-            VALUES (?, ?, ?, 'VNPAY', ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, 'VNPAY', ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->bind_param(
-            "sdssssssss",
+            "isdssssssss",
+            $userId,
             $username,
             $tongTien,
             $tinhTrang,
@@ -580,6 +705,81 @@ if (!function_exists('create_order_from_vnpay_session')) {
     }
 }
 
+if (!function_exists('normalize_order_payment_status')) {
+    function normalize_order_payment_status($status)
+    {
+        $status = strtolower(trim((string)$status));
+        $map = [
+            'pending' => 'unpaid',
+            'unpaid' => 'unpaid',
+            'paid' => 'paid',
+            'failed' => 'failed',
+            'refunded' => 'refunded'
+        ];
+
+        return $map[$status] ?? 'unpaid';
+    }
+}
+
+if (!function_exists('payment_status_label')) {
+    function payment_status_label($status)
+    {
+        $status = normalize_order_payment_status($status);
+        $labels = [
+            'unpaid' => 'Chưa thanh toán',
+            'paid' => 'Đã thanh toán',
+            'failed' => 'Thanh toán thất bại',
+            'refunded' => 'Đã hoàn tiền'
+        ];
+
+        return $labels[$status] ?? 'Chưa thanh toán';
+    }
+}
+
+if (!function_exists('normalize_order_status')) {
+    function normalize_order_status($status)
+    {
+        $status = strtolower(trim((string)$status));
+        $map = [
+            'pending' => 'pending',
+            'confirmed' => 'confirmed',
+            'processing' => 'processing',
+            'shipping' => 'shipping',
+            'completed' => 'completed',
+            'cancelled' => 'cancelled',
+            'delivery_failed' => 'delivery_failed',
+            'chờ xử lý' => 'pending',
+            'đã xác nhận' => 'confirmed',
+            'đang xử lý' => 'processing',
+            'đang giao hàng' => 'shipping',
+            'hoàn thành' => 'completed',
+            'đã hủy' => 'cancelled',
+            'đã hủy bởi khách' => 'cancelled',
+            'giao thất bại' => 'delivery_failed'
+        ];
+
+        return $map[$status] ?? 'pending';
+    }
+}
+
+if (!function_exists('order_status_label')) {
+    function order_status_label($status)
+    {
+        $status = normalize_order_status($status);
+        $labels = [
+            'pending' => 'Chờ xử lý',
+            'confirmed' => 'Đã xác nhận',
+            'processing' => 'Đang chuẩn bị',
+            'shipping' => 'Đang giao hàng',
+            'completed' => 'Hoàn thành',
+            'cancelled' => 'Đã hủy',
+            'delivery_failed' => 'Giao thất bại'
+        ];
+
+        return $labels[$status] ?? 'Chờ xử lý';
+    }
+}
+
 if (!function_exists('process_vnpay_session_result')) {
     function process_vnpay_session_result($conn, $txnRef, $vnpAmount, $vnpResponseCode, $vnpTransactionStatus, $vnpTransactionNo, $vnpPayDate)
     {
@@ -592,7 +792,7 @@ if (!function_exists('process_vnpay_session_result')) {
 
         try {
             $stmtSession = $conn->prepare("
-                SELECT session_id, txn_ref, username, tong_tien, ho_ten, dia_chi, so_dien_thoai,
+                SELECT session_id, txn_ref, user_id, username, tong_tien, ho_ten, dia_chi, so_dien_thoai,
                        cart_json, cart_signature, session_status, order_id,
                        vnp_transaction_no, vnp_response_code, paid_at, created_at, expires_at
                 FROM vnpay_payment_sessions
@@ -635,46 +835,55 @@ if (!function_exists('process_vnpay_session_result')) {
 
             $isSuccess = ($vnpResponseCode === '00' && $vnpTransactionStatus === '00');
 
-            if ($isSuccess) {
-                $paymentStatus = 'Paid';
-                $tinhTrang = 'Chờ xử lý';
-                $paidAt = parse_vnpay_paydate_to_mysql($vnpPayDate);
-                if ($paidAt === null) $paidAt = date('Y-m-d H:i:s');
-
-                $maDon = create_order_from_vnpay_session(
-                    $conn,
-                    $session,
-                    $paymentStatus,
-                    $tinhTrang,
-                    $vnpTransactionNo,
-                    $vnpResponseCode,
-                    $paidAt,
-                    true
-                );
-
-                $sessionStatus = 'Paid';
-            } else {
-                $paymentStatus = 'Failed';
-                $tinhTrang = 'Đã hủy thanh toán';
+            if (!$isSuccess) {
+                $stmtUpdateSession = $conn->prepare("
+                    UPDATE vnpay_payment_sessions
+                    SET session_status = 'Failed',
+                        vnp_transaction_no = ?,
+                        vnp_response_code = ?,
+                        paid_at = ?
+                    WHERE session_id = ?
+                ");
                 $paidAt = null;
-
-                $maDon = create_order_from_vnpay_session(
-                    $conn,
-                    $session,
-                    $paymentStatus,
-                    $tinhTrang,
+                $stmtUpdateSession->bind_param(
+                    "sssi",
                     $vnpTransactionNo,
                     $vnpResponseCode,
                     $paidAt,
-                    false
+                    $session['session_id']
                 );
+                $stmtUpdateSession->execute();
+                $stmtUpdateSession->close();
 
-                $sessionStatus = 'Failed';
+                $conn->commit();
+
+                return [
+                    'session' => $session,
+                    'order' => null,
+                    'already_processed' => false,
+                    'success' => false
+                ];
             }
+
+            $paymentStatus = 'paid';
+            $tinhTrang = 'pending';
+            $paidAt = parse_vnpay_paydate_to_mysql($vnpPayDate);
+            if ($paidAt === null) $paidAt = date('Y-m-d H:i:s');
+
+            $maDon = create_order_from_vnpay_session(
+                $conn,
+                $session,
+                $paymentStatus,
+                $tinhTrang,
+                $vnpTransactionNo,
+                $vnpResponseCode,
+                $paidAt,
+                true
+            );
 
             $stmtUpdateSession = $conn->prepare("
                 UPDATE vnpay_payment_sessions
-                SET session_status = ?,
+                SET session_status = 'Paid',
                     order_id = ?,
                     vnp_transaction_no = ?,
                     vnp_response_code = ?,
@@ -682,8 +891,7 @@ if (!function_exists('process_vnpay_session_result')) {
                 WHERE session_id = ?
             ");
             $stmtUpdateSession->bind_param(
-                "sisssi",
-                $sessionStatus,
+                "isssi",
                 $maDon,
                 $vnpTransactionNo,
                 $vnpResponseCode,
@@ -701,7 +909,7 @@ if (!function_exists('process_vnpay_session_result')) {
                 'session' => $session,
                 'order' => $order,
                 'already_processed' => false,
-                'success' => $isSuccess
+                'success' => true
             ];
 
         } catch (Throwable $e) {

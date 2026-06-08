@@ -1,106 +1,253 @@
 /* css/nguoidung.css - Dashboard chuyên nghiệp */
 
-/* 1. Thông tin User (Header của trang User) */
-.infoUser {
-    background: #fff;
-    margin: 20px auto;
-    max-width: 900px;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.userPageWrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 14px;
+    box-sizing: border-box;
 }
 
-.infoUser h3 {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 20px;
+.userGrid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 14px;
+    align-items: start;
+}
+
+@media (max-width: 980px) {
+    .userGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.userCard {
+    background: rgba(255,255,255,.82);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 22px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+    padding: 18px;
+    backdrop-filter: blur(12px);
+}
+
+.userCard h3 {
+    font-size: 18px;
+    color: #111827;
+    margin-bottom: 12px;
+}
+
+/* ===== FIX HỒ SƠ NGƯỜI DÙNG - thêm sau cùng để đè CSS cũ ===== */
+
+.userCard .infoUser {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    display: block !important;
+    align-items: stretch !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+}
+
+.userProfileBox,
+.profileTopBox,
+.profileBody {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.profileTopBox {
+    margin-bottom: 14px;
+}
+
+.profileHeaderFixed {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(15,23,42,.08);
+    box-sizing: border-box;
+}
+
+.profileMetaFixed {
+    flex: 1;
+    min-width: 0;
+}
+
+.uNameFixed {
+    font-weight: 800;
+    font-size: 16px;
+    margin-bottom: 3px;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.uSubFixed {
+    color: #6b7280;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profileCollapseBtn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 12px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 12px !important;
+    background: linear-gradient(180deg, #fff 0%, #f8fafc 100%) !important;
+    color: #374151 !important;
+    cursor: pointer;
+    font-weight: 700;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+}
+
+.profileCollapseBtn:hover {
+    background: #eef2ff !important;
+    color: #111827 !important;
+}
+
+.profileBody {
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.25s ease;
+}
+
+.profileBody.expanded {
+    max-height: 900px;
+    opacity: 1;
+    margin-top: 0;
+}
+
+.profileBody.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    pointer-events: none;
+}
+
+.profileSectionTitle {
+    font-size: 22px !important;
+    color: #111827 !important;
+    margin: 12px 0 14px 0 !important;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-/* Bảng thông tin nhỏ bên trong */
-.infoUser table {
-    width: 100%;
-    max-width: 600px;
-    border-spacing: 0 10px;
+.profileFormRow {
+    width: 100% !important;
+    display: block !important;
+    margin: 12px 0 !important;
+    box-sizing: border-box !important;
 }
 
-.infoUser table td {
-    padding: 10px;
-    font-size: 16px;
-}
-
-.infoUser table td:first-child {
-    font-weight: 600;
-    color: #666;
-    width: 120px;
-    text-align: right;
-    padding-right: 20px;
-}
-
-/* Input tên */
-.infoUser input[type="text"] {
-    width: 100%;
-    padding: 8px 15px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    color: #333;
-    font-weight: bold;
-}
-.infoUser input[type="text"]:focus {
-    border-color: #288ad6;
-}
-
-/* Các nút bấm nhỏ (Cập nhật, đổi mật khẩu) */
-.infoUser button {
-    background: #f0f0f0;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    color: #333;
-    cursor: pointer;
+.profileFormRow label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: #374151;
     font-size: 14px;
-    transition: 0.2s;
-}
-.infoUser button:hover {
-    background: #288ad6;
-    color: white;
 }
 
-/* Form đổi mật khẩu */
+.profileInputAction,
+.profileInputOnly {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.profileInputAction {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.profileInputAction .uInput,
+.profileInputOnly .uInput {
+    flex: 1;
+    min-width: 0;
+}
+
+.userCard .infoUser .uInput {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    padding: 11px 12px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(15,23,42,.12) !important;
+    color: #111827 !important;
+    font-weight: 700;
+    background: #fff;
+}
+
+.userCard .infoUser .uInput:focus {
+    border-color: #288ad6 !important;
+    box-shadow: 0 0 0 4px rgba(40, 138, 214, 0.12);
+}
+
+.userCard .infoUser .uInput[disabled] {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    cursor: not-allowed;
+}
+
+.userCard .infoUser .uBtn {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+.userCard .infoUser .uBtnPrimary {
+    background: linear-gradient(135deg, #0d6efd 0%, #2563eb 100%) !important;
+    color: #fff !important;
+}
+
+.userCard .infoUser .uBtnDanger {
+    background: linear-gradient(135deg, #dc3545 0%, #ef4444 100%) !important;
+    color: #fff !important;
+}
+
+.userCard .infoUser .uBtnSuccess {
+    background: linear-gradient(135deg, #28a745 0%, #16a34a 100%) !important;
+    color: #fff !important;
+}
+
+.userCard .infoUser .uBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.profileSecurityActions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.profilePassActions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
 #passForm {
-    background: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #eee;
-    margin-top: 15px;
-    width: 100%;
-    max-width: 400px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-#passForm input {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-#passForm button {
-    width: 100%;
-    background: #4CAF50; /* Màu xanh lá cho hành động xác nhận */
-    color: white;
-    font-weight: bold;
-    padding: 10px;
-}
-#passForm button:hover {
-    background: #45a049;
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
 }
 
-
-/* 2. Lịch sử Đơn hàng (Layout dạng Cards) */
+/* Orders */
 .listDonHang {
     max-width: 900px;
     margin: 0 auto 50px auto;
@@ -108,65 +255,59 @@
 
 .listDonHang h3 {
     font-size: 22px;
-    color: #333;
+    color: #111827;
     margin: 30px 0 20px 0;
     border-left: 5px solid #288ad6;
     padding-left: 15px;
 }
 
-/* Từng thẻ đơn hàng */
 .donhang-item {
-    background: #fff;
-    border: 1px solid #eee; /* Viền mỏng thay vì style inline cũ */
-    border-radius: 8px;
+    background: rgba(255,255,255,.86);
+    border: 1px solid rgba(15,23,42,.08);
+    border-radius: 18px;
     margin-bottom: 20px;
     padding: 20px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    box-shadow: 0 10px 24px rgba(15,23,42,.05);
     transition: 0.3s;
     position: relative;
     overflow: hidden;
 }
 
 .donhang-item:hover {
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 18px 34px rgba(15,23,42,.1);
     transform: translateY(-2px);
-    border-color: #288ad6;
+    border-color: rgba(11, 87, 208, 0.18);
 }
 
-/* Header của đơn hàng (Mã đơn + Ngày) */
 .donhang-item > div:first-child {
-    border-bottom: 1px dashed #ddd;
+    border-bottom: 1px dashed rgba(15,23,42,.1);
     padding-bottom: 15px;
     margin-bottom: 15px;
 }
 
 .donhang-item b {
-    color: #288ad6;
+    color: #0b57d0;
     font-size: 16px;
 }
 
-/* Danh sách sản phẩm trong đơn */
 .donhang-item p {
     margin: 5px 0;
-    color: #555;
+    color: #4b5563;
     line-height: 1.5;
 }
 
-/* Cột bên phải (Tổng tiền + Trạng thái + Nút) */
 .donhang-item > div > div:last-child {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: flex-end; /* Căn phải */
+    align-items: flex-end;
 }
 
-/* Trạng thái đơn hàng */
 .donhang-item strong {
     font-size: 20px;
     color: #e10c00;
 }
 
-/* Nút hành động trong đơn hàng (Hủy / Đã nhận) */
 .btn-user-action {
     margin-top: 10px;
     padding: 8px 20px;
@@ -197,7 +338,18 @@
 .btn-user-action.confirm:hover {
     background: #218838;
 }
-/* ===== FIX HỒ SƠ NGƯỜI DÙNG - thêm sau cùng để đè CSS cũ ===== */
+
+@media (max-width: 520px) {
+    .profileInputAction {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .profileInputAction .uBtn,
+    .profilePassActions .uBtn {
+        width: 100%;
+    }
+}
 
 .userCard .infoUser {
     width: 100% !important;

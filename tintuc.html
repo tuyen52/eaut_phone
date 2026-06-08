@@ -8,14 +8,14 @@
     <title>Tin tức - Thế giới điện thoại</title>
     <link rel="shortcut icon" href="img/favicon.ico" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
-        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/topnav.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/taikhoan.css">
     <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="css/premium-home.css">
     <link rel="stylesheet" href="css/tintuc.css">
 
     <script src="data/products.js"></script>
@@ -23,31 +23,19 @@
     <script src="js/core/classes.js"></script>
     <script src="js/core/database.js"></script>
     <script src="js/core/auth.js"></script>
-    <script src="js/core/cart.js"></script> 
+    <script src="js/core/cart.js"></script>
     <script src="js/components/header.js"></script>
     <script src="js/components/footer.js"></script>
     <script src="js/components/product-card.js"></script>
     <script src="js/core/init.js"></script>
-
     <script src="js/pages/home.js"></script>
     <script>
         window.onload = function () {
             khoiTao();
-            // thêm tags (từ khóa) vào khung tìm kiếm
             var tags = ["Samsung", "iPhone", "Huawei", "Oppo", "Mobi"];
             for (var t of tags) addTags(t, "index.html?search=" + t);
         }
     </script>
-    
-    <style>
-        .tintuc-info img {
-            width: 250px;
-            height: 150px;
-            object-fit: cover; /* Giúp ảnh không bị méo */
-            border-radius: 5px;
-        }
-    </style>
-
 </head>
 
 <body>
@@ -56,66 +44,107 @@
     <section style="min-height: 85vh">
         <script> addHeader(); </script>
 
-        <div class="body-tintuc">
-            
-            <div class="tintuc-info">
-                <a href="https://vnexpress.net/iphone-16-pro-max-khi-nao-ra-mat-4752839.html" target="_blank">
-                    <img src="https://i1-sohoa.vnecdn.net/2024/05/22/iPhone-16-Pro-Max-colors-1716347514.jpg?w=1200&h=0&q=100&dpr=1&fit=crop&s=3Q7g8z9X6X0Q5Q6X8X9X9Q" onerror="this.src='img/tintuc/tintuc1.png'">
-                    <h2>iPhone 16 Pro Max lộ diện thiết kế mới, viền màn hình siêu mỏng</h2>
-                </a>
-                <br/>
-                <h5>VnExpress &emsp; 2 giờ trước</h5>
+        <div class="news-page">
+            <div class="news-hero">
+                <span class="news-badge">EAUT PHONE • Tin tức & Cập nhật công nghệ</span>
+                <h1>Cập nhật xu hướng, mẹo chọn máy và tin công nghệ mới nhất</h1>
+                <p>
+                    Trang tin tức giúp website có thêm nội dung hữu ích cho người dùng, đồng thời làm hệ thống trông hoàn chỉnh hơn
+                    như một website thương mại điện tử thực tế trong đồ án tốt nghiệp.
+                </p>
             </div>
 
-            <div class="tintuc-info">
-                <a href="https://thanhnien.vn/samsung-galaxy-s25-ultra-se-co-camera-200mp-cuc-khung-185240212153547805.htm" target="_blank">
-                    <img src="https://images.samsung.com/is/image/samsung/assets/vn/smartphones/galaxy-s24-ultra/images/galaxy-s24-ultra-highlights-color-titanium-gray-mo.jpg" onerror="this.src='img/tintuc/tintuc2.png'">
-                    <h2>Samsung Galaxy S25 Ultra rò rỉ cấu hình: Chip Snapdragon 8 Gen 4, AI cực mạnh</h2>
-                </a>
-                <br/>
-                <h5>Thanh Niên &emsp; 4 giờ trước</h5>
+            <div class="news-featured">
+                <div class="featured-card">
+                    <img src="https://i1-sohoa.vnecdn.net/2024/05/22/iPhone-16-Pro-Max-colors-1716347514.jpg?w=1200&h=0&q=100&dpr=1&fit=crop&s=3Q7g8z9X6X0Q5Q6X8X9X9Q" onerror="this.src='img/tintuc/tintuc1.png'" alt="Tin nổi bật">
+                    <div class="featured-content">
+                        <span class="news-tag">Nổi bật</span>
+                        <h2>iPhone 16 Pro Max lộ diện thiết kế mới, viền màn hình siêu mỏng</h2>
+                        <p>Bài viết tổng hợp xu hướng thiết kế và những thay đổi đáng chú ý trên thế hệ iPhone mới.</p>
+                        <a href="https://vnexpress.net/iphone-16-pro-max-khi-nao-ra-mat-4752839.html" target="_blank">Đọc thêm</a>
+                    </div>
+                </div>
             </div>
 
-            <div class="tintuc-info">
-                <a href="https://news.zing.vn/danh-gia-xiaomi-14-ultra-post1470123.html" target="_blank">
-                    <img src="https://cdn.tgdd.vn/Products/Images/42/303565/xiaomi-14-black-thumb-600x600.jpg" onerror="this.src='img/tintuc/tintuc3.png'">
-                    <h2>Đánh giá Xiaomi 14 Ultra: Nhiếp ảnh đỉnh cao với Leica, sạc nhanh 90W</h2>
-                </a>
-                <br/>
-                <h5>Zing News &emsp; 6 giờ trước</h5>
+            <div class="news-grid">
+                <article class="news-card">
+                    <a href="https://thanhnien.vn/samsung-galaxy-s25-ultra-se-co-camera-200mp-cuc-khung-185240212153547805.htm" target="_blank">
+                        <img src="https://images.samsung.com/is/image/samsung/assets/vn/smartphones/galaxy-s24-ultra/images/galaxy-s24-ultra-highlights-color-titanium-gray-mo.jpg" onerror="this.src='img/tintuc/tintuc2.png'" alt="Samsung Galaxy S25 Ultra">
+                        <div class="news-card__body">
+                            <span class="news-tag">Công nghệ</span>
+                            <h3>Samsung Galaxy S25 Ultra rò rỉ cấu hình: Chip Snapdragon 8 Gen 4, AI mạnh hơn</h3>
+                            <p>Tổng hợp các thông tin đáng chú ý về dòng flagship Samsung sắp ra mắt.</p>
+                            <div class="news-meta">Thanh Niên • 4 giờ trước</div>
+                        </div>
+                    </a>
+                </article>
+
+                <article class="news-card">
+                    <a href="https://news.zing.vn/danh-gia-xiaomi-14-ultra-post1470123.html" target="_blank">
+                        <img src="https://cdn.tgdd.vn/Products/Images/42/303565/xiaomi-14-black-thumb-600x600.jpg" onerror="this.src='img/tintuc/tintuc3.png'" alt="Xiaomi 14 Ultra">
+                        <div class="news-card__body">
+                            <span class="news-tag">Đánh giá</span>
+                            <h3>Đánh giá Xiaomi 14 Ultra: Nhiếp ảnh đỉnh cao với Leica, sạc nhanh 90W</h3>
+                            <p>Phân tích camera, hiệu năng và trải nghiệm sử dụng thực tế của mẫu máy cao cấp.</p>
+                            <div class="news-meta">Zing News • 6 giờ trước</div>
+                        </div>
+                    </a>
+                </article>
+
+                <article class="news-card">
+                    <a href="https://vov.vn/cong-nghe/tin-moi/dien-thoai-ai-len-ngoi-xu-huong-moi-cua-nam-2025-post1089221.vov" target="_blank">
+                        <img src="https://cafefcdn.com/203337114487263232/2024/1/18/galaxy-ai-is-coming-17055452243281577789437.jpg" onerror="this.src='img/tintuc/tintuc4.png'" alt="Điện thoại AI">
+                        <div class="news-card__body">
+                            <span class="news-tag">Xu hướng</span>
+                            <h3>Điện thoại tích hợp AI lên ngôi: Xu hướng không thể bỏ qua năm 2025</h3>
+                            <p>Nội dung về các tính năng AI đang thay đổi cách người dùng tương tác với điện thoại.</p>
+                            <div class="news-meta">VOV • 10 giờ trước</div>
+                        </div>
+                    </a>
+                </article>
+
+                <article class="news-card">
+                    <a href="https://cellphones.com.vn/sforum/oppo-reno11-series-ra-mat-thiet-ke-doc-dao-camera-chan-dung-32mp" target="_blank">
+                        <img src="https://cdn.tgdd.vn/Products/Images/42/319208/oppo-reno11-pro-gray-thumb-600x600.jpg" onerror="this.src='img/tintuc/tintuc5.png'" alt="OPPO Reno 12 Series">
+                        <div class="news-card__body">
+                            <span class="news-tag">Sản phẩm mới</span>
+                            <h3>OPPO Reno 12 Series ra mắt: Thiết kế dòng chảy, chuyên gia chân dung thế hệ mới</h3>
+                            <p>Giới thiệu những cải tiến đáng chú ý về camera chân dung, thiết kế và trải nghiệm người dùng.</p>
+                            <div class="news-meta">Sforum • 1 ngày trước</div>
+                        </div>
+                    </a>
+                </article>
             </div>
 
-            <div class="tintuc-info">
-                <a href="https://vov.vn/cong-nghe/tin-moi/dien-thoai-ai-len-ngoi-xu-huong-moi-cua-nam-2025-post1089221.vov" target="_blank">
-                    <img src="https://cafefcdn.com/203337114487263232/2024/1/18/galaxy-ai-is-coming-17055452243281577789437.jpg" onerror="this.src='img/tintuc/tintuc4.png'">
-                    <h2>Điện thoại tích hợp AI lên ngôi: Xu hướng không thể bỏ qua năm 2025</h2>
-                </a>
-                <br/>
-                <h5>VOV &emsp; 10 giờ trước</h5>
+            <div class="news-tips">
+                <div class="tip-box">
+                    <h2>Mẹo chọn máy phù hợp</h2>
+                    <ul>
+                        <li>Chọn dung lượng pin theo nhu cầu sử dụng.</li>
+                        <li>Ưu tiên camera nếu thường xuyên chụp ảnh.</li>
+                        <li>Xem kỹ RAM, bộ nhớ và chip nếu chơi game nhiều.</li>
+                    </ul>
+                </div>
+                <div class="tip-box">
+                    <h2>Chuyên mục nên có trong đồ án</h2>
+                    <ul>
+                        <li>Tin công nghệ mới</li>
+                        <li>So sánh sản phẩm</li>
+                        <li>Mẹo sử dụng điện thoại</li>
+                        <li>Xu hướng thị trường</li>
+                    </ul>
+                </div>
             </div>
-
-            <div class="tintuc-info" style="border-bottom: 0;">
-                <a href="https://cellphones.com.vn/sforum/oppo-reno11-series-ra-mat-thiet-ke-doc-dao-camera-chan-dung-32mp" target="_blank">
-                    <img src="https://cdn.tgdd.vn/Products/Images/42/319208/oppo-reno11-pro-gray-thumb-600x600.jpg" onerror="this.src='img/tintuc/tintuc5.png'">
-                    <h2>OPPO Reno 12 Series ra mắt: Thiết kế dòng chảy, chuyên gia chân dung thế hệ mới</h2>
-                </a>
-                <br/>
-                <h5>Sforum &emsp; 1 ngày trước</h5>
-            </div> 
-
         </div>
-
     </section>
 
     <script> addContainTaiKhoan(); </script>
 
     <div class="footer">
         <script>addFooter();</script>
-        
     </div>
 
     <i class="fa fa-arrow-up" id="goto-top-page" onclick="gotoTop()"></i>
-
 </body>
 
 </html>

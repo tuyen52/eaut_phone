@@ -16,7 +16,7 @@ try {
     }
 
     $stmt = $conn->prepare("
-        SELECT username, password, ho, ten, email, role, trang_thai
+        SELECT user_id, username, password, ho, ten, email, role, trang_thai
         FROM users
         WHERE username = ?
         LIMIT 1
@@ -65,6 +65,7 @@ try {
     }
 
     $user = [
+        'user_id' => (int)($row['user_id'] ?? 0),
         'username' => $row['username'],
         'ho' => $row['ho'] ?? '',
         'ten' => $row['ten'] ?? '',

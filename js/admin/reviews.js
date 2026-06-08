@@ -67,10 +67,10 @@ function renderReviewTable(list) {
 
             s += `<tr>
         <td>${i + 1}</td>
-        <td>${safeUsername}</td>
-        <td>${safeProductName} <br><small style="color:#777">(${safeMasp})</small></td>
-        <td style="text-align:left; min-width:120px;">${swatch}${safeMau}</td>
-        <td style="text-align:left; max-width: 300px;">${safeComment}</td>
+        <td title="${safeUsername}">${safeUsername}</td>
+        <td title="${safeProductName} (${safeMasp})">${safeProductName} <br><small style="color:#777">(${safeMasp})</small></td>
+        <td style="text-align:left; min-width:120px;" title="${safeMau}">${swatch}${safeMau}</td>
+        <td style="text-align:left; max-width: 300px;" title="${safeComment}">${safeComment}</td>
         <td style="min-width:100px">${stars}</td>
         <td>${safeDate}</td>
         <td>

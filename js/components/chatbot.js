@@ -16,7 +16,9 @@
             { id: 'order', label: 'Đơn hàng' },
             { id: 'review', label: 'Đánh giá' },
             { id: 'warranty', label: 'Bảo hành' },
-            { id: 'contact', label: 'Liên hệ' }
+            { id: 'contact', label: 'Liên hệ' },
+            { id: 'news', label: 'Tin tức' },
+            { id: 'search', label: 'Tìm sản phẩm' }
         ],
         rules: [],
         searchHints: {
@@ -35,12 +37,14 @@
         review: ['danh gia', 'binh luan', 'review'],
         warranty: ['bao hanh', 'trung tam bao hanh'],
         contact: ['lien he', 'hotline', 'cskh'],
+        news: ['tin tuc', 'tin cong nghe', 'cong nghe', 'bai viet'],
         search: ['tim kiem', 'tim san pham', 'tim sp']
     };
 
     var faqData = null;
     var ui = { panel: null, messages: null, input: null, toggle: null };
     var isOpen = false;
+    var typingTimer = null;
 
     function isAdminPage() {
         var path = (global.location.pathname || '').toLowerCase();
@@ -137,6 +141,9 @@
                 return hints[key];
             }
         }
+        if (normText.indexOf('tin tuc') !== -1 || normText.indexOf('cong nghe') !== -1) {
+            return null;
+        }
         var m = normText.match(/(?:tim|tim kiem|search)\s+(.+)/);
         if (m && m[1]) {
             var q = m[1].trim();
@@ -154,7 +161,12 @@
 
     function matchUserMessage(raw) {
         var norm = normalize(raw);
-        if (!norm) return { answer: 'Bạn vui lòng nhập câu hỏi hoặc chọn nút gợi ý bên dưới.', actions: [] };
+        if (!norm) return { answer: 'Bạn vui lòng nhập câu hỏi hoặc chọn nút gợi ý bên dưới.', actions: [
+            { label: 'Bảo hành', url: 'trungtambaohanh.html' },
+            { label: 'Liên hệ', url: 'lienhe.html' },
+            { label: 'Tin tức', url: 'tintuc.html' },
+            { label: 'Tìm sản phẩm', action: 'search', query: 'iPhone' }
+        ] };
 
         var productQ = detectProductSearch(norm);
         if (productQ) return buildSearchReply(productQ);
@@ -164,7 +176,11 @@
             return { answer: rule.answer, actions: rule.actions || [] };
         }
 
-        return { answer: getFaq().fallback, actions: [] };
+        return { answer: getFaq().fallback, actions: [
+            { label: 'Bảo hành', url: 'trungtambaohanh.html' },
+            { label: 'Liên hệ', url: 'lienhe.html' },
+            { label: 'Tin tức', url: 'tintuc.html' }
+        ] };
     }
 
     function navigate(url) {
@@ -215,6 +231,13 @@
         var wrap = document.createElement('div');
         wrap.className = 'eaut-chat-msg ' + (role === 'user' ? 'user' : 'bot');
 
+        var avatar = document.createElement('div');
+        avatar.className = 'eaut-chat-avatar ' + (role === 'user' ? 'user' : 'bot');
+        avatar.innerHTML = role === 'user'
+            ? '<i class="fa fa-user" aria-hidden="true"></i>'
+            : '<i class="fa fa-headphones" aria-hidden="true"></i>';
+        wrap.appendChild(avatar);
+
         var bubble = document.createElement('div');
         bubble.className = 'eaut-chat-bubble';
         bubble.textContent = text;
@@ -239,7 +262,28 @@
         scrollMessagesToEnd();
     }
 
+    function appendTyping() {
+        if (!ui.messages) return null;
+        removeTyping();
+        var wrap = document.createElement('div');
+        wrap.className = 'eaut-chat-msg bot eaut-chat-typing';
+        wrap.id = 'eaut-chat-typing';
+        var bubble = document.createElement('div');
+        bubble.className = 'eaut-chat-bubble';
+        bubble.innerHTML = '<span class="typing-dots"><i></i><i></i><i></i></span>';
+        wrap.appendChild(bubble);
+        ui.messages.appendChild(wrap);
+        scrollMessagesToEnd();
+        return wrap;
+    }
+
+    function removeTyping() {
+        var typing = document.getElementById('eaut-chat-typing');
+        if (typing && typing.parentNode) typing.parentNode.removeChild(typing);
+    }
+
     function botReply(reply) {
+        removeTyping();
         appendMessage(reply.answer, 'bot', reply.actions);
     }
 
@@ -248,8 +292,13 @@
         if (!text) return;
         appendMessage(text, 'user');
         if (ui.input) ui.input.value = '';
-        var reply = matchUserMessage(text);
-        botReply(reply);
+
+        appendTyping();
+        if (typingTimer) clearTimeout(typingTimer);
+        typingTimer = setTimeout(function () {
+            var reply = matchUserMessage(text);
+            botReply(reply);
+        }, 450);
     }
 
     function onQuickMenu(menuId) {
@@ -260,15 +309,39 @@
                 actions: [
                     { label: 'iPhone', action: 'search', query: 'iPhone' },
                     { label: 'Samsung', action: 'search', query: 'Samsung' },
+                    { label: 'Oppo', action: 'search', query: 'Oppo' },
+                    { label: 'Tin tức', url: 'tintuc.html' },
                     { label: 'Trang chủ', url: 'index.html' }
+                ]
+            });
+            return;
+        }
+        if (menuId === 'news') {
+            botReply({
+                answer: 'Bạn có thể xem các bài viết công nghệ, mẹo chọn máy và cập nhật sản phẩm mới tại mục Tin tức.',
+                actions: [
+                    { label: 'Mở tin tức', url: 'tintuc.html' },
+                    { label: 'Tìm iPhone', action: 'search', query: 'iPhone' }
                 ]
             });
             return;
         }
         if (rule) {
             botReply({ answer: rule.answer, actions: rule.actions || [] });
+        } else if (menuId === 'news') {
+            botReply({
+                answer: 'Bạn có thể xem các bài viết công nghệ, mẹo chọn máy và cập nhật sản phẩm mới tại mục Tin tức.',
+                actions: [
+                    { label: 'Mở tin tức', url: 'tintuc.html' },
+                    { label: 'Tìm iPhone', action: 'search', query: 'iPhone' }
+                ]
+            });
         } else {
-            botReply({ answer: getFaq().fallback, actions: [] });
+            botReply({ answer: getFaq().fallback, actions: [
+                { label: 'Bảo hành', url: 'trungtambaohanh.html' },
+                { label: 'Liên hệ', url: 'lienhe.html' },
+                { label: 'Tin tức', url: 'tintuc.html' }
+            ] });
         }
     }
 
@@ -299,7 +372,14 @@
                 : '<i class="fa fa-comments" aria-hidden="true"></i>';
         }
         if (open && ui.messages && ui.messages.childElementCount === 0) {
-            botReply({ answer: getFaq().welcome, actions: [] });
+            appendTyping();
+            setTimeout(function () {
+                botReply({ answer: getFaq().welcome, actions: [
+                    { label: 'Bảo hành', url: 'trungtambaohanh.html' },
+                    { label: 'Liên hệ', url: 'lienhe.html' },
+                    { label: 'Tìm sản phẩm', action: 'search', query: 'iPhone' }
+                ] });
+            }, 350);
         }
     }
 
@@ -311,9 +391,9 @@
         var toggle = document.createElement('button');
         toggle.type = 'button';
         toggle.id = 'eaut-chatbot-toggle';
-        toggle.title = 'Trợ lý EAUT PHONE';
-        toggle.setAttribute('aria-label', 'Mở trợ lý EAUT PHONE');
-        toggle.innerHTML = '<i class="fa fa-comments" aria-hidden="true"></i>';
+        toggle.title = 'Mở trợ lý chat EAUT PHONE';
+        toggle.setAttribute('aria-label', 'Mở trợ lý chat EAUT PHONE');
+        toggle.innerHTML = '<i class="fa fa-comments" aria-hidden="true"></i><span class="eaut-chatbot-toggle-label">Chatbot</span>';
         toggle.onclick = togglePanel;
 
         var panel = document.createElement('div');

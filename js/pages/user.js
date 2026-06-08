@@ -265,15 +265,18 @@ function statusBadgeColor(st) {
 }
 
 function paymentStatusBadge(status) {
-    var s = (status || 'Pending').trim();
+    var s = String(status || 'unpaid').trim().toLowerCase();
 
-    if (s === 'Paid') {
+    if (s === 'paid') {
         return `<span class="statusBadge" style="background:#28a745">Đã thanh toán</span>`;
     }
-    if (s === 'Failed') {
+    if (s === 'failed') {
         return `<span class="statusBadge" style="background:#dc3545">Thanh toán thất bại</span>`;
     }
-    return `<span class="statusBadge" style="background:#b26a00">Chờ thanh toán</span>`;
+    if (s === 'refunded') {
+        return `<span class="statusBadge" style="background:#6f42c1">Đã hoàn tiền</span>`;
+    }
+    return `<span class="statusBadge" style="background:#b26a00">Chưa thanh toán</span>`;
 }
 
 function paymentMethodBadge(method) {
@@ -338,16 +341,14 @@ function renderOrderHistory() {
         var maDon = dh.maDon;
         var total = parseInt(dh.tongtien || 0);
         var st = dh.tinhTrang || '';
-        var paymentStatus = dh.paymentStatus || 'Pending';
+        var paymentStatus = dh.paymentStatus || 'unpaid';
         var pttt = dh.phuongThucTT || 'COD';
         var badgeBg = statusBadgeColor(st);
 
         var spHTML = (dh.sp || []).map(s => {
-            var p = null;
-            try { p = timKiemTheoMa(getListProducts(), s.ma); } catch (e) { }
-            var tenSP = p ? p.name : ("Sản phẩm #" + s.ma);
-            var safeTenSP = escapeHtml(tenSP);
-            var safeMauSac = escapeHtml(s.mau_sac || '');
+            var tenSP = s.product_name_snapshot || (s.masp || s.ma || '');
+            var safeTenSP = escapeHtml(tenSP || ("Sản phẩm #" + s.ma));
+            var safeMauSac = escapeHtml(s.variant_name_snapshot || s.mau_sac || '');
             var safeVariantId = escapeHtml(s.variant_id || '');
 
             var mauTxt = '';
@@ -358,8 +359,8 @@ function renderOrderHistory() {
             }
 
             var reviewLink = '';
-            if ((st === 'Đã nhận hàng' || st === 'Hoàn thành') && p) {
-                var linkName = encodeURIComponent(p.name.split(' ').join('-'));
+            if (st === 'Đã nhận hàng' || st === 'Hoàn thành') {
+                var linkName = encodeURIComponent((tenSP || '').split(' ').join('-'));
                 reviewLink = ` <a href="chitietsanpham.html?${linkName}" target="_blank" rel="noopener noreferrer" style="color:#288ad6; font-size:13px; text-decoration:underline;">
                 <i class="fa fa-star-o"></i> Viết đánh giá</a>`;
             }
@@ -385,35 +386,44 @@ function renderOrderHistory() {
             `;
         }
 
+        var detailId = 'user-order-detail-' + maDon;
+        var timelineHtml = renderUserTimeline(dh.timeline || []);
+        var statusLabelHtml = renderUserStatusLabel(st);
+        var timelineBarHtml = renderTrackingBar(st);
+
         html += `
             <div class="orderItem">
                 <div class="orderTop">
                     <div>
-                        <div class="orderCode">Đơn #${maDon}</div>
+                        <div class="orderCode">Đơn #${maDon} <button class="uBtn uBtnPrimary" style="padding:4px 8px; font-size:12px; margin-left:8px;" onclick="toggleUserOrderDetails('${detailId}')">Xem chi tiết</button></div>
                         <div class="orderDate">${escapeHtml(formatDateTime(dh.ngaymua))}</div>
                     </div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
                         ${paymentMethodBadge(pttt)}
                         ${paymentStatusBadge(paymentStatus)}
-                        <span class="statusBadge" style="background:${badgeBg}">${escapeHtml(st)}</span>
+                        ${statusLabelHtml}
+                    </div>
+                    <div style="width:100%; text-align:right; font-size:12px; color:#6b7280; margin-top:6px;">
+                        ${escapeHtml(dh.paymentStatusLabel || '')}
                     </div>
                 </div>
 
-                ${renderTrackingBar(st)}
-
-                <div class="orderBody" style="margin-top:10px;">
-                    <div>
-                        ${spHTML}
-                        ${extraVnpayInfo}
-                    </div>
-
-                    <div class="orderRight">
-                        <div style="font-size:13px;color:#6b7280;">Tổng thanh toán</div>
-                        <div style="font-size:20px;font-weight:900;color:#d0021b;margin:6px 0 10px 0;">
-                            ${numToString(total)}₫
+                <div id="${detailId}" class="orderDetailBox" style="display:none; margin-top:10px;">
+                    <div class="orderBody">
+                        <div>
+                            ${spHTML}
+                            ${extraVnpayInfo}
+                            ${timelineHtml}
                         </div>
-                        <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
-                            ${actionBtn}
+
+                        <div class="orderRight">
+                            <div style="font-size:13px;color:#6b7280;">Tổng thanh toán</div>
+                            <div style="font-size:20px;font-weight:900;color:#d0021b;margin:6px 0 10px 0;">
+                                ${numToString(total)}₫
+                            </div>
+                            <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+                                ${actionBtn}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -434,6 +444,60 @@ function userNhanHang(maDon) {
 function userHuyDon(maDon) {
     if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?')) return;
     updateOrderStatusAPI(maDon, 'Đã hủy bởi Khách');
+}
+
+function toggleUserOrderDetails(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+}
+
+function renderUserStatusLabel(status) {
+    var s = String(status || 'pending').toLowerCase();
+    var meta = {
+        pending: ['#b26a00', 'fa-clock-o', 'Chờ xử lý'],
+        confirmed: ['#ff9800', 'fa-check-circle', 'Đã xác nhận'],
+        processing: ['#17a2b8', 'fa-cube', 'Đang chuẩn bị'],
+        shipping: ['#007bff', 'fa-truck', 'Đang giao'],
+        completed: ['#28a745', 'fa-check', 'Hoàn thành'],
+        cancelled: ['#dc3545', 'fa-times-circle', 'Đã hủy'],
+        delivery_failed: ['#dc3545', 'fa-exclamation-triangle', 'Giao thất bại']
+    }[s] || ['#777', 'fa-circle', status || ''];
+
+    return '<span style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:' + meta[0] + '15; color:' + meta[0] + '; border:1px solid ' + meta[0] + '30; font-size:11px; font-weight:bold; white-space:nowrap;"><i class="fa ' + meta[1] + '"></i>' + escapeHtml(meta[2]) + '</span>';
+}
+
+function renderUserTimeline(timeline) {
+    if (!Array.isArray(timeline) || !timeline.length) return '<div style="margin-top:10px; padding:10px; background:#fafafa; border:1px solid #eee; border-radius:8px; font-size:12px; color:#777;">Chưa có timeline.</div>';
+
+    function metaByStatus(status) {
+        var s = String(status || '').toLowerCase();
+        if (s === 'pending') return { icon: 'fa-clock-o', color: '#b26a00', label: 'Chờ xử lý' };
+        if (s === 'confirmed') return { icon: 'fa-check-circle', color: '#ff9800', label: 'Đã xác nhận' };
+        if (s === 'processing') return { icon: 'fa-cube', color: '#17a2b8', label: 'Đang chuẩn bị' };
+        if (s === 'shipping') return { icon: 'fa-truck', color: '#007bff', label: 'Đang giao' };
+        if (s === 'completed') return { icon: 'fa-check', color: '#28a745', label: 'Hoàn thành' };
+        if (s === 'cancelled') return { icon: 'fa-times-circle', color: '#dc3545', label: 'Đã hủy' };
+        if (s === 'delivery_failed') return { icon: 'fa-exclamation-triangle', color: '#dc3545', label: 'Giao thất bại' };
+        return { icon: 'fa-circle', color: '#777', label: status || '' };
+    }
+
+    var html = '<div style="margin-top:10px; padding:10px; background:#fafafa; border:1px solid #eee; border-radius:8px;">';
+    html += '<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">';
+    html += '<div style="font-size:12px; font-weight:bold; color:#555;">Timeline đơn hàng</div>';
+    html += '<div style="font-size:11px; color:#777;">Chế độ thu gọn</div>';
+    html += '</div>';
+    html += '<div style="display:flex; flex-wrap:wrap; gap:8px;">';
+    timeline.forEach(function (item) {
+        var meta = metaByStatus(item.status || item.label);
+        html += '<span title="' + escapeHtml((meta.label || '') + (item.created_at ? ' - ' + formatDateTime(item.created_at) : '')) + '" style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px; background:' + meta.color + '15; color:' + meta.color + '; font-weight:bold; font-size:11px; border:1px solid ' + meta.color + '30; white-space:nowrap;">';
+        html += '<i class="fa ' + meta.icon + '"></i>';
+        html += escapeHtml(meta.label);
+        html += '</span>';
+    });
+    html += '</div>';
+    html += '</div>';
+    return html;
 }
 
 function updateOrderStatusAPI(maDon, status) {

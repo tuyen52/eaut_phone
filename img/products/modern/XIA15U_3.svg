@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720" viewBox="0 0 720 720">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="phone" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C0C5CC"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="22" stdDeviation="20" flood-color="#0f172a" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <rect width="720" height="720" fill="url(#bg)"/>
+  <circle cx="565" cy="120" r="92" fill="#C0C5CC" opacity="0.16"/>
+  <circle cx="120" cy="590" r="120" fill="#C0C5CC" opacity="0.13"/>
+
+  <rect x="235" y="90" width="250" height="500" rx="48" fill="url(#phone)" filter="url(#shadow)"/>
+  <rect x="252" y="110" width="216" height="460" rx="36" fill="#0b1120" opacity="0.18"/>
+
+  <circle cx="306" cy="164" r="25" fill="#f8fafc" opacity="0.9"/>
+  <circle cx="366" cy="164" r="25" fill="#f8fafc" opacity="0.75"/>
+  <circle cx="306" cy="224" r="25" fill="#f8fafc" opacity="0.7"/>
+  <circle cx="366" cy="224" r="14" fill="#f8fafc" opacity="0.55"/>
+
+  <rect x="296" y="508" width="128" height="8" rx="4" fill="#f8fafc" opacity="0.75"/>
+
+  <text x="360" y="635" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">Xiaomi</text>
+  <text x="360" y="672" text-anchor="middle" font-size="23" font-family="Arial, sans-serif" fill="#334155">Xiaomi 15 Ultra 16GB/512GB - Bạc titan</text>
+</svg>
