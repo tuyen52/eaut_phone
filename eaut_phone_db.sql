@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 07, 2026 at 05:04 PM
+-- Generation Time: Jun 08, 2026 at 03:43 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -42,6 +42,7 @@ CREATE TABLE `nhap_kho` (
 
 CREATE TABLE `orders` (
   `ma_don` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
   `username` varchar(50) NOT NULL,
   `ngay_mua` datetime DEFAULT current_timestamp(),
   `tinh_trang` enum('pending','confirmed','processing','shipping','completed','cancelled','delivery_failed') NOT NULL DEFAULT 'pending',
@@ -332,6 +333,7 @@ INSERT INTO `users` (`user_id`, `ho`, `ten`, `username`, `password`, `email`, `r
 CREATE TABLE `vnpay_payment_sessions` (
   `session_id` int(11) NOT NULL,
   `txn_ref` varchar(100) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
   `username` varchar(50) NOT NULL,
   `tong_tien` decimal(15,0) NOT NULL DEFAULT 0,
   `ho_ten` varchar(255) DEFAULT NULL,
@@ -366,7 +368,8 @@ ALTER TABLE `orders`
   ADD PRIMARY KEY (`ma_don`),
   ADD UNIQUE KEY `uq_orders_vnp_txn_ref` (`vnp_txn_ref`),
   ADD KEY `username` (`username`),
-  ADD KEY `idx_orders_payment_timeout` (`payment_status`,`phuong_thuc_tt`,`payment_expired_at`);
+  ADD KEY `idx_orders_payment_timeout` (`payment_status`,`phuong_thuc_tt`,`payment_expired_at`),
+  ADD KEY `idx_orders_user_id` (`user_id`);
 
 --
 -- Indexes for table `order_details`
@@ -422,7 +425,8 @@ ALTER TABLE `vnpay_payment_sessions`
   ADD UNIQUE KEY `txn_ref` (`txn_ref`),
   ADD UNIQUE KEY `uq_vnpay_session_order` (`order_id`),
   ADD KEY `idx_vnpay_session_user_status` (`username`,`session_status`),
-  ADD KEY `idx_vnpay_session_expires` (`expires_at`);
+  ADD KEY `idx_vnpay_session_expires` (`expires_at`),
+  ADD KEY `idx_vnpay_payment_sessions_user_id` (`user_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -474,7 +478,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `vnpay_payment_sessions`
 --
 ALTER TABLE `vnpay_payment_sessions`
-  MODIFY `session_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `session_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
@@ -490,6 +494,7 @@ ALTER TABLE `nhap_kho`
 -- Constraints for table `orders`
 --
 ALTER TABLE `orders`
+  ADD CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`username`) REFERENCES `users` (`username`) ON DELETE CASCADE;
 
 --
@@ -523,6 +528,7 @@ ALTER TABLE `rate`
 -- Constraints for table `vnpay_payment_sessions`
 --
 ALTER TABLE `vnpay_payment_sessions`
+  ADD CONSTRAINT `fk_vnpay_payment_sessions_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_vnpay_session_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`ma_don`) ON DELETE SET NULL,
   ADD CONSTRAINT `fk_vnpay_session_user` FOREIGN KEY (`username`) REFERENCES `users` (`username`) ON DELETE CASCADE;
 COMMIT;

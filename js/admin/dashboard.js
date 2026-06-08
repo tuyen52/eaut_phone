@@ -58,6 +58,13 @@ function loadStatistics() {
     var group = document.getElementById('statsGroup')?.value || 'day';
     var scope = document.getElementById('statsScope')?.value || 'completed';
 
+    window.__lastStatsMeta = {
+        start: start,
+        end: end,
+        group: group,
+        scope: scope
+    };
+
     var loading = document.getElementById('statsLoading');
     if (loading) loading.style.display = 'inline-block';
 
@@ -304,12 +311,35 @@ function renderTopVariantsTable(list) {
 }
 
 function exportStatsCSV() {
+    var meta = window.__lastStatsMeta || {};
+    var start = meta.start || (document.getElementById('statsStart')?.value || '');
+    var end = meta.end || (document.getElementById('statsEnd')?.value || '');
+    var group = meta.group || (document.getElementById('statsGroup')?.value || 'day');
+    var scope = meta.scope || (document.getElementById('statsScope')?.value || 'completed');
+    var generatedAt = new Date();
+
     var rows = [];
+    rows.push(['EAUT PHONE - BÁO CÁO THỐNG KÊ DOANH THU']);
+    rows.push(['Đồ án tốt nghiệp - Hệ thống bán điện thoại EAUT Phone']);
+    rows.push(['Ngày xuất báo cáo', generatedAt.toLocaleString('vi-VN')]);
+    rows.push(['Từ ngày', start]);
+    rows.push(['Đến ngày', end]);
+    rows.push(['Kiểu nhóm dữ liệu', group]);
+    rows.push(['Phạm vi', scope]);
+    rows.push([]);
     rows.push(['SECTION','RANK','MASP','NAME','BRAND_OR_COLOR','UNITS','REVENUE']);
     (window.__lastStatsTopProducts || []).forEach((x,i) => rows.push(['TOP_PRODUCTS', i+1, x.masp, x.name, x.brand, x.units, Math.round(x.revenue)]));
     (window.__lastStatsTopVariants || []).forEach((x,i) => rows.push(['TOP_VARIANTS', i+1, x.masp, x.product_name, x.color_name, x.units, Math.round(x.revenue)]));
-    var csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
-    downloadText('report.csv', csv);
+    rows.push([]);
+    rows.push(['Ghi chú', 'Báo cáo xuất từ hệ thống thống kê của EAUT Phone']);
+
+    var csv = rows.map(function (r) {
+        return r.map(function (cell) {
+            return `"${String(cell == null ? '' : cell).replace(/"/g,'""')}"`;
+        }).join(',');
+    }).join('\n');
+
+    downloadText(`report_${start || 'from'}_${end || 'to'}.csv`, csv);
 }
 
 function downloadText(filename, text) {

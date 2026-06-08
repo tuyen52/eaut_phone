@@ -1,6 +1,6 @@
 {
   "welcome": "Xin chào! Em là trợ lý EAUT PHONE — hỗ trợ hướng dẫn mua hàng, thanh toán và các thao tác trên website. Bạn chọn nút bên dưới hoặc gõ câu hỏi (ví dụ: COD, VNPay, đăng nhập, hủy đơn).",
-  "fallback": "Em chưa hiểu rõ câu hỏi. Bạn thử chọn một mục bên dưới, hoặc gõ từ khóa như: mua hàng, COD, VNPay, đăng nhập, chọn màu, đơn hàng, đánh giá, bảo hành, liên hệ.",
+  "fallback": "Em chưa hiểu rõ câu hỏi. Bạn thử chọn một mục bên dưới, hoặc gõ từ khóa như: mua hàng, COD, VNPay, đăng nhập, chọn màu, đơn hàng, đánh giá, bảo hành, liên hệ, tin tức.",
   "quickMenus": [
     { "id": "buy", "label": "Hướng dẫn mua hàng" },
     { "id": "account", "label": "Đăng nhập / Đăng ký" },
@@ -11,6 +11,7 @@
     { "id": "review", "label": "Đánh giá SP" },
     { "id": "warranty", "label": "Bảo hành" },
     { "id": "contact", "label": "Liên hệ" },
+    { "id": "news", "label": "Tin tức" },
     { "id": "search", "label": "Tìm sản phẩm" }
   ],
   "rules": [
@@ -69,6 +70,11 @@
       "keywords": ["lien he", "hotline", "email", "dia chi cua hang", "gui thong tin", "cskh", "ho tro"],
       "answer": "Liên hệ EAUT PHONE:\n• Menu Liên hệ: địa chỉ Hà Nội, hotline demo, email 20223036@eaut.edu.vn.\n• Có thể gửi biểu mẫu liên hệ trên trang Liên hệ (form kiểm tra dữ liệu phía trình duyệt).\n• Câu hỏi phức tạp nên gọi hotline hoặc gửi form.",
       "actions": [{ "label": "Trang liên hệ", "url": "lienhe.html" }]
+    },
+    {
+      "keywords": ["tin tuc", "tin cong nghe", "cong nghe", "bai viet", "xem tin tuc"],
+      "answer": "Tin tức & cập nhật công nghệ:\n• Xem các bài viết nổi bật về điện thoại, xu hướng, mẹo sử dụng và sản phẩm mới.\n• Đây là khu vực giúp website đầy đủ hơn và hỗ trợ người mua chọn máy phù hợp.",
+      "actions": [{ "label": "Trang tin tức", "url": "tintuc.html" }]
     },
     {
       "keywords": ["gio hang", "cart", "them vao gio", "xem gio"],

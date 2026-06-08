@@ -671,60 +671,29 @@ if (!function_exists('create_order_from_vnpay_session')) {
         $diaChi = (string)$session['dia_chi'];
         $sdt = (string)$session['so_dien_thoai'];
 
-        $hasUserId = false;
-        $chkUserId = $conn->query("SHOW COLUMNS FROM orders LIKE 'user_id'");
-        if ($chkUserId && $chkUserId->num_rows > 0) {
-            $hasUserId = true;
-        }
+        $stmt = $conn->prepare("
+            INSERT INTO orders (
+                user_id, username, tong_tien, tinh_trang, phuong_thuc_tt, payment_status,
+                vnp_txn_ref, vnp_transaction_no, vnp_response_code, paid_at,
+                dia_chi, so_dien_thoai
+            )
+            VALUES (?, ?, ?, ?, 'VNPAY', ?, ?, ?, ?, ?, ?, ?)
+        ");
 
-        if ($hasUserId && $userId > 0) {
-            $stmt = $conn->prepare("
-                INSERT INTO orders (
-                    user_id, username, tong_tien, tinh_trang, phuong_thuc_tt, payment_status,
-                    vnp_txn_ref, vnp_transaction_no, vnp_response_code, paid_at,
-                    dia_chi, so_dien_thoai
-                )
-                VALUES (?, ?, ?, ?, 'VNPAY', ?, ?, ?, ?, ?, ?, ?)
-            ");
-
-            $stmt->bind_param(
-                "isdssssssss",
-                $userId,
-                $username,
-                $tongTien,
-                $tinhTrang,
-                $paymentStatus,
-                $txnRef,
-                $vnpTransactionNo,
-                $vnpResponseCode,
-                $paidAt,
-                $diaChi,
-                $sdt
-            );
-        } else {
-            $stmt = $conn->prepare("
-                INSERT INTO orders (
-                    username, tong_tien, tinh_trang, phuong_thuc_tt, payment_status,
-                    vnp_txn_ref, vnp_transaction_no, vnp_response_code, paid_at,
-                    dia_chi, so_dien_thoai
-                )
-                VALUES (?, ?, ?, 'VNPAY', ?, ?, ?, ?, ?, ?, ?)
-            ");
-
-            $stmt->bind_param(
-                "sdssssssss",
-                $username,
-                $tongTien,
-                $tinhTrang,
-                $paymentStatus,
-                $txnRef,
-                $vnpTransactionNo,
-                $vnpResponseCode,
-                $paidAt,
-                $diaChi,
-                $sdt
-            );
-        }
+        $stmt->bind_param(
+            "isdssssssss",
+            $userId,
+            $username,
+            $tongTien,
+            $tinhTrang,
+            $paymentStatus,
+            $txnRef,
+            $vnpTransactionNo,
+            $vnpResponseCode,
+            $paidAt,
+            $diaChi,
+            $sdt
+        );
 
         $stmt->execute();
         $maDon = (int)$conn->insert_id;
