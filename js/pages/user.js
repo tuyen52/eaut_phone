@@ -343,7 +343,6 @@ function renderOrderHistory() {
         var st = dh.tinhTrang || '';
         var paymentStatus = dh.paymentStatus || 'unpaid';
         var pttt = dh.phuongThucTT || 'COD';
-        var badgeBg = statusBadgeColor(st);
 
         var spHTML = (dh.sp || []).map(s => {
             var tenSP = s.product_name_snapshot || (s.masp || s.ma || '');
@@ -359,7 +358,7 @@ function renderOrderHistory() {
             }
 
             var reviewLink = '';
-            if (st === 'Đã nhận hàng' || st === 'Hoàn thành') {
+            if (canWriteReviewStatus(st) || canWriteReviewStatus(dh.paymentStatus) || canWriteReviewStatus(dh.tinhTrangLabel)) {
                 var linkName = encodeURIComponent((tenSP || '').split(' ').join('-'));
                 reviewLink = ` <a href="chitietsanpham.html?${linkName}" target="_blank" rel="noopener noreferrer" style="color:#288ad6; font-size:13px; text-decoration:underline;">
                 <i class="fa fa-star-o"></i> Viết đánh giá</a>`;
@@ -532,6 +531,11 @@ function formatDateTime(value) {
     var dt = new Date(String(value).replace(' ', 'T'));
     if (isNaN(dt.getTime())) return value;
     return dt.toLocaleString('vi-VN');
+}
+
+function canWriteReviewStatus(status) {
+    var s = String(status || '').trim().toLowerCase();
+    return s === 'đã nhận hàng' || s === 'hoàn thành' || s === 'completed' || s === 'delivered';
 }
 
 function escapeHtml(str) {
