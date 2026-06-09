@@ -55,7 +55,8 @@ function addFooter() {
 
         <div class="copy-right">
             <p>
-                <a href="index.html">EAUT PHONE</a> - All rights reserved © 2026 - Designed by
+                <a href="index.html">EAUT PHONE</a>
+                <span>- All rights reserved © 2026 - Designed by</span>
                 <span style="color: #fff; font-weight: 700">NGUYEN DANG TUYEN</span>
             </p>
         </div>
