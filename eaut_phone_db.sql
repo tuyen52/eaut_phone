@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 11, 2026 at 04:24 PM
+-- Generation Time: Jun 24, 2026 at 05:51 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -363,7 +363,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`user_id`, `ho`, `ten`, `username`, `password`, `email`, `role`, `trang_thai`) VALUES
 (1, 'Quản trị', 'Viên', 'admin', '$2y$10$DfyxK92xIZF2BCNULeQdF.lEKZ66oCSqqKcHpvVQ3DpwQt/GRhA4i', 'admin@gmail.com', 'admin', 1),
-(3, 'thanh', 'thanh', 'thanh', '$2y$10$bDZFw7bUeqDC6RyEUShds./i5PUKzHq1gjl5ewoRMeh46u9xkujj6', 'thanh@123.com', 'user', 1),
+(3, 'thanh', 'thanh', 'thanh', '$2y$10$bDZFw7bUeqDC6RyEUShds./i5PUKzHq1gjl5ewoRMeh46u9xkujj6', 'thanh@123.com', 'user', 0),
 (4, 'tuyen12', '', 'tuyen', '$2y$10$jf6rLr17FmNqeAm2K5F/M.MQuP0QN0VB2HFxb8BdhiVRYTBBnFVMW', 'tuyen171809@gmail.com', 'user', 1),
 (10, 'nguyen', 'A', 'tuyen1', '$2y$10$UjWqUAFGCgxntzkhQARKJeoGYYEGDGuLVcPoFtDZcEJt9rZs.0uya', 'zic200409@gmail.com', 'user', 1);
 

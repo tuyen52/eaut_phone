@@ -102,4 +102,4 @@ function logOutAdmin() {
         window.localStorage.removeItem('admin');
         window.location.href = 'index.html';
     });
-}
+}// End of js/admin/main.js
