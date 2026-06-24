@@ -20,8 +20,8 @@ try {
     }
 
     if ($hasUserId) {
-        if ($userId <= 0) {
-            json_response(false, 'Thiếu user_id!', [], 400);
+        if ($userId <= 0 && $username === '') {
+            json_response(false, 'Thiếu dữ liệu đầu vào!', [], 400);
         }
     } else {
         if ($username === '') {
@@ -31,12 +31,12 @@ try {
 
     $conn->begin_transaction();
 
-    // Kiểm tra user tồn tại
-    if ($hasUserId) {
+    // Kiểm tra user tồn tại và chỉ cho phép xóa tài khoản user thường.
+    if ($hasUserId && $userId > 0) {
         $stmtCheck = $conn->prepare("SELECT user_id, username, role FROM users WHERE user_id = ? LIMIT 1");
         $stmtCheck->bind_param("i", $userId);
     } else {
-        $stmtCheck = $conn->prepare("SELECT username, role FROM users WHERE username = ? LIMIT 1");
+        $stmtCheck = $conn->prepare("SELECT user_id, username, role FROM users WHERE username = ? LIMIT 1");
         $stmtCheck->bind_param("s", $username);
     }
     $stmtCheck->execute();
@@ -56,68 +56,19 @@ try {
     $resolvedUserId = (int)($user['user_id'] ?? 0);
     $resolvedUsername = (string)($user['username'] ?? '');
 
-    // Xóa chi tiết đơn hàng của user
-    if ($hasUserId && $resolvedUserId > 0) {
-        $stmtDetails = $conn->prepare("
-            DELETE od
-            FROM order_details od
-            INNER JOIN orders o ON od.ma_don = o.ma_don
-            WHERE o.user_id = ?
-        ");
-        $stmtDetails->bind_param("i", $resolvedUserId);
-    } else {
-        $stmtDetails = $conn->prepare("
-            DELETE od
-            FROM order_details od
-            INNER JOIN orders o ON od.ma_don = o.ma_don
-            WHERE o.username = ?
-        ");
-        $stmtDetails->bind_param("s", $resolvedUsername);
-    }
-    $stmtDetails->execute();
-    $stmtDetails->close();
-
-    // Xóa đơn hàng của user
-    if ($hasUserId && $resolvedUserId > 0) {
-        $stmtOrders = $conn->prepare("DELETE FROM orders WHERE user_id = ?");
-        $stmtOrders->bind_param("i", $resolvedUserId);
-    } else {
-        $stmtOrders = $conn->prepare("DELETE FROM orders WHERE username = ?");
-        $stmtOrders->bind_param("s", $resolvedUsername);
-    }
-    $stmtOrders->execute();
-    $stmtOrders->close();
-
-    // Xóa đánh giá của user
-    if ($hasUserId && $resolvedUserId > 0) {
-        $stmtReviews = $conn->prepare("DELETE FROM rate WHERE user_id = ?");
-        $stmtReviews->bind_param("i", $resolvedUserId);
-    } else {
-        $stmtReviews = $conn->prepare("DELETE FROM rate WHERE username = ?");
-        $stmtReviews->bind_param("s", $resolvedUsername);
-    }
-    $stmtReviews->execute();
-    $stmtReviews->close();
-
-    // Xóa phiên VNPay của user nếu có
-    if ($hasUserId && $resolvedUserId > 0) {
-        $stmtVnp = $conn->prepare("DELETE FROM vnpay_payment_sessions WHERE user_id = ?");
-        $stmtVnp->bind_param("i", $resolvedUserId);
-    } else {
-        $stmtVnp = $conn->prepare("DELETE FROM vnpay_payment_sessions WHERE username = ?");
-        $stmtVnp->bind_param("s", $resolvedUsername);
-    }
-    $stmtVnp->execute();
-    $stmtVnp->close();
-
-    // Xóa user
-    if ($hasUserId && $resolvedUserId > 0) {
+    // Chỉ xóa bản ghi user.
+    // Các dữ liệu liên quan sẽ được MySQL xử lý bằng ràng buộc FK hiện có:
+    // - orders.user_id -> SET NULL
+    // - orders.username -> CASCADE
+    // - order_details / rate / vnpay_payment_sessions -> CASCADE hoặc SET NULL theo schema hiện tại
+    if ($resolvedUserId > 0) {
         $stmtUser = $conn->prepare("DELETE FROM users WHERE user_id = ? AND role != 'admin'");
         $stmtUser->bind_param("i", $resolvedUserId);
     } else {
         $stmtUser = $conn->prepare("DELETE FROM users WHERE username = ? AND role != 'admin'");
         $stmtUser->bind_param("s", $resolvedUsername);
     }
+
     $stmtUser->execute();
 
     if ($stmtUser->affected_rows <= 0) {
@@ -125,7 +76,6 @@ try {
     }
 
     $stmtUser->close();
-
     $conn->commit();
 
     json_response(true, 'Đã xóa người dùng thành công!');

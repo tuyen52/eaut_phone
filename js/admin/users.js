@@ -63,13 +63,13 @@ function renderUserTable(list) {
                 <td style="width: 15%">
                     <div class="tooltip">
                         <label class="switch">
-                            <input type="checkbox" ${isChecked} onchange="voHieuHoaUser('${u.username}', this)">
+                            <input type="checkbox" ${isChecked} onchange="voHieuHoaUser(${u.user_id}, '${u.username}', this)">
                             <span class="slider round"></span>
                         </label>
                         <span class="tooltiptext">${titleLock}</span>
                     </div>
                     <div class="tooltip">
-                        <i class="fa fa-remove" onclick="xoaUser('${u.username}')" style="cursor:pointer; color:red; margin-left:10px;"></i>
+                        <i class="fa fa-remove" onclick="xoaUser(${u.user_id}, '${u.username}')" style="cursor:pointer; color:red; margin-left:10px;"></i>
                         <span class="tooltiptext">Xóa</span>
                     </div>
                 </td>
@@ -83,7 +83,7 @@ function renderUserTable(list) {
 // ======================= LOGIC TƯƠNG TÁC SERVER =======================
 
 // Hàm Khóa / Mở khóa tài khoản
-function voHieuHoaUser(username, checkbox) {
+function voHieuHoaUser(userId, username, checkbox) {
     // Nếu checkbox bỏ chọn -> Tức là muốn KHÓA (lock = true)
     // Nếu checkbox được chọn -> Tức là muốn MỞ (lock = false)
     var wantToLock = !checkbox.checked;
@@ -91,7 +91,7 @@ function voHieuHoaUser(username, checkbox) {
     fetch('php/admin/lock-user.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, lock: wantToLock })
+        body: JSON.stringify({ user_id: userId, username: username, lock: wantToLock })
     })
     .then(res => res.json())
     .then(data => {
@@ -117,7 +117,7 @@ function voHieuHoaUser(username, checkbox) {
 }
 
 // Hàm Xóa tài khoản
-function xoaUser(username) {
+function xoaUser(userId, username) {
     if (!confirm('CẢNH BÁO: Hành động này sẽ xóa vĩnh viễn tài khoản ' + username + ' và toàn bộ đơn hàng liên quan.\nBạn có chắc chắn muốn tiếp tục?')) {
         return;
     }
@@ -125,7 +125,7 @@ function xoaUser(username) {
     fetch('php/admin/delete-user.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username })
+        body: JSON.stringify({ user_id: userId, username: username })
     })
     .then(res => res.json())
     .then(data => {
