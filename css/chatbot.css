@@ -4,7 +4,7 @@
     position: fixed;
     bottom: 74px;
     right: 18px;
-    z-index: 150;
+    z-index: 99910;
     min-width: 122px;
     height: 58px;
     padding: 0 18px 0 16px;
@@ -45,7 +45,7 @@
     position: fixed;
     bottom: 138px;
     right: 18px;
-    z-index: 151;
+    z-index: 99911;
     width: 392px;
     max-width: calc(100vw - 24px);
     max-height: min(580px, calc(100vh - 150px));

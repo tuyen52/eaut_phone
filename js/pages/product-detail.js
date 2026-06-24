@@ -523,37 +523,32 @@ function submitReview() {
                 alert("Lỗi: " + (resp.message || "Không rõ lỗi"));
             }
         })
-        .catch(err => alert("Lỗi kết nối Server!"));
+        .catch(() => alert("Lỗi kết nối Server!"));
 }
 
 // --- HELPER UI (Giữ nguyên) ---
-function hoverStars(rating) {
-    var stars = document.querySelectorAll('.star-rating .fa');
-    stars.forEach((s, i) => {
-        if (i < rating) { s.classList.remove('fa-star-o'); s.classList.add('fa-star'); }
-        else { s.classList.remove('fa-star'); s.classList.add('fa-star-o'); }
-    });
-}
-
-function resetStars() {
-    var stars = document.querySelectorAll('.star-rating .fa');
-    stars.forEach(s => {
-        if (!s.classList.contains('selected')) { s.classList.remove('fa-star'); s.classList.add('fa-star-o'); }
-        else { s.classList.remove('fa-star-o'); s.classList.add('fa-star'); }
-    });
-}
-
 function selectStar(rating) {
     selectedRating = rating;
+    document.getElementById('starRatingInput').value = String(rating || 0);
+
     var stars = document.querySelectorAll('.star-rating .fa');
     stars.forEach((s, i) => {
-        if (i < rating) { s.classList.add('selected'); s.classList.remove('fa-star-o'); s.classList.add('fa-star'); }
-        else { s.classList.remove('selected'); s.classList.remove('fa-star'); s.classList.add('fa-star-o'); }
+        if (i < rating) {
+            s.classList.add('selected');
+            s.classList.remove('fa-star-o');
+            s.classList.add('fa-star');
+        } else {
+            s.classList.remove('selected');
+            s.classList.remove('fa-star');
+            s.classList.add('fa-star-o');
+        }
     });
 }
 
 function resetReviewForm() {
     selectedRating = 0;
+    var ratingInput = document.getElementById('starRatingInput');
+    if (ratingInput) ratingInput.value = '0';
     document.getElementById('commentText').value = '';
     var stars = document.querySelectorAll('.star-rating .fa');
     stars.forEach(s => { s.classList.remove('selected'); s.classList.remove('fa-star'); s.classList.add('fa-star-o'); });

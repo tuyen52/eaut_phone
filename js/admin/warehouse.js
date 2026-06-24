@@ -1,6 +1,8 @@
 // js/admin/warehouse.js
 
 var currentStockList = [];
+var __warehouseKeyword = '';
+var __warehouseStockFilter = 'all';
 
 // Hàm được gọi từ main.js khi bấm tab "Kho Hàng"
 function addTableKhoHang() {
@@ -13,7 +15,7 @@ function addTableKhoHang() {
         .then(res => res.json())
         .then(data => {
             currentStockList = Array.isArray(data) ? data : [];
-            renderWarehouseTable(currentStockList);
+            renderWarehousePanel();
         })
         .catch(err => {
             console.error(err);
@@ -21,9 +23,58 @@ function addTableKhoHang() {
         });
 }
 
-function renderWarehouseTable(list) {
+function renderWarehousePanel() {
     var tc = document.querySelector('.khohang .table-content');
+    if (!tc) return;
 
+    var total = currentStockList.length;
+    var lowStock = currentStockList.filter(function (p) {
+        return parseInt(p.inventory || 0) > 0 && parseInt(p.inventory || 0) <= 10;
+    }).length;
+    var outStock = currentStockList.filter(function (p) {
+        return parseInt(p.inventory || 0) <= 0;
+    }).length;
+
+    var s = `
+        <div class="warehouseToolbar" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:end; margin-bottom:14px;">
+            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:end;">
+                <div>
+                    <label style="display:block; font-size:12px; color:#6b7280; margin-bottom:6px; font-weight:600;">Tìm sản phẩm</label>
+                    <input id="warehouseSearchInput" type="text" placeholder="Nhập mã SP hoặc tên sản phẩm..." value="${escapeHtml(__warehouseKeyword)}"
+                        oninput="filterWarehouseProducts(this.value)"
+                        style="min-width:320px; max-width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; outline:none;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; color:#6b7280; margin-bottom:6px; font-weight:600;">Lọc tồn kho</label>
+                    <select id="warehouseStockFilter" onchange="filterWarehouseByStock(this.value)"
+                        style="min-width:180px; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; background:#fff; outline:none;">
+                        <option value="all">Tất cả sản phẩm</option>
+                        <option value="instock">Còn hàng</option>
+                        <option value="lowstock">Sắp hết hàng (1-10)</option>
+                        <option value="outstock">Hết hàng</option>
+                    </select>
+                </div>
+                <button onclick="clearWarehouseSearch()" style="height:40px; padding:0 14px; border:none; border-radius:10px; background:#eef2ff; color:#3730a3; font-weight:700; cursor:pointer;">
+                    <i class="fa fa-eraser"></i> Xóa lọc
+                </button>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <span style="padding:8px 12px; border-radius:999px; background:#eff6ff; color:#1d4ed8; font-weight:700; font-size:13px;">Tổng: ${total}</span>
+                <span style="padding:8px 12px; border-radius:999px; background:#fef3c7; color:#92400e; font-weight:700; font-size:13px;">Sắp hết: ${lowStock}</span>
+                <span style="padding:8px 12px; border-radius:999px; background:#fee2e2; color:#b91c1c; font-weight:700; font-size:13px;">Hết hàng: ${outStock}</span>
+            </div>
+        </div>
+    `;
+
+    var filtered = applyWarehouseFilters();
+    s += renderWarehouseTableHTML(filtered);
+    tc.innerHTML = s;
+
+    var sel = document.getElementById('warehouseStockFilter');
+    if (sel) sel.value = __warehouseStockFilter;
+}
+
+function renderWarehouseTableHTML(list) {
     var s = `<table class="table-outline">
         <thead>
             <tr>
@@ -37,26 +88,27 @@ function renderWarehouseTable(list) {
         <tbody>`;
 
     if (!list || list.length === 0) {
-        s += `<tr><td colspan="5" style="text-align:center">Kho hàng trống.</td></tr>`;
+        s += `<tr><td colspan="5" style="text-align:center; padding:16px; color:#6b7280;">Không tìm thấy sản phẩm phù hợp.</td></tr>`;
     } else {
         list.forEach((p, i) => {
             var stock = parseInt(p.inventory || 0);
+            var stockColor = stock <= 0 ? '#dc2626' : (stock <= 10 ? '#d97706' : '#16a34a');
 
             s += `<tr>
                 <td>${i + 1}</td>
                 <td>${p.masp}</td>
                 <td style="text-align:left">
-                    <img src="${p.img}" style="width:30px; margin-right:5px; vertical-align:middle;">
+                    <img src="${p.img}" style="width:30px; height:30px; object-fit:cover; margin-right:8px; vertical-align:middle; border-radius:6px;">
                     ${p.name}
                 </td>
-                <td style="font-weight:bold">${stock}</td>
+                <td style="font-weight:bold; color:${stockColor}">${stock}</td>
                 <td>
                     <button onclick="nhapHangTheoMau('${p.masp}', '${escapeHtml(p.name)}')" 
-                        style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">
+                        style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:6px;">
                         <i class="fa fa-plus"></i> Nhập theo màu
                     </button>
                     <button onclick="xemChiTietMau('${p.masp}', '${escapeHtml(p.name)}')"
-                        style="background:#007bff; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; margin-left:6px;">
+                        style="background:#007bff; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:6px; margin-left:6px;">
                         <i class="fa fa-eye"></i> Xem màu
                     </button>
                 </td>
@@ -65,7 +117,47 @@ function renderWarehouseTable(list) {
     }
 
     s += `</tbody></table>`;
-    tc.innerHTML = s;
+    return s;
+}
+
+function applyWarehouseFilters() {
+    var list = Array.isArray(currentStockList) ? currentStockList.slice() : [];
+    var keyword = (__warehouseKeyword || '').trim().toUpperCase();
+
+    if (keyword) {
+        list = list.filter(function (p) {
+            return String(p.name || '').toUpperCase().includes(keyword) || String(p.masp || '').toUpperCase().includes(keyword);
+        });
+    }
+
+    if (__warehouseStockFilter === 'instock') {
+        list = list.filter(function (p) { return parseInt(p.inventory || 0) > 0; });
+    } else if (__warehouseStockFilter === 'lowstock') {
+        list = list.filter(function (p) {
+            var stock = parseInt(p.inventory || 0);
+            return stock > 0 && stock <= 10;
+        });
+    } else if (__warehouseStockFilter === 'outstock') {
+        list = list.filter(function (p) { return parseInt(p.inventory || 0) <= 0; });
+    }
+
+    return list;
+}
+
+function filterWarehouseProducts(value) {
+    __warehouseKeyword = value || '';
+    renderWarehousePanel();
+}
+
+function filterWarehouseByStock(value) {
+    __warehouseStockFilter = value || 'all';
+    renderWarehousePanel();
+}
+
+function clearWarehouseSearch() {
+    __warehouseKeyword = '';
+    __warehouseStockFilter = 'all';
+    renderWarehousePanel();
 }
 
 // ====== Xem chi tiết màu (variant) ======

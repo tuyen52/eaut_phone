@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 08, 2026 at 03:43 AM
+-- Generation Time: Jun 24, 2026 at 05:51 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -59,6 +59,15 @@ CREATE TABLE `orders` (
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`ma_don`, `user_id`, `username`, `ngay_mua`, `tinh_trang`, `phuong_thuc_tt`, `payment_status`, `vnp_txn_ref`, `vnp_transaction_no`, `vnp_response_code`, `paid_at`, `payment_expired_at`, `dia_chi`, `so_dien_thoai`, `tong_tien`, `updated_at`) VALUES
+(9, 4, 'tuyen', '2026-06-08 08:54:13', 'completed', 'VNPAY', 'paid', 'GD202606080852474957', '15573474', '00', '2026-06-08 08:54:09', NULL, 'Thổ Tang, Thổ Tang Commune, Phú Thọ Province, Vietnam', '0375615945', 3990000, '2026-06-08 08:55:00'),
+(10, 4, 'tuyen', '2026-06-08 10:57:57', 'completed', 'COD', 'paid', NULL, NULL, NULL, NULL, NULL, 'Thổ Tang, Thổ Tang Commune, Phú Thọ Province, Vietnam', '0375615945', 7490000, '2026-06-09 16:37:32'),
+(11, 4, 'tuyen', '2026-06-10 09:22:24', 'completed', 'VNPAY', 'paid', 'GD202606100921375662', '15577043', '00', '2026-06-10 09:22:17', NULL, 'Thổ Tang, Thổ Tang Commune, Phú Thọ Province, Vietnam', '0375615945', 3990000, '2026-06-10 09:25:15');
+
 -- --------------------------------------------------------
 
 --
@@ -79,6 +88,15 @@ CREATE TABLE `order_details` (
   `variant_name_snapshot` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `order_details`
+--
+
+INSERT INTO `order_details` (`detail_id`, `ma_don`, `masp`, `variant_id`, `mau_sac`, `so_luong`, `don_gia`, `product_name_snapshot`, `product_price_snapshot`, `product_image_snapshot`, `variant_name_snapshot`) VALUES
+(1, 9, 'HMDPULSEP', 50, 'Đen meteor', 1, 3990000, 'HMD Pulse Pro 6GB/128GB', 3990000, 'img/products/uploads/t---i-xu---ng-1779441784.jpg', 'Đen meteor'),
+(2, 10, 'HMDXR21', 52, 'Đen bền bỉ', 1, 7490000, 'Nokia XR21 5G 6GB/128GB', 7490000, 'img/products/uploads/t---i-xu---ng--1-1779441853.jpg', 'Đen bền bỉ'),
+(3, 11, 'HMDPULSEP', 49, 'Tím twilight', 1, 3990000, 'HMD Pulse Pro 6GB/128GB', 3990000, 'img/products/uploads/t---i-xu---ng-1779441784.jpg', 'Tím twilight');
+
 -- --------------------------------------------------------
 
 --
@@ -92,6 +110,24 @@ CREATE TABLE `order_status_logs` (
   `note` varchar(255) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `order_status_logs`
+--
+
+INSERT INTO `order_status_logs` (`log_id`, `ma_don`, `status`, `note`, `created_at`) VALUES
+(1, 9, 'confirmed', 'updated_by_admin', '2026-06-08 08:54:50'),
+(2, 9, 'processing', 'updated_by_admin', '2026-06-08 08:54:54'),
+(3, 9, 'shipping', 'updated_by_admin', '2026-06-08 08:54:57'),
+(4, 9, 'completed', 'updated_by_admin', '2026-06-08 08:55:00'),
+(5, 10, 'confirmed', 'updated_by_admin', '2026-06-09 16:37:22'),
+(6, 10, 'processing', 'updated_by_admin', '2026-06-09 16:37:25'),
+(7, 10, 'shipping', 'updated_by_admin', '2026-06-09 16:37:28'),
+(8, 10, 'completed', 'updated_by_admin', '2026-06-09 16:37:32'),
+(9, 11, 'confirmed', 'updated_by_admin', '2026-06-10 09:24:52'),
+(10, 11, 'processing', 'updated_by_admin', '2026-06-10 09:24:58'),
+(11, 11, 'shipping', 'updated_by_admin', '2026-06-10 09:25:04'),
+(12, 11, 'completed', 'updated_by_admin', '2026-06-10 09:25:15');
 
 -- --------------------------------------------------------
 
@@ -126,11 +162,11 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`masp`, `ten_sp`, `hang_sx`, `hinh_anh`, `gia`, `so_luong_ton`, `so_sao`, `so_danh_gia`, `khuyen_mai_loai`, `khuyen_mai_gia_tri`, `screen`, `os`, `camera`, `camera_front`, `cpu`, `ram`, `rom`, `micro_usb`, `battery`) VALUES
-('APP16', 'iPhone 16 128GB', 'Apple', 'img/products/uploads/ip16xanhduong-1779440286.jpg', 18990000, 21, 0, 0, 'giamgia', '1000000', 'Super Retina XDR 6.1 inch', 'iOS 26', 'Camera kép 48 MP', 'TrueDepth 12 MP', 'Apple A18', '8 GB', '128 GB', 'Không hỗ trợ thẻ nhớ', 'Pin tốt, sạc nhanh USB-C'),
+('APP16', 'iPhone 16 128GB', 'Apple', 'img/products/uploads/ip16xanhduong-1779440286.jpg', 18990000, 25, 0, 0, 'giamgia', '1000000', 'Super Retina XDR 6.1 inch', 'iOS 26', 'Camera kép 48 MP', 'TrueDepth 12 MP', 'Apple A18', '8 GB', '128 GB', 'Không hỗ trợ thẻ nhớ', 'Pin tốt, sạc nhanh USB-C'),
 ('APP17', 'iPhone 17 256GB', 'Apple', 'img/products/uploads/t---i-xu---ng--2-1779441601.webp', 24990000, 20, 0, 0, 'moiramat', '', 'Super Retina XDR 6.3 inch 120Hz', 'iOS 26', 'Camera kép 48 MP, quay 4K', 'TrueDepth 24 MP', 'Apple A19', '8 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin cả ngày, sạc nhanh USB-C'),
 ('APP17P', 'iPhone 17 Pro 256GB', 'Apple', 'img/products/uploads/shopping-1779441651.webp', 34990000, 11, 0, 0, 'giareonline', '33490000', 'OLED ProMotion 6.3 inch 120Hz', 'iOS 26', 'Camera Pro Fusion 48 MP', 'TrueDepth 24 MP', 'Apple A19 Pro', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin Pro, sạc nhanh USB-C'),
-('HMDPULSEP', 'HMD Pulse Pro 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng-1779441784.jpg', 3990000, 23, 0, 0, 'giamgia', '200000', 'LCD 6.65 inch 90Hz', 'Android 15', 'Camera sau 50 MP', 'Camera selfie 50 MP', 'Unisoc T606', '6 GB', '128 GB', 'MicroSD hỗ trợ', '5000 mAh, pin lâu'),
-('HMDXR21', 'Nokia XR21 5G 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng--1-1779441853.jpg', 7490000, 15, 0, 0, 'tragop', '0', 'LCD 6.49 inch 120Hz', 'Android 14', 'Camera kép 64 MP', 'Camera 16 MP', 'Snapdragon 695 5G', '6 GB', '128 GB', 'MicroSD hỗ trợ', '4800 mAh, bền bỉ'),
+('HMDPULSEP', 'HMD Pulse Pro 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng-1779441784.jpg', 3990000, 21, 5, 1, 'giamgia', '200000', 'LCD 6.65 inch 90Hz', 'Android 15', 'Camera sau 50 MP', 'Camera selfie 50 MP', 'Unisoc T606', '6 GB', '128 GB', 'MicroSD hỗ trợ', '5000 mAh, pin lâu'),
+('HMDXR21', 'Nokia XR21 5G 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng--1-1779441853.jpg', 7490000, 14, 0, 0, 'tragop', '0', 'LCD 6.49 inch 120Hz', 'Android 14', 'Camera kép 64 MP', 'Camera 16 MP', 'Snapdragon 695 5G', '6 GB', '128 GB', 'MicroSD hỗ trợ', '4800 mAh, bền bỉ'),
 ('HWMATEX6', 'Huawei Mate X6 12GB/512GB', 'Huawei', 'img/products/uploads/t---i-xu---ng--2-1779441895.jpg', 41990000, 12, 0, 0, 'tragop', '0', 'Màn hình gập OLED 7.93 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera Ultra Chroma 50 MP', 'Camera 8 MP', 'Kirin flagship', '12 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', 'Pin kép, sạc nhanh SuperCharge'),
 ('HWPR80', 'Huawei Pura 80 12GB/256GB', 'Huawei', 'img/products/uploads/t---i-xu---ng--3-1779441927.webp', 18990000, 12, 0, 0, 'moiramat', '', 'OLED 6.6 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera XMAGE 50 MP', 'Camera 13 MP', 'Kirin series', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin lớn, sạc nhanh SuperCharge'),
 ('HWPR80U', 'Huawei Pura 80 Ultra 16GB/512GB', 'Huawei', 'img/products/uploads/shopping--1-1779441992.webp', 32990000, 10, 0, 0, 'giareonline', '31490000', 'OLED LTPO 6.8 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera XMAGE cao cấp, tele', 'Camera 13 MP', 'Kirin flagship', '16 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', 'Pin lớn, sạc nhanh SuperCharge'),
@@ -176,7 +212,7 @@ INSERT INTO `product_variants` (`variant_id`, `masp`, `ten_mau`, `ma_mau_hex`, `
 (3, 'APP17', 'Hồng đào', '#F6B8B8', 'img/products/modern/APP17_3.svg', 6, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
 (4, 'APP17P', 'Titan tự nhiên', '#B8B0A3', 'img/products/modern/APP17P_1.svg', 6, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
 (5, 'APP17P', 'Xanh đậm', '#27384A', 'img/products/modern/APP17P_2.svg', 5, '2026-05-21 12:57:27', '2026-05-24 12:33:54'),
-(7, 'APP16', 'Xanh dương', '#73A9D8', 'img/products/uploads/ip16xanhduong-1779440292.jpg', 6, '2026-05-21 12:57:27', '2026-05-24 13:00:47'),
+(7, 'APP16', 'Xanh dương', '#73A9D8', 'img/products/uploads/ip16xanhduong-1779440292.jpg', 10, '2026-05-21 12:57:27', '2026-06-10 09:30:12'),
 (8, 'APP16', 'Trắng', '#F8FAFC', 'img/products/uploads/t---i-xu---ng-1779441006.webp', 7, '2026-05-21 12:57:27', '2026-05-24 11:47:15'),
 (9, 'APP16', 'Đen', '#111827', 'img/products/uploads/t---i-xu---ng-1779441044.webp', 8, '2026-05-21 12:57:27', '2026-05-22 16:10:46'),
 (10, 'SAMS26U', 'Đen phantom', '#111827', 'img/products/modern/SAMS26U_1.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
@@ -214,9 +250,9 @@ INSERT INTO `product_variants` (`variant_id`, `masp`, `ten_mau`, `ma_mau_hex`, `
 (45, 'REALMEGT8', 'Bạc tốc độ', '#D1D5DB', 'img/products/modern/REALMEGT8_3.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
 (46, 'REALMEC75', 'Đen bão tố', '#1F2937', 'img/products/modern/REALMEC75_1.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
 (48, 'REALMEC75', 'Xanh lá', '#65A30D', 'img/products/modern/REALMEC75_3.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(49, 'HMDPULSEP', 'Tím twilight', '#8B5CF6', 'img/products/modern/HMDPULSEP_1.svg', 11, '2026-05-21 12:57:28', '2026-05-21 23:39:15'),
-(50, 'HMDPULSEP', 'Đen meteor', '#111827', 'img/products/modern/HMDPULSEP_2.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(52, 'HMDXR21', 'Đen bền bỉ', '#111827', 'img/products/modern/HMDXR21_1.svg', 8, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(49, 'HMDPULSEP', 'Tím twilight', '#8B5CF6', 'img/products/modern/HMDPULSEP_1.svg', 10, '2026-05-21 12:57:28', '2026-06-10 09:22:24'),
+(50, 'HMDPULSEP', 'Đen meteor', '#111827', 'img/products/modern/HMDPULSEP_2.svg', 11, '2026-05-21 12:57:28', '2026-06-08 08:54:13'),
+(52, 'HMDXR21', 'Đen bền bỉ', '#111827', 'img/products/modern/HMDXR21_1.svg', 7, '2026-05-21 12:57:28', '2026-06-08 10:57:57'),
 (53, 'HMDXR21', 'Xanh midnight', '#1E3A8A', 'img/products/modern/HMDXR21_2.svg', 7, '2026-05-21 12:57:28', '2026-05-24 14:59:08'),
 (55, 'NOKIAG42', 'Tím so purple', '#7C3AED', 'img/products/modern/NOKIAG42_1.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
 (57, 'NOKIAG42', 'Hồng nhạt', '#F9A8D4', 'img/products/modern/NOKIAG42_3.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
@@ -297,6 +333,13 @@ CREATE TABLE `rate` (
   `ngay_dg` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `rate`
+--
+
+INSERT INTO `rate` (`id`, `masp`, `variant_id`, `mau_sac`, `username`, `so_sao`, `binh_luan`, `ngay_dg`) VALUES
+(1, 'HMDPULSEP', 50, 'Đen meteor', 'tuyen', 5, 'sản phẩm tốt', '2026-06-08 10:57:29');
+
 -- --------------------------------------------------------
 
 --
@@ -320,7 +363,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`user_id`, `ho`, `ten`, `username`, `password`, `email`, `role`, `trang_thai`) VALUES
 (1, 'Quản trị', 'Viên', 'admin', '$2y$10$DfyxK92xIZF2BCNULeQdF.lEKZ66oCSqqKcHpvVQ3DpwQt/GRhA4i', 'admin@gmail.com', 'admin', 1),
-(3, 'thanh', 'thanh', 'thanh', '$2y$10$bDZFw7bUeqDC6RyEUShds./i5PUKzHq1gjl5ewoRMeh46u9xkujj6', 'thanh@123.com', 'user', 1),
+(3, 'thanh', 'thanh', 'thanh', '$2y$10$bDZFw7bUeqDC6RyEUShds./i5PUKzHq1gjl5ewoRMeh46u9xkujj6', 'thanh@123.com', 'user', 0),
 (4, 'tuyen12', '', 'tuyen', '$2y$10$jf6rLr17FmNqeAm2K5F/M.MQuP0QN0VB2HFxb8BdhiVRYTBBnFVMW', 'tuyen171809@gmail.com', 'user', 1),
 (10, 'nguyen', 'A', 'tuyen1', '$2y$10$UjWqUAFGCgxntzkhQARKJeoGYYEGDGuLVcPoFtDZcEJt9rZs.0uya', 'zic200409@gmail.com', 'user', 1);
 
@@ -349,6 +392,14 @@ CREATE TABLE `vnpay_payment_sessions` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `expires_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `vnpay_payment_sessions`
+--
+
+INSERT INTO `vnpay_payment_sessions` (`session_id`, `txn_ref`, `user_id`, `username`, `tong_tien`, `ho_ten`, `dia_chi`, `so_dien_thoai`, `cart_json`, `cart_signature`, `session_status`, `order_id`, `vnp_transaction_no`, `vnp_response_code`, `paid_at`, `created_at`, `expires_at`) VALUES
+(2, 'GD202606080852474957', 4, 'tuyen', 3990000, 'tuyen12', 'Thổ Tang, Thổ Tang Commune, Phú Thọ Province, Vietnam', '0375615945', '[{\"masp\":\"HMDPULSEP\",\"variant_id\":50,\"mau_sac\":\"Đen meteor\",\"so_luong\":1,\"gia\":3990000}]', 'd8eb1d6619d52be56e7f523b375fcce60ab670f713af3f884b94033dc0a53ff1', 'Paid', 9, '15573474', '00', '2026-06-08 08:54:09', '2026-06-08 08:52:48', '2026-06-08 09:07:47'),
+(3, 'GD202606100921375662', 4, 'tuyen', 3990000, 'tuyen', 'Thổ Tang, Thổ Tang Commune, Phú Thọ Province, Vietnam', '0375615945', '[{\"masp\":\"HMDPULSEP\",\"variant_id\":49,\"mau_sac\":\"Tím twilight\",\"so_luong\":1,\"gia\":3990000}]', '5ae756fea8cb2d21dc1e2cefb1819657856eebc8f8105aabaab3af9b8332df83', 'Paid', 11, '15577043', '00', '2026-06-10 09:22:17', '2026-06-10 09:21:37', '2026-06-10 09:36:37');
 
 --
 -- Indexes for dumped tables
@@ -442,19 +493,19 @@ ALTER TABLE `nhap_kho`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `ma_don` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `ma_don` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `order_details`
 --
 ALTER TABLE `order_details`
-  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `order_status_logs`
 --
 ALTER TABLE `order_status_logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `product_variants`
@@ -466,7 +517,7 @@ ALTER TABLE `product_variants`
 -- AUTO_INCREMENT for table `rate`
 --
 ALTER TABLE `rate`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -478,7 +529,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `vnpay_payment_sessions`
 --
 ALTER TABLE `vnpay_payment_sessions`
-  MODIFY `session_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `session_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
