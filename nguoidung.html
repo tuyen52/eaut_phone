@@ -20,6 +20,7 @@
 	<link rel="stylesheet" href="css/taikhoan.css">
 	<link rel="stylesheet" href="css/gioHang.css">
 	<link rel="stylesheet" href="css/nguoidung.css">
+	<link rel="stylesheet" href="css/user-profile.css">
 	<link rel="stylesheet" href="css/footer.css">
 	<link rel="stylesheet" href="css/premium-home.css">
 
@@ -33,123 +34,6 @@
 	<script src="js/core/init.js"></script>
 
 	<script src="js/pages/user-profile.js"></script>
-
-	<style>
-		.userPageWrap {
-			max-width: 720px;
-			margin: 0 auto;
-			padding: 14px;
-			box-sizing: border-box;
-		}
-
-		.userCard {
-			background: #fff;
-			border-radius: 10px;
-			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-			padding: 14px;
-		}
-
-		.userCard h3 {
-			margin: 0 0 12px 0;
-			font-size: 18px;
-		}
-
-		.profileHeader {
-			display: flex;
-			gap: 12px;
-			align-items: center;
-			margin-bottom: 12px;
-			padding-bottom: 12px;
-			border-bottom: 1px solid #f0f0f0;
-		}
-
-		.avatarCircle {
-			width: 44px;
-			height: 44px;
-			border-radius: 50%;
-			background: #0d6efd;
-			color: #fff;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-weight: 800;
-			letter-spacing: .5px;
-		}
-
-		.profileMeta .uName {
-			font-weight: 800;
-			font-size: 16px;
-			margin-bottom: 2px;
-		}
-
-		.profileMeta .uSub {
-			color: #6b7280;
-			font-size: 12px;
-		}
-
-		.formRow {
-			display: grid;
-			grid-template-columns: 120px 1fr auto;
-			gap: 10px;
-			align-items: center;
-			margin: 10px 0;
-		}
-
-		@media (max-width: 980px) {
-			.formRow {
-				grid-template-columns: 1fr;
-			}
-		}
-
-		.formRow label {
-			font-weight: 700;
-			color: #374151;
-			font-size: 13px;
-		}
-
-		.uInput {
-			width: 100%;
-			padding: 9px 10px;
-			border-radius: 8px;
-			border: 1px solid #ddd;
-			outline: none;
-			box-sizing: border-box;
-		}
-
-		.uInput[disabled] {
-			background: #f3f4f6;
-			color: #6b7280;
-			cursor: not-allowed;
-		}
-
-		.uBtn {
-			border: none;
-			border-radius: 8px;
-			padding: 9px 12px;
-			cursor: pointer;
-			white-space: nowrap;
-		}
-
-		.uBtnPrimary {
-			background: #0d6efd;
-			color: #fff;
-		}
-
-		.uBtnDanger {
-			background: #dc3545;
-			color: #fff;
-		}
-
-		.uBtnSuccess {
-			background: #28a745;
-			color: #fff;
-		}
-
-		.uDivider {
-			border-top: 1px dashed #ddd;
-			margin: 12px 0;
-		}
-	</style>
 </head>
 
 <body>
@@ -159,8 +43,12 @@
 		<script>addHeader();</script>
 		<img src="img/banners/blackFriday.gif" alt="" style="width: 100%;">
 
-		<div class="userPageWrap">
-			<div class="userCard">
+		<div class="profilePage">
+			<div class="profilePage-header">
+				<h1>Thông tin tài khoản</h1>
+				<p>Quản lý hồ sơ cá nhân và bảo mật tài khoản của bạn</p>
+			</div>
+			<div class="userCard profileCard">
 				<div class="infoUser"></div>
 			</div>
 		</div>

@@ -9,8 +9,13 @@ window.onload = function () {
     currentUser = getCurrentUser();
 
     if (!currentUser) {
-        document.querySelector('.listDonHang').innerHTML =
-            '<h2 style="text-align:center; color:red; margin: 20px 0;">Bạn chưa đăng nhập!</h2>';
+        document.querySelector('.listDonHang').innerHTML = `
+            <div class="ordersLoginEmpty">
+                <div class="ordersLoginEmpty-icon"><i class="fa fa-file-text-o"></i></div>
+                <h2>Bạn chưa đăng nhập</h2>
+                <p>Đăng nhập để xem lịch sử đơn hàng</p>
+                <button type="button" class="uBtn" onclick="checkTaiKhoan()">Đăng nhập ngay</button>
+            </div>`;
         return;
     }
 
@@ -20,8 +25,8 @@ window.onload = function () {
 function fetchOrderHistory() {
     var container = document.querySelector('.listDonHang');
     container.innerHTML = `
-        <div class="ordersHeader">
-            <h3><i class="fa fa-file-text-o"></i> Đơn hàng của bạn</h3>
+        <div class="ordersToolbar">
+            <h3 class="ordersToolbar-title">Danh sách đơn hàng</h3>
             <div class="ordersFilters">
                 <select id="orderStatusFilter">
                     <option value="all">Tất cả trạng thái</option>
@@ -32,12 +37,12 @@ function fetchOrderHistory() {
                     <option value="Hoàn thành">Hoàn thành</option>
                     <option value="Hủy">Đã hủy</option>
                 </select>
-                <input id="orderSearch" type="text" placeholder="Tìm theo mã đơn (#123)">
-                <button class="uBtn uBtnPrimary" id="btnReloadOrders"><i class="fa fa-refresh"></i> Tải lại</button>
+                <input id="orderSearch" type="text" placeholder="Tìm mã đơn (#123)">
+                <button type="button" class="uBtn uBtnPrimary" id="btnReloadOrders">Tải lại</button>
             </div>
         </div>
         <div id="ordersList">
-            <p style="text-align:center; padding: 16px;"><i class="fa fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>
+            <div class="ordersLoading"><i class="fa fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
         </div>
     `;
 
@@ -70,7 +75,7 @@ function fetchOrderHistory() {
         .catch(err => {
             console.error(err);
             document.getElementById('ordersList').innerHTML =
-                '<p style="text-align:center; color:red; padding: 16px;">Lỗi kết nối server khi tải đơn hàng!</p>';
+                '<div class="ordersError">Lỗi kết nối server khi tải đơn hàng!</div>';
         });
 }
 
@@ -165,7 +170,11 @@ function renderOrderHistory() {
     }
 
     if (!orders.length) {
-        listDiv.innerHTML = `<p style="text-align:center; color:#777; padding:16px;">Không có đơn phù hợp.</p>`;
+        listDiv.innerHTML = `
+            <div class="ordersEmpty">
+                <div class="ordersEmpty-icon"><i class="fa fa-inbox"></i></div>
+                <p>Không có đơn phù hợp.</p>
+            </div>`;
         return;
     }
 
@@ -193,11 +202,10 @@ function renderOrderHistory() {
             var reviewLink = '';
             if (canWriteReviewStatus(st) || canWriteReviewStatus(dh.paymentStatus) || canWriteReviewStatus(dh.tinhTrangLabel)) {
                 var linkName = encodeURIComponent((tenSP || '').split(' ').join('-'));
-                reviewLink = ` <a href="chitietsanpham.html?${linkName}" target="_blank" rel="noopener noreferrer" style="color:#288ad6; font-size:13px; text-decoration:underline;">
-                <i class="fa fa-star-o"></i> Viết đánh giá</a>`;
+                reviewLink = ` <a href="chitietsanpham.html?${linkName}" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i> Viết đánh giá</a>`;
             }
 
-            return `<div class="itemLine">- ${safeTenSP}${mauTxt} <b>x${parseInt(s.soluong || 0)}</b>${reviewLink}</div>`;
+            return `<div class="itemLine">${safeTenSP}${mauTxt} · <b>x${parseInt(s.soluong || 0)}</b>${reviewLink}</div>`;
         }).join('');
 
         var actionBtn = '';
@@ -210,7 +218,7 @@ function renderOrderHistory() {
         var extraVnpayInfo = '';
         if (String(pttt).toUpperCase() === 'VNPAY') {
             extraVnpayInfo = `
-                <div style="margin-top:8px; font-size:13px; color:#555; line-height:1.6;">
+                <div class="orderVnpayInfo">
                     ${dh.vnpTxnRef ? `<div>TxnRef: <b>${escapeHtml(dh.vnpTxnRef)}</b></div>` : ''}
                     ${dh.vnpTransactionNo ? `<div>TransactionNo: <b>${escapeHtml(dh.vnpTransactionNo)}</b></div>` : ''}
                     ${dh.paidAt ? `<div>Thanh toán lúc: <b>${escapeHtml(dh.paidAt)}</b></div>` : ''}
@@ -225,34 +233,33 @@ function renderOrderHistory() {
         html += `
             <div class="orderItem">
                 <div class="orderTop">
-                    <div>
-                        <div class="orderCode">Đơn #${maDon} <button class="uBtn uBtnPrimary" style="padding:4px 8px; font-size:12px; margin-left:8px;" onclick="toggleUserOrderDetails('${detailId}')">Xem chi tiết</button></div>
+                    <div class="orderTop-main">
+                        <div class="orderCode">
+                            <span>Đơn #${maDon}</span>
+                            <button type="button" class="uBtn uBtnPrimary uBtnSm" onclick="toggleUserOrderDetails('${detailId}')">Chi tiết</button>
+                        </div>
                         <div class="orderDate">${escapeHtml(formatDateTime(dh.ngaymua))}</div>
                     </div>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                    <div class="orderBadges">
                         ${paymentMethodBadge(pttt)}
                         ${paymentStatusBadge(paymentStatus)}
                         ${statusLabelHtml}
                     </div>
-                    <div style="width:100%; text-align:right; font-size:12px; color:#6b7280; margin-top:6px;">
-                        ${escapeHtml(dh.paymentStatusLabel || '')}
-                    </div>
+                    ${dh.paymentStatusLabel ? `<div class="orderPaymentLabel">${escapeHtml(dh.paymentStatusLabel)}</div>` : ''}
                 </div>
 
-                <div id="${detailId}" class="orderDetailBox" style="display:none; margin-top:10px;">
+                <div id="${detailId}" class="orderDetailBox" style="display:none;">
                     <div class="orderBody">
-                        <div>
+                        <div class="orderProducts">
                             ${spHTML}
                             ${extraVnpayInfo}
                             ${timelineHtml}
                         </div>
 
                         <div class="orderRight">
-                            <div style="font-size:13px;color:#6b7280;">Tổng thanh toán</div>
-                            <div style="font-size:20px;font-weight:900;color:#d0021b;margin:6px 0 10px 0;">
-                                ${numToString(total)}₫
-                            </div>
-                            <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+                            <div class="orderTotalLabel">Tổng thanh toán</div>
+                            <div class="orderTotalPrice">${numToString(total)}₫</div>
+                            <div class="orderActions">
                                 ${actionBtn}
                             </div>
                         </div>
@@ -293,11 +300,13 @@ function renderUserStatusLabel(status) {
         delivery_failed: ['#dc3545', 'fa-exclamation-triangle', 'Giao thất bại']
     }[s] || ['#777', 'fa-circle', status || ''];
 
-    return '<span style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:' + meta[0] + '15; color:' + meta[0] + '; border:1px solid ' + meta[0] + '30; font-size:11px; font-weight:bold; white-space:nowrap;"><i class="fa ' + meta[1] + '"></i>' + escapeHtml(meta[2]) + '</span>';
+    return '<span class="orderStatusPill" style="background:' + meta[0] + '15; color:' + meta[0] + '; border:1px solid ' + meta[0] + '30;"><i class="fa ' + meta[1] + '"></i> ' + escapeHtml(meta[2]) + '</span>';
 }
 
 function renderUserTimeline(timeline) {
-    if (!Array.isArray(timeline) || !timeline.length) return '<div style="margin-top:10px; padding:10px; background:#fafafa; border:1px solid #eee; border-radius:8px; font-size:12px; color:#777;">Chưa có timeline.</div>';
+    if (!Array.isArray(timeline) || !timeline.length) {
+        return '<div class="orderTimeline"><div class="orderTimeline-empty">Chưa có timeline.</div></div>';
+    }
 
     function metaByStatus(status) {
         var s = String(status || '').toLowerCase();
@@ -311,21 +320,17 @@ function renderUserTimeline(timeline) {
         return { icon: 'fa-circle', color: '#777', label: status || '' };
     }
 
-    var html = '<div style="margin-top:10px; padding:10px; background:#fafafa; border:1px solid #eee; border-radius:8px;">';
-    html += '<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">';
-    html += '<div style="font-size:12px; font-weight:bold; color:#555;">Timeline đơn hàng</div>';
-    html += '<div style="font-size:11px; color:#777;">Chế độ thu gọn</div>';
-    html += '</div>';
-    html += '<div style="display:flex; flex-wrap:wrap; gap:8px;">';
+    var html = '<div class="orderTimeline">';
+    html += '<div class="orderTimeline-title">Tiến trình đơn hàng</div>';
+    html += '<div class="orderTimeline-chips">';
     timeline.forEach(function (item) {
         var meta = metaByStatus(item.status || item.label);
-        html += '<span title="' + escapeHtml((meta.label || '') + (item.created_at ? ' - ' + formatDateTime(item.created_at) : '')) + '" style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px; background:' + meta.color + '15; color:' + meta.color + '; font-weight:bold; font-size:11px; border:1px solid ' + meta.color + '30; white-space:nowrap;">';
-        html += '<i class="fa ' + meta.icon + '"></i>';
+        html += '<span class="orderTimeline-chip" title="' + escapeHtml((meta.label || '') + (item.created_at ? ' - ' + formatDateTime(item.created_at) : '')) + '" style="background:' + meta.color + '15; color:' + meta.color + '; border:1px solid ' + meta.color + '30;">';
+        html += '<i class="fa ' + meta.icon + '"></i> ';
         html += escapeHtml(meta.label);
         html += '</span>';
     });
-    html += '</div>';
-    html += '</div>';
+    html += '</div></div>';
     return html;
 }
 

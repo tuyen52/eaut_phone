@@ -12,7 +12,7 @@ window.onload = function () {
 
     var currentUser = getCurrentUser();
     if (!currentUser) {
-        alert('Bạn chưa đăng nhập!');
+        renderCartLoginEmpty();
         return;
     }
 
@@ -182,19 +182,42 @@ function buildCheckoutProducts() {
 // =============================================================
 // 1. QUẢN LÝ HIỂN THỊ GIỎ HÀNG
 // =============================================================
+
+function renderCartLoginEmpty() {
+    var table = document.querySelector('.listSanPham');
+    if (!table) return;
+    table.innerHTML = `
+        <tr><td colspan="5">
+            <div class="cartLoginEmpty">
+                <div class="cartLoginEmpty-icon"><i class="fa fa-shopping-cart"></i></div>
+                <h2>Bạn chưa đăng nhập</h2>
+                <p>Đăng nhập để xem giỏ hàng và đặt mua sản phẩm</p>
+                <button type="button" class="cartBtnPrimary" onclick="checkTaiKhoan()">Đăng nhập ngay</button>
+            </div>
+        </td></tr>`;
+}
+
 function renderCart() {
     var table = document.querySelector('.listSanPham');
     var html = `
-    <tr>
+    <thead><tr>
         <th>Sản phẩm</th>
         <th>Giá</th>
         <th>Số lượng</th>
         <th>Thành tiền</th>
-        <th>Xóa</th>
-    </tr>`;
+        <th></th>
+    </tr></thead><tbody>`;
 
     if (currentCart.length === 0) {
-        html += `<tr><td colspan="5" style="text-align:center; padding: 20px;">Giỏ hàng trống</td></tr>`;
+        html += `
+        <tr><td colspan="5">
+            <div class="cartEmpty">
+                <div class="cartEmpty-icon"><i class="fa fa-shopping-basket"></i></div>
+                <h2>Giỏ hàng trống</h2>
+                <p>Hãy thêm sản phẩm yêu thích vào giỏ để tiếp tục mua sắm</p>
+                <a href="index.html">Tiếp tục mua sắm</a>
+            </div>
+        </td></tr></tbody>`;
         table.innerHTML = html;
         return;
     }
@@ -217,49 +240,44 @@ function renderCart() {
 
         html += `
         <tr>
-            <td style="text-align:left; padding-left:10px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="${p.img}" style="width:50px;">
-                    <div>
+            <td class="cartProductCell" data-label="Sản phẩm">
+                <div class="cartProductRow">
+                    <img class="cartProductImg" src="${p.img}" alt="">
+                    <div class="cartProductInfo">
                         <a href="chitietsanpham.html?${p.name.split(' ').join('-')}">${p.name}</a>
-                        <div style="margin-top:6px; font-size:13px; color:#444;">
+                        <div class="cartProductMeta">
                             Màu:
-                            <span style="display:inline-flex; align-items:center; gap:6px;">
-                                <span style="width:14px;height:14px;border-radius:50%;border:1px solid #ccc;background:${color.hex};display:inline-block;"></span>
-                                <b>${color.name || 'Chưa rõ'}</b>
-                            </span>
+                            <span class="cartColorDot" style="background:${color.hex};"></span>
+                            <span class="cartColorName">${color.name || 'Chưa rõ'}</span>
                         </div>
-                        <div style="margin-top:4px; font-size:12px; color:#777;">
-                            RAM: ${color.ram || item.ram || 'N/A'} | ROM: ${color.rom || item.rom || 'N/A'}
-                        </div>
-                        <div style="margin-top:4px; font-size:12px; color:#777;">
-                            Variant: ${item.variant_id || 'N/A'} | Kho biến thể: ${stock}
-                        </div>
+                        <div class="cartSpec">RAM ${color.ram || item.ram || '—'} · ROM ${color.rom || item.rom || '—'}</div>
                     </div>
                 </div>
             </td>
-            <td>${numToString(price)}₫</td>
-            <td>
-                <div class="buttons_added">
-                    <input class="minus is-form" type="button" value="-" onclick="updateQty(${index}, -1)">
-                    <input aria-label="quantity" class="input-qty" min="1" type="number" value="${item.soluong}" disabled>
-                    <input class="plus is-form" type="button" value="+" onclick="updateQty(${index}, 1)">
+            <td class="cartPriceCell" data-label="Giá">${numToString(price)}₫</td>
+            <td data-label="Số lượng">
+                <div class="soluong">
+                    <button type="button" onclick="updateQty(${index}, -1)">−</button>
+                    <input type="text" value="${item.soluong}" disabled>
+                    <button type="button" onclick="updateQty(${index}, 1)">+</button>
                 </div>
-                <p style="font-size:12px; color:#777; margin-top:5px;">(Kho màu: ${stock})</p>
+                <div class="cartStockHint">Còn ${stock} sp</div>
             </td>
-            <td>${numToString(thanhTien)}₫</td>
-            <td><i class="fa fa-trash" onclick="removeItem(${index})"></i></td>
+            <td class="cartSubtotalCell" data-label="Thành tiền">${numToString(thanhTien)}₫</td>
+            <td data-label="">
+                <span class="cartRemoveBtn" onclick="removeItem(${index})" title="Xóa"><i class="fa fa-trash"></i></span>
+            </td>
         </tr>`;
     });
 
     html += `
-    <tr>
-        <td colspan="3" style="text-align:right; font-weight:bold; font-size:18px;">Tổng tiền:</td>
-        <td style="color:red; font-weight:bold; font-size:18px;">${numToString(totalBill)}₫</td>
-        <td>
-            <button class="btn-checkout" onclick="openPaymentModal()">Thanh toán</button>
+    <tr class="cartSummaryRow">
+        <td colspan="3" class="cartSummaryLabel">Tổng tiền</td>
+        <td class="cartSummaryTotal">${numToString(totalBill)}₫</td>
+        <td class="cartSummaryActions">
+            <button type="button" class="btn-checkout" onclick="openPaymentModal()">Thanh toán</button>
         </td>
-    </tr>`;
+    </tr></tbody>`;
 
     table.innerHTML = html;
 }

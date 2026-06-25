@@ -7,8 +7,15 @@ window.onload = function () {
     currentUser = getCurrentUser();
 
     if (!currentUser) {
-        document.querySelector('.infoUser').innerHTML =
-            '<h2 style="text-align:center; color:red; margin: 20px 0;">Bạn chưa đăng nhập!</h2>';
+        document.querySelector('.infoUser').innerHTML = `
+            <div class="profileEmpty">
+                <div class="profileEmpty-icon"><i class="fa fa-user-circle"></i></div>
+                <h2>Bạn chưa đăng nhập</h2>
+                <p>Đăng nhập để xem và cập nhật thông tin tài khoản</p>
+                <button type="button" class="uBtn uBtnPrimary" onclick="checkTaiKhoan()">
+                    <i class="fa fa-sign-in"></i> Đăng nhập ngay
+                </button>
+            </div>`;
         return;
     }
 
@@ -29,62 +36,59 @@ function renderUserInfo() {
     var info = document.querySelector('.infoUser');
 
     info.innerHTML = `
-        <div class="profileHeader">
-            <div class="avatarCircle">${getInitials(u)}</div>
-            <div class="profileMeta">
-                <div class="uName">${escapeHtml(u.username)}</div>
-                <div class="uSub">${escapeHtml(u.email || '')}</div>
+        <div class="profileHero">
+            <div class="profileHero-content">
+                <div class="avatarCircle">${getInitials(u)}</div>
+                <div class="profileMeta">
+                    <div class="uName">${escapeHtml(u.username)}</div>
+                    <div class="uSub">${escapeHtml(u.email || '')}</div>
+                </div>
             </div>
         </div>
 
-        <h3 style="margin:0 0 10px 0;"><i class="fa fa-user-circle"></i> Hồ sơ</h3>
-
-        <div class="formRow">
-            <label>Tên đăng nhập</label>
-            <input class="uInput" type="text" value="${escapeHtml(u.username)}" disabled>
-            <span style="color:#6b7280;font-size:12px;"><i class="fa fa-lock"></i></span>
-        </div>
-
-        <div class="formRow">
-            <label>Họ tên</label>
-            <input class="uInput" type="text" id="infoName" value="${escapeHtml(((u.ho || '') + ' ' + (u.ten || '')).trim())}">
-            <button class="uBtn uBtnPrimary" onclick="updateInfo()"><i class="fa fa-pencil"></i> Cập nhật</button>
-        </div>
-
-        <div class="formRow">
-            <label>Email</label>
-            <input class="uInput" type="text" value="${escapeHtml(u.email || '')}" disabled>
-            <span></span>
-        </div>
-
-        <div class="uDivider"></div>
-
-        <h3 style="margin:0 0 10px 0;"><i class="fa fa-key"></i> Bảo mật</h3>
-
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="uBtn uBtnPrimary" onclick="togglePassForm(true)"><i class="fa fa-key"></i> Đổi mật khẩu</button>
-        </div>
-
-        <div id="passForm" style="display:none; margin-top:12px;">
-            <div class="formRow" style="grid-template-columns:1fr;">
-                <label>Mật khẩu cũ</label>
-                <input class="uInput" type="password" id="oldPass" placeholder="Mật khẩu cũ">
-            </div>
-            <div class="formRow" style="grid-template-columns:1fr;">
-                <label>Mật khẩu mới</label>
-                <input class="uInput" type="password" id="newPass" placeholder="Mật khẩu mới (tối thiểu 6 ký tự)">
-            </div>
-            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
-                <button class="uBtn uBtnSuccess" onclick="changePass()"><i class="fa fa-check"></i> Xác nhận</button>
-                <button class="uBtn uBtnDanger" onclick="togglePassForm(false)"><i class="fa fa-times"></i> Hủy</button>
+        <div class="profileSection">
+            <h3 class="profileSection-title">Thông tin cá nhân</h3>
+            <div class="profileFields">
+                <div class="profileField">
+                    <label for="infoUsername">Tên đăng nhập</label>
+                    <input class="uInput" id="infoUsername" type="text" value="${escapeHtml(u.username)}" disabled>
+                </div>
+                <div class="profileField">
+                    <label for="infoName">Họ tên</label>
+                    <div class="profileFieldRow">
+                        <input class="uInput" type="text" id="infoName" value="${escapeHtml(((u.ho || '') + ' ' + (u.ten || '')).trim())}" placeholder="Nhập họ và tên">
+                        <button type="button" class="uBtn uBtnPrimary" onclick="updateInfo()">Cập nhật</button>
+                    </div>
+                </div>
+                <div class="profileField">
+                    <label for="infoEmail">Email</label>
+                    <input class="uInput" id="infoEmail" type="text" value="${escapeHtml(u.email || '')}" disabled>
+                </div>
             </div>
         </div>
 
-        <div class="uDivider"></div>
-        <p style="margin:0; font-size:14px; color:#6b7280;">
-            <i class="fa fa-file-text-o"></i>
-            <a href="donhang-cua-toi.html" style="color:#0d6efd; text-decoration:underline;">Quản lý đơn hàng của tôi</a>
-        </p>
+        <div class="profileSection">
+            <h3 class="profileSection-title">Bảo mật</h3>
+            <button type="button" class="uBtn uBtnOutline" onclick="togglePassForm(true)">Đổi mật khẩu</button>
+            <div id="passForm" style="display:none;">
+                <div class="profileField">
+                    <label for="oldPass">Mật khẩu cũ</label>
+                    <input class="uInput" type="password" id="oldPass" placeholder="Nhập mật khẩu hiện tại">
+                </div>
+                <div class="profileField">
+                    <label for="newPass">Mật khẩu mới</label>
+                    <input class="uInput" type="password" id="newPass" placeholder="Tối thiểu 6 ký tự">
+                </div>
+                <div class="profilePassActions">
+                    <button type="button" class="uBtn uBtnDanger" onclick="togglePassForm(false)">Hủy</button>
+                    <button type="button" class="uBtn uBtnSuccess" onclick="changePass()">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="profileQuickLink">
+            <a href="donhang-cua-toi.html">Đơn hàng của tôi <i class="fa fa-angle-right"></i></a>
+        </div>
     `;
 }
 

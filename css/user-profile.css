@@ -1,0 +1,290 @@
+/* Trang hồ sơ — chỉ UI */
+
+.profilePage {
+	max-width: 680px;
+	margin: 0 auto;
+	padding: 20px 16px 32px;
+	box-sizing: border-box;
+}
+
+.profilePage-header {
+	margin-bottom: 18px;
+}
+
+.profilePage-header h1 {
+	margin: 0 0 6px;
+	font-size: 26px;
+	font-weight: 800;
+	color: #101828;
+	letter-spacing: -0.02em;
+}
+
+.profilePage-header p {
+	margin: 0;
+	font-size: 14px;
+	color: #667085;
+	line-height: 1.5;
+}
+
+.profileCard {
+	background: #fff;
+	border: 1px solid rgba(15, 23, 42, 0.07);
+	border-radius: 20px;
+	box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
+	padding: 0;
+	overflow: hidden;
+}
+
+.profileCard .infoUser {
+	padding: 0;
+}
+
+/* Hero */
+.profileHero {
+	padding: 24px;
+	background: linear-gradient(135deg, #0b57d0 0%, #2563eb 100%);
+	color: #fff;
+}
+
+.profileHero-content {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.profileHero .avatarCircle {
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.2);
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	font-size: 20px;
+	flex-shrink: 0;
+}
+
+.profileHero .profileMeta {
+	min-width: 0;
+	flex: 1;
+}
+
+.profileHero .uName {
+	font-weight: 700;
+	font-size: 18px;
+	margin-bottom: 4px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.profileHero .uSub {
+	color: rgba(255, 255, 255, 0.9);
+	font-size: 13px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Sections */
+.profileSection {
+	padding: 20px 24px;
+	border-bottom: 1px solid #f1f5f9;
+}
+
+.profileSection-title {
+	margin: 0 0 16px;
+	font-size: 16px;
+	font-weight: 700;
+	color: #101828;
+}
+
+.profileFields {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.profileField label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #344054;
+}
+
+/* Override nguoidung.css !important trên input */
+.profileCard .infoUser .uInput {
+	width: 100% !important;
+	padding: 11px 14px !important;
+	border-radius: 10px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fff !important;
+	font-size: 14px !important;
+	font-weight: 400 !important;
+	color: #101828 !important;
+	box-sizing: border-box !important;
+	outline: none;
+	transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.profileCard .infoUser .uInput:focus {
+	border-color: #93c5fd !important;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12) !important;
+}
+
+.profileCard .infoUser .uInput[disabled] {
+	background: #f8fafc !important;
+	color: #64748b !important;
+	cursor: not-allowed;
+}
+
+.profileFieldRow {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.profileFieldRow .uInput {
+	flex: 1;
+	min-width: 180px;
+}
+
+/* Buttons */
+.profileCard .infoUser .uBtn {
+	border: none;
+	border-radius: 10px;
+	padding: 11px 16px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 600;
+	white-space: nowrap;
+	transition: opacity 0.15s ease;
+}
+
+.profileCard .infoUser .uBtnPrimary {
+	background: #0b57d0 !important;
+	color: #fff !important;
+	box-shadow: none !important;
+}
+
+.profileCard .infoUser .uBtnPrimary:hover {
+	opacity: 0.92;
+}
+
+.profileCard .infoUser .uBtnSuccess {
+	background: #16a34a !important;
+	color: #fff !important;
+}
+
+.profileCard .infoUser .uBtnDanger {
+	background: #fff !important;
+	color: #64748b !important;
+	border: 1px solid #e2e8f0 !important;
+}
+
+.profileCard .infoUser .uBtnOutline {
+	background: #fff;
+	color: #0b57d0;
+	border: 1px solid #bfdbfe;
+}
+
+.profileCard .infoUser .uBtnOutline:hover {
+	background: #eff6ff;
+}
+
+.profilePassActions {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	margin-top: 14px;
+}
+
+#passForm {
+	margin-top: 14px;
+	padding: 16px;
+	border-radius: 12px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+}
+
+#passForm .profileField + .profileField {
+	margin-top: 12px;
+}
+
+/* Quick link */
+.profileQuickLink {
+	padding: 16px 24px 20px;
+}
+
+.profileQuickLink a {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #0b57d0;
+	text-decoration: none;
+}
+
+.profileQuickLink a:hover {
+	text-decoration: underline;
+}
+
+/* Empty state */
+.profileEmpty {
+	text-align: center;
+	padding: 48px 24px;
+}
+
+.profileEmpty-icon {
+	width: 64px;
+	height: 64px;
+	margin: 0 auto 16px;
+	border-radius: 50%;
+	background: #f1f5f9;
+	color: #94a3b8;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 28px;
+}
+
+.profileEmpty h2 {
+	margin: 0 0 8px;
+	font-size: 18px;
+	font-weight: 700;
+	color: #101828;
+}
+
+.profileEmpty p {
+	margin: 0 0 20px;
+	font-size: 14px;
+	color: #667085;
+}
+
+@media (max-width: 640px) {
+	.profilePage-header h1 {
+		font-size: 22px;
+	}
+
+	.profileHero,
+	.profileSection {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	.profileFieldRow {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.profileFieldRow .uBtn {
+		width: 100%;
+	}
+}

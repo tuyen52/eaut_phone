@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/taikhoan.css">
     <link rel="stylesheet" href="css/gioHang.css">
+    <link rel="stylesheet" href="css/cart-page.css">
     <link rel="stylesheet" href="css/footer.css">
     <link rel="stylesheet" href="css/premium-home.css">
     
@@ -40,7 +41,15 @@
     <section style="min-height: 85vh">
         <script> addHeader(); </script>
 
-        <table class="listSanPham"> </table>
+        <div class="cartPage">
+            <div class="cartPage-header">
+                <h1>Giỏ hàng</h1>
+                <p>Kiểm tra sản phẩm và tiến hành thanh toán</p>
+            </div>
+            <div class="cartCard">
+                <table class="listSanPham"></table>
+            </div>
+        </div>
 
     </section> 
     
@@ -52,76 +61,69 @@
 
     <i class="fa fa-arrow-up" id="goto-top-page" onclick="gotoTop()"></i>
 
-    <div id="paymentModal" style="display:none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6);">
-        <div style="background-color: #fff; margin: 2% auto; padding: 20px; border-radius: 10px; width: 95%; max-width: 700px; position: relative; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); animation: fadeIn 0.3s;">
-            
-            <span onclick="closePaymentModal()" style="position: absolute; right: 20px; top: 10px; font-size: 30px; cursor: pointer; color: #aaa;">&times;</span>
-            <h2 style="text-align: center; color: #f7941e; margin-bottom: 10px; text-transform: uppercase;">Xác nhận thanh toán</h2>
-            <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
-    
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                
-                <div style="flex: 1; min-width: 280px;">
-                    <h4 style="margin-bottom: 15px; color: #333; border-left: 4px solid #f7941e; padding-left: 10px;">
-                        <i class="fa fa-user"></i> Thông tin giao hàng
-                    </h4>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px;">Họ và tên <span style="color:red">*</span></label>
-                        <input type="text" id="hoTen" placeholder="Nhập họ tên người nhận" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+    <div id="paymentModal">
+        <div class="paymentModal-box">
+            <button type="button" class="paymentModal-close" onclick="closePaymentModal()" aria-label="Đóng">&times;</button>
+
+            <div class="paymentModal-head">
+                <h2>Xác nhận thanh toán</h2>
+            </div>
+
+            <div class="paymentModal-body">
+                <div class="paymentModal-col">
+                    <h4 class="paymentModal-sectionTitle">Thông tin giao hàng</h4>
+
+                    <div class="paymentField">
+                        <label for="hoTen">Họ và tên <span class="req">*</span></label>
+                        <input type="text" id="hoTen" placeholder="Nhập họ tên người nhận">
                     </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px;">Số điện thoại <span style="color:red">*</span></label>
-                        <input type="text" id="soDienThoai" placeholder="Nhập số điện thoại (10 số)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                    <div class="paymentField">
+                        <label for="soDienThoai">Số điện thoại <span class="req">*</span></label>
+                        <input type="text" id="soDienThoai" placeholder="Nhập số điện thoại (10 số)">
                     </div>
 
-                    <div style="margin-bottom: 15px; position: relative;">
-                        <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px;">Địa chỉ nhận hàng <span style="color:red">*</span></label>
-                        <textarea id="diaChi" rows="3" placeholder="Số nhà, tên đường, xã/phường, quận/huyện..." style="width: 100%; padding: 10px; padding-right: 80px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; resize: vertical; font-family: sans-serif;"></textarea>
-                        
-                        <button onclick="getLocation()" title="Lấy vị trí hiện tại" style="position: absolute; bottom: 10px; right: 10px; background: white; border: 1px solid #288ad6; border-radius: 4px; cursor: pointer; color: #288ad6; padding: 5px 10px; font-size: 12px;">
+                    <div class="paymentField paymentField--address">
+                        <label for="diaChi">Địa chỉ nhận hàng <span class="req">*</span></label>
+                        <textarea id="diaChi" rows="3" placeholder="Số nhà, tên đường, xã/phường, quận/huyện..."></textarea>
+                        <button type="button" class="paymentBtnLocation" onclick="getLocation()">
                             <i class="fa fa-map-marker"></i> Vị trí
                         </button>
                     </div>
                 </div>
-    
-                <div style="flex: 1; min-width: 280px; border-left: 1px solid #eee; padding-left: 20px;">
-                    <h4 style="margin-bottom: 15px; color: #333; border-left: 4px solid #28a745; padding-left: 10px;">
-                        <i class="fa fa-credit-card"></i> Hình thức thanh toán
-                    </h4>
-                    
-                    <div style="margin-bottom: 15px; background: #fdfdfd; padding: 10px; border: 1px solid #eee; border-radius: 5px;">
+
+                <div class="paymentModal-divider"></div>
+
+                <div class="paymentModal-col">
+                    <h4 class="paymentModal-sectionTitle">Hình thức thanh toán</h4>
+
+                    <div class="paymentOption">
                         <input type="radio" id="cod" name="paymentMethod" value="COD" checked onchange="togglePaymentMethod('COD')">
-                        <label for="cod" style="cursor: pointer; font-weight: bold; margin-left: 5px;">Thanh toán khi nhận hàng (COD)</label>
-                        <div style="font-size: 13px; color: #666; margin-left: 25px; margin-top: 5px;">
-                            <i class="fa fa-check-circle" style="color:green"></i> Được kiểm tra hàng trước khi nhận.
+                        <label for="cod">Thanh toán khi nhận hàng (COD)</label>
+                        <div class="paymentOptionHint">
+                            <i class="fa fa-check-circle"></i> Được kiểm tra hàng trước khi nhận.
                         </div>
                     </div>
-    
-                    <div style="margin-bottom: 15px; background: #fdfdfd; padding: 10px; border: 1px solid #eee; border-radius: 5px;">
+
+                    <div class="paymentOption">
                         <input type="radio" id="vnpay" name="paymentMethod" value="VNPAY" onchange="togglePaymentMethod('VNPAY')">
-                        <label for="vnpay" style="cursor: pointer; font-weight: bold; margin-left: 5px;">VNPay Sandbox</label>
-                        
-                        <div id="vnpayInfo" style="display: none; margin-top: 10px; background: #fff; padding: 10px; border-radius: 5px; border: 1px dashed #28a745; font-size: 13px; color: #333; line-height: 1.6;">
-                            <p style="margin: 0 0 6px;"><i class="fa fa-info-circle" style="color:#28a745"></i> Sau khi bấm đặt hàng, hệ thống sẽ tạo đơn <b>Chờ thanh toán</b> rồi chuyển bạn sang cổng <b>VNPay Sandbox</b>.</p>
-                            <p style="margin: 0;">Chỉ khi VNPay báo thanh toán thành công thì đơn mới được xác nhận và trừ tồn kho theo màu.</p>
+                        <label for="vnpay">VNPay Sandbox</label>
+                        <div id="vnpayInfo">
+                            <p><i class="fa fa-info-circle" style="color:#0b57d0"></i> Sau khi bấm đặt hàng, hệ thống tạo đơn <b>Chờ thanh toán</b> rồi chuyển sang <b>VNPay Sandbox</b>.</p>
+                            <p>Chỉ khi VNPay báo thành công thì đơn mới được xác nhận và trừ tồn kho.</p>
                         </div>
                     </div>
                 </div>
             </div>
-    
-            <div style="text-align: right; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-                <div style="font-size: 20px; margin-bottom: 15px;">
-                    Tổng thanh toán: <span id="paymentTotal" style="color: #d0021b; font-weight: bold;">0₫</span>
+
+            <div class="paymentModal-foot">
+                <div class="paymentModal-total">
+                    Tổng thanh toán: <span id="paymentTotal">0₫</span>
                 </div>
-                
-                <button onclick="closePaymentModal()" style="background: #eee; color: #333; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px; transition: 0.3s;">
-                    Quay lại
-                </button>
-                <button onclick="processPayment()" style="background: linear-gradient(to right, #f7941e, #f76b1c); color: white; padding: 12px 40px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 4px 6px rgba(247, 148, 30, 0.3); transition: 0.3s;">
-                    <i class="fa fa-paper-plane"></i> ĐẶT HÀNG NGAY
-                </button>
+                <div class="paymentModal-actions">
+                    <button type="button" class="paymentBtnBack" onclick="closePaymentModal()">Quay lại</button>
+                    <button type="button" class="paymentBtnSubmit" onclick="processPayment()">Đặt hàng ngay</button>
+                </div>
             </div>
         </div>
     </div>
