@@ -150,42 +150,7 @@
         <!-- ===== CÁC TAB CŨ GIỮ NGUYÊN ===== -->
 
        <div class="sanpham" style="display: none;">
-    <table class="table-header">
-        <tr>
-            <th title="Sắp xếp" style="width: 5%" onclick="sortProductsTable('stt')">
-                Stt <i class="fa fa-sort"></i>
-            </th>
-            <th title="Sắp xếp" style="width: 10%" onclick="sortProductsTable('masp')">
-                Mã <i class="fa fa-sort"></i>
-            </th>
-            <th title="Sắp xếp" style="width: 40%" onclick="sortProductsTable('ten')">
-                Tên <i class="fa fa-sort"></i>
-            </th>
-            <th title="Sắp xếp" style="width: 15%" onclick="sortProductsTable('gia')">
-                Giá <i class="fa fa-sort"></i>
-            </th>
-            <th title="Sắp xếp" style="width: 15%" onclick="sortProductsTable('khuyenmai')">
-                Khuyến mãi <i class="fa fa-sort"></i>
-            </th>
-            <th style="width: 15%">Hành động</th>
-        </tr>
-    </table>
-
     <div class="table-content"></div>
-
-    <div class="table-footer">
-        <select name="kieuTimSanPham">
-            <option value="ma">Tìm theo mã</option>
-            <option value="ten">Tìm theo tên</option>
-        </select>
-
-        <input type="text" placeholder="Tìm kiếm sản phẩm..." onkeyup="timKiemSanPham(this)">
-
-        <button onclick="document.getElementById('khungThemSanPham').style.transform = 'scale(1)'; ensureVariantSection('khungThemSanPham'); autoMaSanPham();">
-            <i class="fa fa-plus-square"></i>
-            Thêm sản phẩm
-        </button>
-    </div>
 
     <!-- KHUNG THÊM SẢN PHẨM -->
     <div id="khungThemSanPham" class="overlay">
@@ -269,37 +234,11 @@
 </div>
 
         <div class="donhang" style="display: none;">
-            <table class="table-header">
-                <tr>
-                    <th>Mã</th>
-                    <th>Khách hàng</th>
-                    <th>Liên hệ</th>
-                    <th>Sản phẩm</th>
-                    <th>Tổng tiền</th>
-                    <th>Ngày giờ</th>
-                    <th>PT thanh toán</th>
-                    <th>TT thanh toán</th>
-                    <th>Trạng thái đơn</th>
-                    <th>Hành động</th>
-                </tr>
-            </table>
             <div class="table-content"></div>
-            <div class="table-footer"></div>
         </div>
 
         <div class="khachhang" style="display: none;">
-            <table class="table-header">
-                <tr>
-                    <th>Stt</th>
-                    <th>Tên đăng nhập</th>
-                    <th>Họ</th>
-                    <th>Tên</th>
-                    <th>Email</th>
-                    <th>Hành động</th>
-                </tr>
-            </table>
             <div class="table-content"></div>
-            <div class="table-footer"></div>
         </div>
 
         <div class="binhluan" style="display: none;">
@@ -310,6 +249,66 @@
             <div class="table-content"></div>
         </div>
 
+    </div>
+
+    <!-- Modal kho hàng (ngoài .main để không bị display:none) -->
+    <div id="warehouseModalOverlay" class="overlay warehouse-overlay">
+        <div class="product-form-panel warehouse-modal-panel" id="warehouseModalPanel" role="dialog" aria-modal="true">
+            <div class="product-form-header warehouse-modal-header">
+                <h2 id="warehouseModalTitle"><i class="fa fa-cubes"></i> Kho hàng</h2>
+                <span class="close close-modal" id="warehouseModalClose" title="Đóng">&times;</span>
+            </div>
+            <div class="product-form-body warehouse-modal-body" id="warehouseModalBody"></div>
+            <div class="product-form-footer warehouse-modal-footer" id="warehouseModalFooter"></div>
+        </div>
+    </div>
+
+    <!-- Modal bình luận (xem chi tiết / xác nhận xóa) -->
+    <div id="reviewModalOverlay" class="overlay review-overlay">
+        <div class="product-form-panel review-modal-panel" id="reviewModalPanel" role="dialog" aria-modal="true">
+            <div class="product-form-header review-modal-header">
+                <h2 id="reviewModalTitle"><i class="fa fa-comments"></i> Bình luận</h2>
+                <span class="close close-modal" id="reviewModalClose" title="Đóng">&times;</span>
+            </div>
+            <div class="product-form-body review-modal-body" id="reviewModalBody"></div>
+            <div class="product-form-footer review-modal-footer" id="reviewModalFooter"></div>
+        </div>
+    </div>
+
+    <!-- Modal khách hàng (xác nhận xóa) -->
+    <div id="userModalOverlay" class="overlay user-overlay">
+        <div class="product-form-panel user-modal-panel" id="userModalPanel" role="dialog" aria-modal="true">
+            <div class="product-form-header user-modal-header">
+                <h2 id="userModalTitle"><i class="fa fa-users"></i> Khách hàng</h2>
+                <span class="close close-modal" id="userModalClose" title="Đóng">&times;</span>
+            </div>
+            <div class="product-form-body user-modal-body" id="userModalBody"></div>
+            <div class="product-form-footer user-modal-footer" id="userModalFooter"></div>
+        </div>
+    </div>
+
+    <!-- Modal sản phẩm (xác nhận xóa) -->
+    <div id="productModalOverlay" class="overlay product-overlay">
+        <div class="product-form-panel product-modal-panel" id="productModalPanel" role="dialog" aria-modal="true">
+            <div class="product-form-header product-modal-header">
+                <h2 id="productModalTitle"><i class="fa fa-mobile"></i> Sản phẩm</h2>
+                <span class="close close-modal" id="productModalClose" title="Đóng">&times;</span>
+            </div>
+            <div class="product-form-body product-modal-body" id="productModalBody"></div>
+            <div class="product-form-footer product-modal-footer" id="productModalFooter"></div>
+        </div>
+    </div>
+
+    <!-- Modal đơn hàng (chi tiết / xác nhận) -->
+    <div id="orderModalOverlay" class="overlay order-overlay">
+        <div class="product-form-panel order-modal-panel" id="orderModalPanel" role="dialog" aria-modal="true">
+            <div class="product-form-header order-modal-header">
+                <h2 id="orderModalTitle"><i class="fa fa-shopping-cart"></i> Đơn hàng</h2>
+                <span class="close close-modal" id="orderModalClose" title="Đóng">&times;</span>
+            </div>
+            <div class="product-form-body order-modal-body" id="orderModalBody"></div>
+            <div class="product-form-footer order-modal-footer" id="orderModalFooter"></div>
+        </div>
     </div>
 </body>
 </html>

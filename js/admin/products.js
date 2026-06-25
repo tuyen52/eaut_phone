@@ -2,54 +2,430 @@
 
 var decrease = true;
 
+var __productKeyword = '';
+var __productSearchType = 'all';
+var __productCompanyFilter = 'all';
+var __productPromoFilter = 'all';
+var __productSortCol = 'masp';
+var __productSortDir = 1;
+
+var PRODUCT_COMPANIES = ['Apple', 'Samsung', 'Oppo', 'Nokia', 'Huawei', 'Xiaomi', 'Realme', 'Vivo'];
+
 // ======================= QUẢN LÝ SẢN PHẨM =======================
+
+function normalizeText(str) {
+    return String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
 
 function addTableProducts() {
     var tc = document.querySelector('.sanpham .table-content');
     if (!tc) return;
 
+    initProductModal();
+    tc.innerHTML = '<div class="sp-loading"><i class="fa fa-spinner fa-spin"></i> Đang tải sản phẩm...</div>';
+
     fetch('php/get-products.php')
-        .then(res => res.json())
-        .then(data => {
-            list_products = data;
-            renderProductTable(list_products);
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            list_products = Array.isArray(data) ? data : [];
+            renderProductPanel();
+        })
+        .catch(function (err) {
+            console.error(err);
+            tc.innerHTML = '<div class="sp-empty-state"><i class="fa fa-exclamation-triangle"></i>Lỗi kết nối Server!</div>';
         });
 }
 
-function renderProductTable(list) {
-    var tc = document.querySelector('.sanpham .table-content');
-    var s = `<table class="table-outline hideImg">`;
+function getProductStats(list) {
+    list = Array.isArray(list) ? list : [];
+    var withPromo = list.filter(function (p) { return p.promo && p.promo.name; }).length;
+    var outStock = list.filter(function (p) { return parseInt(p.inventory || 0) <= 0; }).length;
+    return { total: list.length, withPromo: withPromo, outStock: outStock };
+}
 
-    list.sort((a, b) => (a.masp || '').localeCompare(b.masp || ''));
+function applyProductFilters(list) {
+    list = Array.isArray(list) ? list.slice() : [];
+    var keyword = normalizeText(__productKeyword);
 
-    for (var i = 0; i < list.length; i++) {
-        var p = list[i];
-        if (!p) continue;
-        var productNameForLink = (p.name || '').split(' ').join('-');
-
-        s += `<tr>
-            <td style="width: 5%">${i + 1}</td>
-            <td style="width: 10%">${p.masp}</td>
-            <td style="width: 40%">
-                <a title="Xem chi tiết" target="_blank" href="chitietsanpham.html?${productNameForLink}"> ${p.name} </a>
-                <img src="${p.img}" alt="${p.name}">
-            </td>
-            <td style="width: 15%">${numToString(parseInt(p.price))}</td>
-            <td style="width: 15%">${promoToStringValue(p.promo)}</td>
-            <td style="width: 15%">
-                <div class="tooltip">
-                    <i class="fa fa-wrench" onclick="addKhungSuaSanPham('${p.masp}')"></i>
-                    <span class="tooltiptext">Sửa</span>
-                </div>
-                <div class="tooltip">
-                    <i class="fa fa-trash" onclick="xoaSanPham('${p.masp}', '${p.name}')"></i>
-                    <span class="tooltiptext">Xóa</span>
-                </div>
-            </td>
-        </tr>`;
+    if (__productCompanyFilter !== 'all') {
+        list = list.filter(function (p) { return (p.company || '') === __productCompanyFilter; });
     }
-    s += `</table>`;
-    tc.innerHTML = s;
+
+    if (__productPromoFilter === 'none') {
+        list = list.filter(function (p) { return !p.promo || !p.promo.name; });
+    } else if (__productPromoFilter !== 'all') {
+        list = list.filter(function (p) { return p.promo && p.promo.name === __productPromoFilter; });
+    }
+
+    if (keyword) {
+        list = list.filter(function (p) {
+            var masp = normalizeText(p.masp);
+            var name = normalizeText(p.name);
+            var company = normalizeText(p.company);
+            if (__productSearchType === 'ma') return masp.includes(keyword);
+            if (__productSearchType === 'ten') return name.includes(keyword);
+            if (__productSearchType === 'hang') return company.includes(keyword);
+            return masp.includes(keyword) || name.includes(keyword) || company.includes(keyword);
+        });
+    }
+
+    return list;
+}
+
+function applyProductSort(list) {
+    list = list.slice();
+    var col = __productSortCol;
+    var dir = __productSortDir;
+
+    list.sort(function (a, b) {
+        var valA, valB;
+
+        if (col === 'masp') {
+            valA = normalizeText(a.masp);
+            valB = normalizeText(b.masp);
+        } else if (col === 'ten') {
+            valA = normalizeText(a.name);
+            valB = normalizeText(b.name);
+        } else if (col === 'gia') {
+            valA = parseInt(a.price || 0);
+            valB = parseInt(b.price || 0);
+        } else if (col === 'khuyenmai') {
+            valA = normalizeText((a.promo && a.promo.name) || '');
+            valB = normalizeText((b.promo && b.promo.name) || '');
+        } else if (col === 'tonkho') {
+            valA = parseInt(a.inventory || 0);
+            valB = parseInt(b.inventory || 0);
+        } else {
+            return 0;
+        }
+
+        if (valA < valB) return -1 * dir;
+        if (valA > valB) return 1 * dir;
+        return 0;
+    });
+
+    return list;
+}
+
+function getProductSortIcon(col) {
+    if (__productSortCol !== col) return '<i class="fa fa-sort sp-sort-icon"></i>';
+    return __productSortDir > 0
+        ? '<i class="fa fa-sort-asc sp-sort-icon active"></i>'
+        : '<i class="fa fa-sort-desc sp-sort-icon active"></i>';
+}
+
+function productSortHeader(label, col) {
+    return '<span class="sp-th-label">' + label + ' ' + getProductSortIcon(col) + '</span>';
+}
+
+function renderPromoBadge(promo) {
+    var text = promoToStringValue(promo);
+    if (!text) return '<span class="sp-promo-none">—</span>';
+    var cls = 'sp-promo-default';
+    if (promo && promo.name === 'giamgia') cls = 'sp-promo-sale';
+    else if (promo && promo.name === 'moiramat') cls = 'sp-promo-new';
+    return '<span class="sp-promo-badge ' + cls + '">' + escapeHtml(text) + '</span>';
+}
+
+function getStockBadgeClass(qty) {
+    qty = parseInt(qty || 0);
+    if (qty <= 0) return 'out';
+    if (qty <= 10) return 'low';
+    return 'ok';
+}
+
+function renderProductPanel() {
+    var tc = document.querySelector('.sanpham .table-content');
+    if (!tc) return;
+
+    var stats = getProductStats(list_products);
+    var filtered = applyProductSort(applyProductFilters(list_products));
+
+    var companyOptions = '<option value="all">Tất cả hãng</option>';
+    PRODUCT_COMPANIES.forEach(function (c) {
+        companyOptions += '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>';
+    });
+
+    var html = `
+        <div class="wh-toolbar sp-toolbar">
+            <div class="wh-toolbar-filters">
+                <div class="wh-field">
+                    <label for="productSearchType">Tìm theo</label>
+                    <select id="productSearchType">
+                        <option value="all">Tất cả trường</option>
+                        <option value="ma">Mã SP</option>
+                        <option value="ten">Tên sản phẩm</option>
+                        <option value="hang">Hãng</option>
+                    </select>
+                </div>
+                <div class="wh-field">
+                    <label for="productSearchInput">Từ khóa</label>
+                    <input id="productSearchInput" type="text" placeholder="Mã, tên hoặc hãng..." value="${escapeHtml(__productKeyword)}">
+                </div>
+                <div class="wh-field">
+                    <label for="productCompanyFilter">Hãng</label>
+                    <select id="productCompanyFilter">${companyOptions}</select>
+                </div>
+                <div class="wh-field">
+                    <label for="productPromoFilter">Khuyến mãi</label>
+                    <select id="productPromoFilter">
+                        <option value="all">Tất cả</option>
+                        <option value="none">Không KM</option>
+                        <option value="tragop">Trả góp</option>
+                        <option value="giamgia">Giảm giá</option>
+                        <option value="giareonline">Giá rẻ online</option>
+                        <option value="moiramat">Mới ra mắt</option>
+                    </select>
+                </div>
+                <button type="button" class="wh-btn-clear" id="productClearBtn">
+                    <i class="fa fa-eraser"></i> Xóa lọc
+                </button>
+                <button type="button" class="sp-btn-add" id="productAddBtn">
+                    <i class="fa fa-plus"></i> Thêm sản phẩm
+                </button>
+            </div>
+            <div class="wh-stats">
+                <span class="wh-stat wh-stat-total">Tổng: ${stats.total}</span>
+                <span class="wh-stat sp-stat-promo">Có KM: ${stats.withPromo}</span>
+                <span class="wh-stat wh-stat-out">Hết hàng: ${stats.outStock}</span>
+                <span class="wh-stat sp-stat-showing">Hiển thị: ${filtered.length}</span>
+            </div>
+        </div>
+    `;
+
+    html += renderProductTableHTML(filtered);
+    tc.innerHTML = html;
+
+    var typeSel = document.getElementById('productSearchType');
+    if (typeSel) {
+        typeSel.value = __productSearchType;
+        typeSel.addEventListener('change', function () {
+            __productSearchType = this.value;
+            renderProductPanel();
+        });
+    }
+
+    var inp = document.getElementById('productSearchInput');
+    if (inp) {
+        inp.addEventListener('input', function () {
+            __productKeyword = this.value;
+            renderProductPanel();
+        });
+    }
+
+    var companySel = document.getElementById('productCompanyFilter');
+    if (companySel) {
+        companySel.value = __productCompanyFilter;
+        companySel.addEventListener('change', function () {
+            __productCompanyFilter = this.value;
+            renderProductPanel();
+        });
+    }
+
+    var promoSel = document.getElementById('productPromoFilter');
+    if (promoSel) {
+        promoSel.value = __productPromoFilter;
+        promoSel.addEventListener('change', function () {
+            __productPromoFilter = this.value;
+            renderProductPanel();
+        });
+    }
+
+    var clearBtn = document.getElementById('productClearBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+            __productKeyword = '';
+            __productSearchType = 'all';
+            __productCompanyFilter = 'all';
+            __productPromoFilter = 'all';
+            renderProductPanel();
+        });
+    }
+
+    var addBtn = document.getElementById('productAddBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', function () {
+            document.getElementById('khungThemSanPham').style.transform = 'scale(1)';
+            ensureVariantSection('khungThemSanPham');
+            autoMaSanPham();
+        });
+    }
+
+    tc.querySelectorAll('th[data-sort]').forEach(function (th) {
+        th.addEventListener('click', function () {
+            var col = th.getAttribute('data-sort');
+            if (__productSortCol === col) {
+                __productSortDir = -__productSortDir;
+            } else {
+                __productSortCol = col;
+                __productSortDir = col === 'gia' || col === 'tonkho' ? -1 : 1;
+            }
+            renderProductPanel();
+        });
+    });
+
+    tc.querySelectorAll('.btn-sp-edit').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var masp = btn.getAttribute('data-masp');
+            if (masp) addKhungSuaSanPham(masp);
+        });
+    });
+
+    tc.querySelectorAll('.btn-sp-delete').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var masp = btn.getAttribute('data-masp');
+            var name = btn.getAttribute('data-name') || '';
+            if (masp) showProductDeleteModal(masp, name);
+        });
+    });
+}
+
+function renderProductTableHTML(list) {
+    var html = `<div class="sp-table-wrap"><table class="table-outline sp-table">
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th class="sp-th-sort" data-sort="masp">${productSortHeader('Mã SP', 'masp')}</th>
+                <th class="sp-th-sort" data-sort="ten">${productSortHeader('Tên sản phẩm', 'ten')}</th>
+                <th>Hãng</th>
+                <th class="sp-th-sort" data-sort="gia">${productSortHeader('Giá', 'gia')}</th>
+                <th class="sp-th-sort" data-sort="khuyenmai">${productSortHeader('Khuyến mãi', 'khuyenmai')}</th>
+                <th class="sp-th-sort" data-sort="tonkho">${productSortHeader('Tồn kho', 'tonkho')}</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    if (!list || list.length === 0) {
+        html += `<tr><td colspan="8"><div class="sp-empty-state"><i class="fa fa-inbox"></i>Không tìm thấy sản phẩm phù hợp.</div></td></tr>`;
+    } else {
+        list.forEach(function (p, i) {
+            var productNameForLink = (p.name || '').split(' ').join('-');
+            var stock = parseInt(p.inventory || 0);
+            var stockCls = getStockBadgeClass(stock);
+
+            html += `<tr>
+                <td>${i + 1}</td>
+                <td><span class="wh-masp">${escapeHtml(p.masp)}</span></td>
+                <td>
+                    <div class="sp-product-cell">
+                        <a class="sp-product-name" title="${escapeHtml(p.name)}" target="_blank" rel="noopener noreferrer" href="chitietsanpham.html?${encodeURIComponent(productNameForLink)}">${escapeHtml(p.name)}</a>
+                        <img src="${escapeHtml(p.img)}" alt="">
+                    </div>
+                </td>
+                <td><span class="sp-company">${escapeHtml(p.company || '—')}</span></td>
+                <td><span class="sp-price">${numToString(parseInt(p.price || 0))}</span></td>
+                <td>${renderPromoBadge(p.promo)}</td>
+                <td><span class="wh-stock-num wh-stock-${stockCls}">${stock}</span></td>
+                <td>
+                    <div class="sp-actions">
+                        <button type="button" class="btn-sp-edit" data-masp="${escapeHtml(p.masp)}" title="Sửa sản phẩm">
+                            <i class="fa fa-pencil"></i>
+                        </button>
+                        <button type="button" class="btn-sp-delete" data-masp="${escapeHtml(p.masp)}" data-name="${escapeHtml(p.name)}" title="Xóa sản phẩm">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        });
+    }
+
+    html += '</tbody></table></div>';
+    return html;
+}
+
+function initProductModal() {
+    var overlay = document.getElementById('productModalOverlay');
+    if (!overlay) return;
+
+    var closeBtn = document.getElementById('productModalClose');
+    if (closeBtn && !closeBtn.__spBound) {
+        closeBtn.__spBound = true;
+        closeBtn.addEventListener('click', closeProductModal);
+    }
+
+    if (!overlay.__spBound) {
+        overlay.__spBound = true;
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeProductModal();
+        });
+    }
+
+    if (!document.__spEscBound) {
+        document.__spEscBound = true;
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeProductModal();
+        });
+    }
+}
+
+function openProductModal() {
+    initProductModal();
+    var overlay = document.getElementById('productModalOverlay');
+    if (overlay) overlay.style.transform = 'scale(1)';
+}
+
+function closeProductModal() {
+    var overlay = document.getElementById('productModalOverlay');
+    if (overlay) overlay.style.transform = 'scale(0)';
+}
+
+function showProductDeleteModal(masp, name) {
+    var p = list_products.find(function (x) { return x.masp === masp; });
+
+    document.getElementById('productModalTitle').innerHTML =
+        '<i class="fa fa-exclamation-triangle"></i> Xác nhận xóa';
+
+    document.getElementById('productModalBody').innerHTML = `
+        <div class="sp-delete-warning">
+            <p>Bạn có chắc muốn xóa sản phẩm này? Hành động không thể hoàn tác.</p>
+        </div>
+        <div class="sp-delete-preview">
+            <div class="sp-delete-product">
+                <img src="${escapeHtml(p && p.img ? p.img : '')}" alt="">
+                <div>
+                    <strong>${escapeHtml(name || (p && p.name) || masp)}</strong>
+                    <div class="sp-delete-meta">Mã: ${escapeHtml(masp)}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('productModalFooter').innerHTML = `
+        <button type="button" class="btn-sp-modal-secondary" id="spModalBtnCancel">Hủy</button>
+        <button type="button" class="btn-sp-modal-danger" id="spModalBtnConfirm">
+            <i class="fa fa-trash"></i> Xóa sản phẩm
+        </button>
+    `;
+
+    document.getElementById('spModalBtnCancel').addEventListener('click', closeProductModal);
+    document.getElementById('spModalBtnConfirm').addEventListener('click', function () {
+        submitDeleteProduct(masp);
+    });
+
+    openProductModal();
+}
+
+function submitDeleteProduct(masp) {
+    fetch('php/admin/delete-product.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ masp: masp })
+    })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            closeProductModal();
+            if (data.status) {
+                addTableProducts();
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(function () {
+            closeProductModal();
+            alert('Lỗi kết nối Server!');
+        });
 }
 
 // ======================= CRUD SẢN PHẨM (GỌI API PHP) =======================
@@ -81,23 +457,7 @@ function themSanPham() {
 
 // 2. Xóa sản phẩm
 function xoaSanPham(masp, tensp) {
-    if (confirm('Bạn có chắc muốn xóa sản phẩm "' + tensp + '"?')) {
-        fetch('php/admin/delete-product.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ masp: masp })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status) {
-                    alert(data.message);
-                    addTableProducts();
-                } else {
-                    alert("Lỗi: " + data.message);
-                }
-            })
-            .catch(() => alert("Lỗi kết nối Server!"));
-    }
+    showProductDeleteModal(masp, tensp);
 }
 
 // 3. Sửa sản phẩm

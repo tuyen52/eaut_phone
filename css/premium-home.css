@@ -365,31 +365,7 @@ img[alt=""] {
 	color: white;
 }
 
-/* Footer */
-.plc {
-	border: none;
-	background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
-	color: rgba(255,255,255,.82);
-	font-size: 14px;
-	padding: 12px 0;
-}
-.plc li {
-	border-right: 1px solid rgba(255,255,255,.1);
-	line-height: 22px;
-	margin: 6px 0;
-}
-.plc a { color: #93c5fd; }
-
-.footer {
-	background: transparent;
-}
-.copy-right {
-	line-height: 1.8;
-	padding: 16px 12px;
-	background: #0b1220;
-	color: rgba(255,255,255,.72);
-}
-.copy-right a { color: #fff; font-weight: 700; letter-spacing: .3px; }
+/* Footer — style trong css/footer.css (tránh ghi đè phối màu) */
 
 /* Detail pages */
 .chitietSanpham {

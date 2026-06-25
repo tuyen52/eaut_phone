@@ -499,7 +499,12 @@ function displayReviews() {
                     stars += `<i class="fa ${i <= rating ? 'fa-star' : 'fa-star-o'}"></i>`;
                 }
 
-                var mau = r.mau_sac ? r.mau_sac : (r.variant_id ? ('Variant #' + r.variant_id) : '');
+                var mauParts = [
+                    (r.mau_sac || r.ten_mau || '').trim(),
+                    (r.ram || '').trim(),
+                    (r.rom || '').trim()
+                ].filter(Boolean);
+                var mau = mauParts.length ? mauParts.join(' | ') : (r.variant_id ? ('Variant #' + r.variant_id) : '');
                 var safeMau = escapeHtml(mau);
                 var safeUsername = escapeHtml(r.username);
                 var safeComment = escapeHtml(r.comment).replace(/\n/g, '<br>');
@@ -513,7 +518,7 @@ function displayReviews() {
                     : '';
 
                 var mauHtml = mau
-                    ? `<div style="margin-top:4px;font-size:12px;color:#0056b3;">Màu đã mua: ${swatch}<b>${safeMau}</b></div>`
+                    ? `<div style="margin-top:4px;font-size:12px;color:#0056b3;">Biến thể đã mua: ${swatch}<b>${safeMau}</b></div>`
                     : '';
 
                 div.innerHTML += `

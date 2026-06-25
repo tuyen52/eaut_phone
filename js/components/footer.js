@@ -20,7 +20,10 @@ function addFooter() {
     <footer class="site-footer">
         <div class="site-footer__inner">
             <div class="site-footer__brand">
-                <a class="site-footer__logo" href="index.html">EAUT PHONE</a>
+                <a class="site-footer__logo" href="index.html">
+                    <span class="site-footer__logo-main">EAUT</span>
+                    <span class="site-footer__logo-accent">PHONE</span>
+                </a>
                 <p class="site-footer__desc">Hệ thống mua sắm điện thoại chính hãng, giá tốt, hỗ trợ tận tâm và giao hàng nhanh trên toàn quốc.</p>
                 <div class="site-footer__badges">
                     <span><i class="fa fa-shield"></i> Chính hãng</span>
@@ -46,8 +49,8 @@ function addFooter() {
             </div>
 
             <div class="site-footer__contact">
-                <h4>Thông tin liên hệ</h4>
-                <p><i class="fa fa-map-marker"></i> EAUT PHONE - Website thực hành</p>
+                <h4>Liên hệ</h4>
+                <p><i class="fa fa-map-marker"></i> EAUT PHONE — Website thực hành</p>
                 <p><i class="fa fa-envelope"></i> support@eautphone.vn</p>
                 <p><i class="fa fa-clock-o"></i> Hỗ trợ 24/7</p>
             </div>
@@ -56,8 +59,11 @@ function addFooter() {
         <div class="copy-right">
             <p>
                 <a href="index.html">EAUT PHONE</a>
-                <span>- All rights reserved © 2026 - Designed by</span>
-                <span style="color: #fff; font-weight: 700">NGUYEN DANG TUYEN</span>
+                <span class="copy-right__dot">·</span>
+                <span>© 2026 All rights reserved</span>
+                <span class="copy-right__dot">·</span>
+                <span>Designed by</span>
+                <span class="copy-right__author">NGUYEN DANG TUYEN</span>
             </p>
         </div>
     </footer>`);
