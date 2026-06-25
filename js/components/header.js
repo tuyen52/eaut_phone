@@ -91,67 +91,65 @@ function addHeader() {
 function addContainTaiKhoan() {
     document.write(`
 	<div class="containTaikhoan">
-        <span class="close" onclick="showTaiKhoan(false);">&times;</span>
+        <button type="button" class="auth-close" onclick="showTaiKhoan(false);" aria-label="Đóng">&times;</button>
         <div class="taikhoan">
             <div class="auth-brand">
                 <div class="auth-brand__icon"><i class="fa fa-mobile"></i></div>
-                <div>
+                <div class="auth-brand__text">
                     <h1>EAUT PHONE</h1>
-                    <p>Đăng nhập hoặc tạo tài khoản để mua sắm nhanh hơn</p>
+                    <p>Đăng nhập hoặc tạo tài khoản để mua sắm</p>
                 </div>
             </div>
             <ul class="tab-group">
-                <li class="tab active"><a href="#login"><i class="fa fa-sign-in"></i> Đăng nhập</a></li>
-                <li class="tab"><a href="#signup"><i class="fa fa-user-plus"></i> Đăng kí</a></li>
+                <li class="tab active"><a href="#login">Đăng nhập</a></li>
+                <li class="tab"><a href="#signup">Đăng ký</a></li>
             </ul>
             <div class="tab-content">
-                <div id="login">
-                    <h2>Chào mừng bạn trở lại!</h2>
-                    <p class="auth-subtitle">Vui lòng đăng nhập để tiếp tục thanh toán và theo dõi đơn hàng.</p>
-                    <form onsubmit="return logIn(this);">
+                <div id="login" class="auth-panel">
+                    <h2>Chào mừng trở lại</h2>
+                    <p class="auth-subtitle">Đăng nhập để thanh toán và theo dõi đơn hàng.</p>
+                    <form class="auth-form" onsubmit="return logIn(this);">
                         <div class="field-wrap">
                             <label>Tên đăng nhập<span class="req">*</span></label>
-                            <input name='username' type="text" required autocomplete="off" placeholder="Nhập tên đăng nhập" />
+                            <input name='username' type="text" required autocomplete="username" placeholder="Nhập tên đăng nhập" />
                         </div>
                         <div class="field-wrap">
                             <label>Mật khẩu<span class="req">*</span></label>
-                            <input name="pass" type="password" required autocomplete="off" placeholder="Nhập mật khẩu" />
+                            <input name="pass" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu" />
                         </div>
-                        
                         <div class="auth-meta-row">
-                            <p class="forgot"><a href="forgot-pass.html"><i class="fa fa-key"></i> Quên mật khẩu?</a></p>
+                            <p class="forgot"><a href="forgot-pass.html">Quên mật khẩu?</a></p>
                         </div>
-                        
-                        <button type="submit" class="button button-block"><i class="fa fa-lock"></i> Đăng nhập</button>
+                        <button type="submit" class="button button-block">Đăng nhập</button>
                     </form>
                 </div>
-                <div id="signup" style="display: none;">
-                    <h2>Tạo tài khoản mới</h2>
-                    <p class="auth-subtitle">Đăng kí nhanh để lưu giỏ hàng, đơn hàng và nhận ưu đãi.</p>
-                    <form onsubmit="return signUp(this);">
+                <div id="signup" class="auth-panel" style="display: none;">
+                    <h2>Tạo tài khoản</h2>
+                    <p class="auth-subtitle">Đăng ký để lưu giỏ hàng và quản lý đơn hàng.</p>
+                    <form class="auth-form" onsubmit="return signUp(this);">
                         <div class="top-row">
                             <div class="field-wrap">
                                 <label>Họ<span class="req">*</span></label>
-                                <input name="ho" type="text" required autocomplete="off" placeholder="Nhập họ" />
+                                <input name="ho" type="text" required autocomplete="given-name" placeholder="Họ" />
                             </div>
                             <div class="field-wrap">
                                 <label>Tên<span class="req">*</span></label>
-                                <input name="ten" type="text" required autocomplete="off" placeholder="Nhập tên" />
+                                <input name="ten" type="text" required autocomplete="family-name" placeholder="Tên" />
                             </div>
                         </div>
                         <div class="field-wrap">
-                            <label>Địa chỉ Email<span class="req">*</span></label>
-                            <input name="email" type="email" required autocomplete="off" placeholder="Nhập email" />
+                            <label>Email<span class="req">*</span></label>
+                            <input name="email" type="email" required autocomplete="email" placeholder="email@example.com" />
                         </div>
                         <div class="field-wrap">
                             <label>Tên đăng nhập<span class="req">*</span></label>
-                            <input name="newUser" type="text" required autocomplete="off" placeholder="Chọn tên đăng nhập" />
+                            <input name="newUser" type="text" required autocomplete="username" placeholder="Chọn tên đăng nhập" />
                         </div>
                         <div class="field-wrap">
                             <label>Mật khẩu<span class="req">*</span></label>
-                            <input name="newPass" type="password" required autocomplete="off" placeholder="Tạo mật khẩu" />
+                            <input name="newPass" type="password" required autocomplete="new-password" placeholder="Tối thiểu 6 ký tự" />
                         </div>
-                        <button type="submit" class="button button-block"><i class="fa fa-user-plus"></i> Tạo tài khoản</button>
+                        <button type="submit" class="button button-block button-signup">Tạo tài khoản</button>
                     </form>
                 </div>
             </div>
