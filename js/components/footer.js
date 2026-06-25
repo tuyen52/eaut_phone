@@ -43,6 +43,7 @@ function addFooter() {
             <div class="site-footer__links">
                 <h4>Hỗ trợ</h4>
                 <a href="nguoidung.html"><i class="fa fa-user"></i> Tài khoản của tôi</a>
+                <a href="donhang-cua-toi.html"><i class="fa fa-file-text-o"></i> Đơn hàng của tôi</a>
                 <a href="giohang.html"><i class="fa fa-shopping-cart"></i> Giỏ hàng</a>
                 <a href="javascript:void(0)"><i class="fa fa-credit-card"></i> Thanh toán an toàn</a>
                 <a href="tel:12345678"><i class="fa fa-headphones"></i> 12345678</a>

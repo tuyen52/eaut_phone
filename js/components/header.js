@@ -46,11 +46,35 @@ function addHeader() {
             <div class="tools-member">
                 <div class="member">
                     <a href="javascript:checkTaiKhoan()">
-                        <i class="fa fa-user"></i> Tài khoản
+                        <i class="fa fa-user"></i>
+                        <span class="member-label">Tài khoản</span>
                     </a>
                     <div class="menuMember hide">
-                        <a href="nguoidung.html">Trang người dùng</a>
-                        <a href="javascript:logOut();">Đăng xuất</a>
+                        <div class="menuMember-head">
+                            <div class="menuMember-avatar" id="menuMemberAvatar">U</div>
+                            <div class="menuMember-meta">
+                                <strong id="menuMemberName">Khách</strong>
+                                <span>Quản lý tài khoản của bạn</span>
+                            </div>
+                        </div>
+                        <nav class="menuMember-nav">
+                            <a href="nguoidung.html" class="menuMember-link">
+                                <i class="fa fa-user-o"></i>
+                                <span>Thông tin tài khoản</span>
+                                <i class="fa fa-angle-right menuMember-arrow"></i>
+                            </a>
+                            <a href="donhang-cua-toi.html" class="menuMember-link">
+                                <i class="fa fa-file-text-o"></i>
+                                <span>Đơn hàng của tôi</span>
+                                <i class="fa fa-angle-right menuMember-arrow"></i>
+                            </a>
+                        </nav>
+                        <div class="menuMember-foot">
+                            <a href="javascript:logOut();" class="menuMember-link menuMember-logout">
+                                <i class="fa fa-sign-out"></i>
+                                <span>Đăng xuất</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <div class="cart">
@@ -134,11 +158,25 @@ function addContainTaiKhoan() {
         </div>
     </div>`);
 }
+function getMenuMemberInitials(u) {
+    if (!u) return 'U';
+    var name = ((u.ho || '') + ' ' + (u.ten || '')).trim();
+    if (name) {
+        var parts = name.split(' ').filter(Boolean);
+        var a = parts[0] ? parts[0][0] : 'U';
+        var b = parts.length > 1 ? parts[parts.length - 1][0] : '';
+        return (a + b).toUpperCase();
+    }
+    return (u.username || 'U').slice(0, 1).toUpperCase();
+}
+
 function capNhat_ThongTin_CurrentUser() {
     var u = getCurrentUser();
     var cartNumber = document.querySelector('.cart-number');
-    var memberLink = document.querySelector('.member > a');
+    var memberLabel = document.querySelector('.member-label');
     var menuMember = document.querySelector('.menuMember');
+    var menuAvatar = document.getElementById('menuMemberAvatar');
+    var menuName = document.getElementById('menuMemberName');
 
     if (u) {
         var totalQty = 0;
@@ -147,15 +185,13 @@ function capNhat_ThongTin_CurrentUser() {
         }
         if (cartNumber) cartNumber.innerHTML = totalQty;
 
-        if (memberLink && memberLink.childNodes[2]) {
-            memberLink.childNodes[2].nodeValue = ' ' + u.username;
-        }
+        if (memberLabel) memberLabel.textContent = u.username;
+        if (menuAvatar) menuAvatar.textContent = getMenuMemberInitials(u);
+        if (menuName) menuName.textContent = u.username;
         if (menuMember) menuMember.classList.remove('hide');
     } else {
         if (cartNumber) cartNumber.innerHTML = '0';
-        if (memberLink && memberLink.childNodes[2]) {
-            memberLink.childNodes[2].nodeValue = ' Tài khoản';
-        }
+        if (memberLabel) memberLabel.textContent = 'Tài khoản';
         if (menuMember) menuMember.classList.add('hide');
     }
 }

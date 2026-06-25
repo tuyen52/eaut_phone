@@ -533,7 +533,7 @@ function renderSuggestion(currentP, list) {
 
 function checkDaMuaSanPham(user, masp) {
     if (!user.donhang || user.donhang.length === 0) return false;
-    // user.donhang giờ đã được tải từ API (user.js)
+    // user.donhang được tải từ get-order-history.php (trang Đơn hàng của tôi)
     for (var don of user.donhang) {
         if (don.tinhTrang === 'Đã nhận hàng' || don.tinhTrang === 'Hoàn thành') {
             for (var sp of don.sp) {

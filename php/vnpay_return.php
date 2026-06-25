@@ -213,7 +213,7 @@ try {
 
             <div class="actions">
                 <a class="btn btn-home" href="../index.html">Về trang chủ</a>
-                <a class="btn btn-user" href="../nguoidung.html">Xem lịch sử đơn hàng</a>
+                <a class="btn btn-user" href="../donhang-cua-toi.html">Xem lịch sử đơn hàng</a>
                 <a class="btn btn-cart" href="../giohang.html">Quay lại giỏ hàng</a>
             </div>
         </div>

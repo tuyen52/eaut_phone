@@ -453,7 +453,7 @@ function processPayment() {
                 renderCart();
 
                 alert("ĐẶT HÀNG THÀNH CÔNG!\n" + data.message);
-                window.location.href = 'nguoidung.html';
+                window.location.href = 'donhang-cua-toi.html';
                 return;
             }
 
