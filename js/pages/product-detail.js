@@ -2,6 +2,8 @@
 
 var sanPhamHienTai = null;
 var selectedRating = 0;
+var reviewFormMode = 'hidden'; // hidden | new | edit
+var cachedUserReview = null;
 
 // --- [MỚI] Biến thể màu / RAM / ROM ---
 var variantsHienTai = [];
@@ -610,7 +612,6 @@ function setupReviewForm() {
     var formDiv = document.getElementById('write-review');
     var loginMsg = document.getElementById('loginToReview');
 
-    // Tạo thông báo chưa mua hàng
     var notBoughtMsg = document.getElementById('notBoughtMsg');
     if (!notBoughtMsg) {
         notBoughtMsg = document.createElement('p');
@@ -624,47 +625,158 @@ function setupReviewForm() {
         document.getElementById('review-form-section').prepend(notBoughtMsg);
     }
 
+    reviewFormMode = 'hidden';
+    cachedUserReview = null;
+    hideMyReviewPanel();
+    formDiv.style.display = 'none';
+    loginMsg.style.display = 'none';
+    notBoughtMsg.style.display = 'none';
+
     if (!user) {
-        formDiv.style.display = 'none';
         loginMsg.style.display = 'block';
-        notBoughtMsg.style.display = 'none';
         return;
     }
 
-    fetch('php/check-bought-product.php?masp=' + encodeURIComponent(sanPhamHienTai.masp), {
+    fetch('php/check-review-status.php?masp=' + encodeURIComponent(sanPhamHienTai.masp), {
         method: 'GET',
         credentials: 'same-origin'
     })
         .then(function (res) {
-            if (!res.ok) throw new Error('CHECK_BUY_FAILED');
+            if (!res.ok) throw new Error('CHECK_REVIEW_FAILED');
             return res.json();
         })
         .then(function (data) {
-            if (data && data.bought === true) {
-                formDiv.style.display = 'block';
-                loginMsg.style.display = 'none';
-                notBoughtMsg.style.display = 'none';
-            } else {
-                formDiv.style.display = 'none';
-                loginMsg.style.display = 'none';
-                notBoughtMsg.style.display = 'block';
-                notBoughtMsg.innerText = 'Bạn cần mua và nhận hàng sản phẩm này để có thể viết đánh giá.';
+            if (!data || data.status !== true) {
+                throw new Error('CHECK_REVIEW_FAILED');
             }
-        })
-        .catch(function () {
-            // Fallback cũ để không làm thay đổi logic website
-            if (!checkDaMuaSanPham(user, sanPhamHienTai.masp)) {
-                formDiv.style.display = 'none';
-                loginMsg.style.display = 'none';
+
+            if (!data.bought) {
                 notBoughtMsg.style.display = 'block';
                 notBoughtMsg.innerText = 'Bạn cần mua và nhận hàng sản phẩm này để có thể viết đánh giá.';
                 return;
             }
 
-            formDiv.style.display = 'block';
-            loginMsg.style.display = 'none';
-            notBoughtMsg.style.display = 'none';
+            if (data.reviewed && data.review) {
+                cachedUserReview = data.review;
+                showMyReviewPanel(data.review);
+                prepareReviewEditor('edit', data.review, false);
+            } else {
+                cachedUserReview = null;
+                hideMyReviewPanel();
+                prepareReviewEditor('new', null, true);
+            }
+        })
+        .catch(function () {
+            if (!checkDaMuaSanPham(user, sanPhamHienTai.masp)) {
+                notBoughtMsg.style.display = 'block';
+                notBoughtMsg.innerText = 'Bạn cần mua và nhận hàng sản phẩm này để có thể viết đánh giá.';
+                return;
+            }
+
+            cachedUserReview = null;
+            hideMyReviewPanel();
+            prepareReviewEditor('new', null, true);
         });
+}
+
+function buildStarIconsHTML(rating) {
+    var stars = '';
+    var value = parseInt(rating, 10) || 0;
+    if (value < 0) value = 0;
+    if (value > 5) value = 5;
+    for (var i = 1; i <= 5; i++) {
+        stars += '<i class="fa ' + (i <= value ? 'fa-star' : 'fa-star-o') + '"></i>';
+    }
+    return stars;
+}
+
+function showMyReviewPanel(review) {
+    var panel = document.getElementById('my-review-panel');
+    var starsEl = document.getElementById('myReviewStars');
+    var commentEl = document.getElementById('myReviewComment');
+    var dateEl = document.getElementById('myReviewDate');
+    if (!panel || !review) return;
+
+    if (starsEl) starsEl.innerHTML = buildStarIconsHTML(review.rating);
+    if (commentEl) commentEl.textContent = review.comment || '';
+    if (dateEl) {
+        dateEl.textContent = review.timestamp
+            ? ('Cập nhật: ' + new Date(review.timestamp).toLocaleString())
+            : '';
+    }
+    panel.style.display = 'block';
+}
+
+function hideMyReviewPanel() {
+    var panel = document.getElementById('my-review-panel');
+    if (panel) panel.style.display = 'none';
+}
+
+function openReviewEditor() {
+    if (!cachedUserReview) return;
+    hideMyReviewPanel();
+    prepareReviewEditor('edit', cachedUserReview, true);
+}
+
+function closeReviewEditor() {
+    var formDiv = document.getElementById('write-review');
+    if (formDiv) formDiv.style.display = 'none';
+
+    if (cachedUserReview) {
+        showMyReviewPanel(cachedUserReview);
+        reviewFormMode = 'edit';
+        return;
+    }
+
+    reviewFormMode = 'hidden';
+}
+
+function prepareReviewEditor(mode, review, showForm) {
+    reviewFormMode = mode;
+
+    var formDiv = document.getElementById('write-review');
+    var titleEl = document.getElementById('reviewFormTitle');
+    var hintEl = document.getElementById('reviewFormHint');
+    var submitBtn = document.getElementById('reviewSubmitBtn');
+    var cancelBtn = document.getElementById('reviewCancelBtn');
+
+    if (mode === 'edit' && review) {
+        if (titleEl) {
+            titleEl.innerHTML = '<i class="fa fa-pencil-square-o"></i> Sửa đánh giá của bạn';
+        }
+        if (hintEl) {
+            hintEl.style.display = 'block';
+            hintEl.textContent = 'Mỗi tài khoản chỉ có một đánh giá cho sản phẩm này.';
+        }
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fa fa-save"></i> Cập nhật đánh giá';
+        }
+        if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+        fillReviewForm(review.rating, review.comment);
+    } else {
+        if (titleEl) {
+            titleEl.innerHTML = '<i class="fa fa-pencil-square-o"></i> Viết đánh giá của bạn';
+        }
+        if (hintEl) {
+            hintEl.style.display = 'none';
+            hintEl.textContent = '';
+        }
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fa fa-paper-plane"></i> Gửi đánh giá';
+        }
+        if (cancelBtn) cancelBtn.style.display = 'none';
+        resetReviewForm();
+    }
+
+    if (formDiv) {
+        formDiv.style.display = showForm ? 'block' : 'none';
+    }
+}
+
+function fillReviewForm(rating, comment) {
+    selectStar(parseInt(rating, 10) || 0);
+    var commentEl = document.getElementById('commentText');
+    if (commentEl) commentEl.value = comment || '';
 }
 
 function submitReview() {
@@ -714,7 +826,12 @@ function submitReview() {
             var ok = (resp && (resp.status === true || resp.success === true));
             if (ok) {
                 alert(resp.message || "Gửi đánh giá thành công!");
-                resetReviewForm();
+                cachedUserReview = Object.assign({}, cachedUserReview || {}, {
+                    rating: selectedRating,
+                    comment: comment,
+                    timestamp: new Date().toISOString()
+                });
+                closeReviewEditor();
                 displayReviews();
             } else {
                 alert("Lỗi: " + (resp.message || "Không rõ lỗi"));

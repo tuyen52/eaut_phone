@@ -230,8 +230,21 @@
             </div>
 
             <div id="review-form-section">
+                <div id="my-review-panel" class="my-review-panel" style="display: none;">
+                    <div class="my-review-panel__head">
+                        <h3><i class="fa fa-check-circle"></i> Đánh giá của bạn</h3>
+                        <button type="button" class="my-review-edit-btn" onclick="openReviewEditor()">
+                            <i class="fa fa-pencil"></i> Sửa đánh giá
+                        </button>
+                    </div>
+                    <div id="myReviewStars" class="my-review-panel__stars"></div>
+                    <p id="myReviewComment" class="my-review-panel__comment"></p>
+                    <p id="myReviewDate" class="my-review-panel__date"></p>
+                </div>
+
                 <div id="write-review" style="display: none;">
-                    <h3><i class="fa fa-pencil-square-o"></i> Viết đánh giá của bạn</h3>
+                    <h3 id="reviewFormTitle"><i class="fa fa-pencil-square-o"></i> Viết đánh giá của bạn</h3>
+                    <p id="reviewFormHint" style="display:none; margin:0 0 10px; color:#64748b; font-size:13px;"></p>
                     <div class="star-rating">
                         <i class="fa fa-star-o" data-value="1" onclick="selectStar(1)"></i>
                         <i class="fa fa-star-o" data-value="2" onclick="selectStar(2)"></i>
@@ -241,9 +254,14 @@
                         <input type="hidden" id="starRatingInput" value="0">
                     </div>
                     <textarea id="commentText" rows="4" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."></textarea>
-                    <button class="review-submit-btn" onclick="submitReview()">
-                        <i class="fa fa-paper-plane"></i> Gửi đánh giá
-                    </button>
+                    <div class="review-form-actions">
+                        <button id="reviewSubmitBtn" class="review-submit-btn" type="button" onclick="submitReview()">
+                            <i class="fa fa-paper-plane"></i> Gửi đánh giá
+                        </button>
+                        <button id="reviewCancelBtn" class="review-cancel-btn" type="button" style="display:none;" onclick="closeReviewEditor()">
+                            Hủy
+                        </button>
+                    </div>
                 </div>
 
                 <p id="loginToReview" style="display: none;">
