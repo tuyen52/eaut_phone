@@ -14,7 +14,7 @@ if ($masp === '') {
     exit;
 }
 
-$stmt = $conn->prepare("SELECT variant_id, masp, ten_mau, ma_mau_hex, ram, rom, hinh_anh, so_luong_ton
+$stmt = $conn->prepare("SELECT variant_id, masp, ten_mau, ma_mau_hex, ram, rom, hinh_anh, so_luong_ton, gia_ban
                         FROM product_variants
                         WHERE masp = ?
                         ORDER BY variant_id ASC");
@@ -32,7 +32,8 @@ while ($v = $res->fetch_assoc()) {
         "ram" => $v['ram'],
         "rom" => $v['rom'],
         "hinh_anh" => $v['hinh_anh'],
-        "so_luong_ton" => (int)$v['so_luong_ton']
+        "so_luong_ton" => (int)$v['so_luong_ton'],
+        "gia_ban" => (int)$v['gia_ban']
     ];
 }
 

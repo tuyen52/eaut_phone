@@ -25,16 +25,14 @@ function renderProductCardHTML(p) {
         rating += `<span>${rateCount} đánh giá</span>`;
     }
 
-    // 2. Chuẩn hóa giá tiền
-    var giaGoc = numToString(stringToNum(p.price));
-    var giaKhuyenMai = (p.promo && p.promo.value != null)
-        ? numToString(stringToNum(p.promo.value))
-        : '';
+    // 2. Chuẩn hóa giá tiền (products.gia = giá thấp nhất variant)
+    var listPrice = stringToNum(p.price);
+    var sellPrice = getEffectiveProductPrice(p, listPrice);
 
-    var price = `<strong>${giaGoc}&#8363;</strong>`;
+    var price = `<strong>${numToString(sellPrice)}&#8363;</strong>`;
 
-    if (p.promo && p.promo.name == "giareonline") {
-        price = `<strong>${giaKhuyenMai}&#8363;</strong><span>${giaGoc}&#8363;</span>`;
+    if (p.promo && p.promo.name === 'giareonline' && listPrice > sellPrice) {
+        price = `<strong>${numToString(sellPrice)}&#8363;</strong><span>${numToString(listPrice)}&#8363;</span>`;
     }
 
     // 3. Link chi tiết

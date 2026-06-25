@@ -496,7 +496,10 @@ function addKhungSuaSanPham(masp) {
                         </div>
                     </td></tr>
 
-                    <tr class="pf-tab pf-tab-basic"><td>Giá tiền:</td><td><input type="text" value="${escapeHtml(String(sp.price))}" required></td></tr>
+                    <tr class="pf-tab pf-tab-basic"><td>Giá tiền:</td><td>
+                        <input type="text" value="${escapeHtml(String(sp.price))}" readonly>
+                        <small class="form-hint">Tự tính = giá thấp nhất các biến thể</small>
+                    </td></tr>
                     <tr class="pf-tab pf-tab-basic"><td>Giới thiệu sản phẩm:</td><td><textarea rows="4">${escapeHtml(sp.gioi_thieu_san_pham || '')}</textarea></td></tr>
 
                     <tr class="pf-tab pf-tab-basic"><td>Tồn kho (tổng):</td><td>
@@ -514,7 +517,7 @@ function addKhungSuaSanPham(masp) {
                         </select>
                     </td></tr>
 
-                    <tr class="pf-tab pf-tab-basic"><td>Giá trị KM:</td><td><input type="text" value="${escapeHtml(sp.promo.value || '')}"></td></tr>
+                    <tr class="pf-tab pf-tab-basic"><td>Giá trị KM:</td><td><input type="text" class="promo-value-input" value="${escapeHtml(sp.promo.value || '')}"><small class="form-hint promo-value-hint"></small></td></tr>
 
                     ${getVariantSectionHtml('khungSuaSanPham')}
 
@@ -538,6 +541,7 @@ function addKhungSuaSanPham(masp) {
     khung.innerHTML = html;
     khung.style.transform = 'scale(1)';
     initProductFormTabs(khung);
+    initPromoValueHint(khung);
 
     loadVariantsIntoFrame('khungSuaSanPham', masp);
 }
@@ -672,6 +676,7 @@ function renderVariantRows(frameId, variants) {
     });
 
     updateInventoryFromVariants(frameId);
+    updatePriceFromVariants(frameId);
 }
 
 function buildColorGroupElement(frameId, meta) {
@@ -706,7 +711,7 @@ function buildColorGroupElement(frameId, meta) {
         </div>
         <div class="variant-color-body">
             <div class="variant-config-head">
-                <span>RAM</span><span>ROM</span><span>Tồn kho</span><span></span>
+                <span>RAM</span><span>ROM</span><span>Giá bán</span><span>Tồn kho</span><span></span>
             </div>
             <div class="variant_rows"></div>
             <button type="button" class="btn-add-config" onclick="addConfigToGroup(this)">
@@ -791,6 +796,7 @@ function appendConfigRow(group, v) {
         <input type="hidden" class="variant_img">
         <input class="variant_ram" type="text" placeholder="8 GB" value="${escapeHtml(v.ram || '')}">
         <input class="variant_rom" type="text" placeholder="128 GB" value="${escapeHtml(v.rom || '')}">
+        <input class="variant_price" type="text" inputmode="numeric" placeholder="0" value="${parseVariantPrice(v.gia_ban) || ''}">
         <input class="variant_stock" type="number" min="0" value="${isNaN(parseInt(v.so_luong_ton)) ? 0 : parseInt(v.so_luong_ton)}">
         <button type="button" class="btn-variant-remove" title="Xóa cấu hình" onclick="removeVariantRow(this)">
             <i class="fa fa-trash"></i>
@@ -801,6 +807,10 @@ function appendConfigRow(group, v) {
     row.querySelector('.variant_stock').addEventListener('input', function () {
         var khung = group.closest('[id^="khung"]');
         if (khung) updateInventoryFromVariants(khung.id);
+    });
+    row.querySelector('.variant_price').addEventListener('input', function () {
+        var khung = group.closest('[id^="khung"]');
+        if (khung) updatePriceFromVariants(khung.id);
     });
     syncGroupRows(group);
 }
@@ -846,10 +856,12 @@ function addColorGroup(frameId, meta) {
         variant_id: 0,
         ram: meta.ram || '',
         rom: meta.rom || '',
-        so_luong_ton: meta.so_luong_ton || 0
+        so_luong_ton: meta.so_luong_ton || 0,
+        gia_ban: meta.gia_ban || 0
     });
     updateGroupCount(group);
     updateInventoryFromVariants(frameId);
+    updatePriceFromVariants(frameId);
     return group;
 }
 
@@ -857,9 +869,12 @@ function addConfigToGroup(btn) {
     var group = btn.closest('.variant-color-group');
     if (!group) return;
     var khung = btn.closest('[id^="khung"]');
-    appendConfigRow(group, { variant_id: 0, ram: '', rom: '', so_luong_ton: 0 });
+    appendConfigRow(group, { variant_id: 0, ram: '', rom: '', so_luong_ton: 0, gia_ban: getDefaultVariantPrice(khung ? khung.id : '') });
     updateGroupCount(group);
-    if (khung) updateInventoryFromVariants(khung.id);
+    if (khung) {
+        updateInventoryFromVariants(khung.id);
+        updatePriceFromVariants(khung.id);
+    }
 }
 
 function toggleColorGroup(btn) {
@@ -902,6 +917,7 @@ function removeVariantRow(btn) {
         addColorGroup(khung.id, { ten_mau: 'Mặc định', ma_mau_hex: '#000000' });
     } else if (khung) {
         updateInventoryFromVariants(khung.id);
+        updatePriceFromVariants(khung.id);
     }
 }
 
@@ -921,6 +937,37 @@ function updateInventoryFromVariants(frameId) {
     if (invInput) invInput.value = total;
 }
 
+function parseVariantPrice(val) {
+    var n = parseInt(String(val || '').replace(/[^\d]/g, ''), 10);
+    return isNaN(n) || n < 0 ? 0 : n;
+}
+
+function getDefaultVariantPrice(frameId) {
+    var khung = document.getElementById(frameId);
+    if (!khung) return 0;
+
+    var minPrice = null;
+    khung.querySelectorAll('.variant_price').forEach(function (inp) {
+        var p = parseVariantPrice(inp.value);
+        if (p > 0 && (minPrice === null || p < minPrice)) minPrice = p;
+    });
+    return minPrice !== null ? minPrice : 0;
+}
+
+function updatePriceFromVariants(frameId) {
+    var khung = document.getElementById(frameId);
+    if (!khung) return;
+
+    var minPrice = null;
+    khung.querySelectorAll('.variant_row').forEach(function (r) {
+        var p = parseVariantPrice(r.querySelector('.variant_price')?.value);
+        if (p > 0 && (minPrice === null || p < minPrice)) minPrice = p;
+    });
+
+    var priceInput = findInputByLabel(khung, 'Giá tiền');
+    if (priceInput) priceInput.value = minPrice !== null ? minPrice : 0;
+}
+
 function loadVariantsIntoFrame(frameId, masp) {
     ensureVariantSection(frameId);
 
@@ -929,9 +976,10 @@ function loadVariantsIntoFrame(frameId, masp) {
         .then(list => {
             if (!Array.isArray(list)) list = [];
             renderVariantRows(frameId, list);
+            updatePriceFromVariants(frameId);
         })
         .catch(() => {
-            renderVariantRows(frameId, [{ variant_id: 0, ten_mau: 'Mặc định', ma_mau_hex: '#000000', so_luong_ton: 0 }]);
+            renderVariantRows(frameId, [{ variant_id: 0, ten_mau: 'Mặc định', ma_mau_hex: '#000000', so_luong_ton: 0, gia_ban: 0 }]);
         });
 }
 
@@ -987,10 +1035,11 @@ function layThongTinSanPhamTuTable(idFrame) {
     var gioiThieuArea = khung.querySelector('textarea');
     if (gioiThieuArea) gioiThieu = gioiThieuArea.value.trim();
 
-    if (!name || !price) { alert('Vui lòng điền tên và giá'); return false; }
+    if (!name) { alert('Vui lòng điền tên sản phẩm'); return false; }
 
     var variants = [];
     var rows = khung.querySelectorAll('.variant_row');
+    var minVariantPrice = null;
 
     rows.forEach(r => {
         var vid = parseInt(r.getAttribute('data-variant-id') || '0');
@@ -999,10 +1048,15 @@ function layThongTinSanPhamTuTable(idFrame) {
         var imgV = (r.querySelector('.variant_img')?.value || '').trim();
         if (imgV.indexOf('data:image') === 0) imgV = '';
         var stock = parseInt(r.querySelector('.variant_stock')?.value || '0');
+        var giaBan = parseVariantPrice(r.querySelector('.variant_price')?.value);
 
         if (!ten_mau) return;
         if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) hex = '#000000';
         if (isNaN(stock) || stock < 0) stock = 0;
+
+        if (giaBan > 0 && (minVariantPrice === null || giaBan < minVariantPrice)) {
+            minVariantPrice = giaBan;
+        }
 
         variants.push({
             variant_id: vid,
@@ -1010,18 +1064,36 @@ function layThongTinSanPhamTuTable(idFrame) {
             ma_mau_hex: hex,
             hinh_anh: imgV,
             so_luong_ton: stock,
+            gia_ban: giaBan,
             ram: (r.querySelector('.variant_ram')?.value || '').trim(),
             rom: (r.querySelector('.variant_rom')?.value || '').trim()
         });
     });
 
     if (variants.length === 0) {
-        variants = [{ variant_id: 0, ten_mau: 'Mặc định', ma_mau_hex: '#000000', hinh_anh: img, so_luong_ton: inventory }];
+        var fallbackPrice = parseVariantPrice(price);
+        variants = [{
+            variant_id: 0,
+            ten_mau: 'Mặc định',
+            ma_mau_hex: '#000000',
+            hinh_anh: img,
+            so_luong_ton: inventory,
+            gia_ban: fallbackPrice
+        }];
+        if (fallbackPrice > 0) minVariantPrice = fallbackPrice;
     }
+
+    if (!minVariantPrice || minVariantPrice <= 0) {
+        alert('Vui lòng nhập giá bán cho ít nhất một biến thể');
+        return false;
+    }
+
+    price = String(minVariantPrice);
 
     var total = variants.reduce((sum, v) => sum + (parseInt(v.so_luong_ton || 0) || 0), 0);
     inventory = total;
     updateInventoryFromVariants(idFrame);
+    updatePriceFromVariants(idFrame);
 
     return {
         masp: masp,
@@ -1124,14 +1196,44 @@ function promoToStringValue(pr) {
     if (!pr) return '';
     switch (pr.name) {
         case 'tragop': return 'Góp ' + pr.value + '%';
-        case 'giamgia': return 'Giảm ' + pr.value;
-        case 'giareonline': return 'Online ' + pr.value;
+        case 'giamgia': return 'Giảm ' + pr.value + ' (CH)';
+        case 'giareonline': return 'Online −' + pr.value;
         case 'moiramat': return 'Mới';
     }
     return '';
 }
 
+function getPromoValueHint(promoType) {
+    switch (promoType) {
+        case 'giamgia':
+            return 'Số tiền giảm khi mua tại cửa hàng (chỉ hiển thị, không trừ giá web).';
+        case 'giareonline':
+            return 'Số tiền giảm khi mua online (trừ trên gia_ban từng biến thể).';
+        case 'tragop':
+            return 'Phần trăm trả góp (vd: 0).';
+        case 'moiramat':
+            return 'Có thể để trống.';
+        default:
+            return 'Chọn loại khuyến mãi để xem hướng dẫn nhập.';
+    }
+}
+
+function initPromoValueHint(khung) {
+    if (!khung) return;
+    var promoSel = findSelectByLabel(khung, 'Khuyến mãi');
+    var hint = khung.querySelector('.promo-value-hint');
+    if (!promoSel || !hint) return;
+
+    var sync = function () {
+        hint.textContent = getPromoValueHint(promoSel.value);
+    };
+    promoSel.addEventListener('change', sync);
+    sync();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     ensureVariantSection('khungThemSanPham');
     updateInventoryFromVariants('khungThemSanPham');
+    updatePriceFromVariants('khungThemSanPham');
+    initPromoValueHint(document.getElementById('khungThemSanPham'));
 });

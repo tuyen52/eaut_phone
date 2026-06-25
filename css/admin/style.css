@@ -1206,7 +1206,7 @@ input:checked+.slider:before {
 
 .variant-config-head {
     display: grid;
-    grid-template-columns: 1fr 1fr 90px 36px;
+    grid-template-columns: 1fr 1fr 110px 90px 36px;
     gap: 8px;
     padding: 0 8px 6px;
     font-size: 10px;
@@ -1218,7 +1218,7 @@ input:checked+.slider:before {
 
 .variant-config-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 90px 36px;
+    grid-template-columns: 1fr 1fr 110px 90px 36px;
     gap: 8px;
     align-items: center;
     padding: 6px 8px;
@@ -1385,7 +1385,7 @@ input:checked+.slider:before {
 
     .variant-config-head,
     .variant-config-row {
-        grid-template-columns: 1fr 1fr 70px 32px;
+        grid-template-columns: 1fr 1fr 80px 70px 32px;
     }
 }
 

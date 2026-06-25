@@ -73,6 +73,56 @@ function showNotFound() {
    - API: php/get-product-variants.php?masp=...
    ========================================================= */
 
+function updatePriceDisplay(p, variant) {
+    var box = document.getElementById('detailPriceBox');
+    var labelEl = document.getElementById('detailPriceLabel');
+    var mainEl = document.getElementById('detailPriceMain');
+    var metaEl = document.getElementById('detailPriceMeta');
+    var topArea = document.querySelector('.chitietSanpham .area_price_top');
+    if (!box || !mainEl || !metaEl || !p) return;
+
+    var variantPrice = variant ? parseInt(variant.gia_ban, 10) : 0;
+    var listPrice = variantPrice > 0 ? variantPrice : getVariantListMinPrice(p, variantsHienTai);
+    var sellPrice = getEffectiveProductPrice(p, listPrice);
+    var hasExactVariant = variant && variantPrice > 0;
+
+    if (labelEl) {
+        labelEl.textContent = hasExactVariant ? 'Giá biến thể đã chọn' : 'Giá từ';
+    }
+
+    mainEl.innerHTML =
+        '<span class="detail_price_amount">' + numToString(sellPrice) + '</span>' +
+        '<span class="detail_price_currency">₫</span>';
+
+    var metaHtml = '';
+
+    if (p.promo && p.promo.name === 'giareonline' && listPrice > sellPrice) {
+        metaHtml += '<div class="detail_price_row detail_price_row-old">' +
+            '<span class="detail_price_old">' + numToString(listPrice) + '₫</span></div>';
+    }
+
+    if (p.promo && p.promo.name) {
+        metaHtml += '<div class="detail_price_row detail_price_row-promo">' +
+            new Promo(p.promo.name, p.promo.value).toWeb() + '</div>';
+    }
+
+    if (hasExactVariant) {
+        var configText = [variant.ten_mau, variant.ram, variant.rom].filter(Boolean).join(' · ');
+        metaHtml += '<div class="detail_price_row detail_price_row-config">' +
+            '<i class="fa fa-check-circle"></i> ' + escapeHtml(configText) + '</div>';
+    } else if (variantsHienTai.length) {
+        metaHtml += '<div class="detail_price_row detail_price_row-hint">' +
+            'Chọn đủ màu, RAM và bộ nhớ để xem giá chính xác</div>';
+    }
+
+    metaEl.innerHTML = metaHtml;
+
+    if (topArea) {
+        topArea.style.display = 'none';
+        topArea.innerHTML = '';
+    }
+}
+
 function loadVariantsForProduct(p) {
     var picker = document.getElementById('variantPicker');
     var optionsDiv = document.getElementById('variantOptions');
@@ -93,6 +143,7 @@ function loadVariantsForProduct(p) {
             resetVariantSelection();
             renderVariantOptions(p, list);
             applyVariantImage(p, null);
+            updatePriceDisplay(p, null);
         })
         .catch(err => {
             console.error(err);
@@ -147,11 +198,13 @@ function renderVariantOptions(p, variants) {
             selectedVariant = null;
             selectedRam = null;
             selectedRom = null;
+            var colorVariant = variants.find(x => x.ten_mau === selectedColor);
             renderRamRomPicker(p, variants, selectedColor);
-            applyVariantImage(p, { hinh_anh: v.hinh_anh });
+            applyVariantImage(p, colorVariant || null);
             hintDiv.className = 'variant_hint ok';
             hintDiv.innerText = 'Đã chọn màu: ' + selectedColor + '. Vui lòng chọn RAM và bộ nhớ.';
             updateStockAndBuyButton(p);
+            updatePriceDisplay(p, null);
         });
     });
 
@@ -257,6 +310,7 @@ function updateSelectedVariantFromChoices(p, variants) {
         hintDiv.className = 'variant_hint ok';
         hintDiv.innerText = `Đã chọn: ${v.ten_mau} | ${v.ram} | ${v.rom}`;
     }
+    updatePriceDisplay(p, v);
     updateStockAndBuyButton(p);
 }
 
@@ -344,17 +398,12 @@ function renderProductDetail(p) {
     div.querySelector('.picture img').src = p.img;
     document.getElementById('bigimg').src = p.img;
 
-    var priceArea = div.querySelector('.area_price');
-    var giaGoc = numToString(stringToNum(p.price));
-    var giaKhuyenMai = (p.promo && p.promo.value != null)
-        ? numToString(stringToNum(p.promo.value))
-        : '';
-
-    if (p.promo.name !== 'giareonline') {
-        priceArea.innerHTML = `<strong>${giaGoc}₫</strong>` + new Promo(p.promo.name, p.promo.value).toWeb();
-    } else {
-        priceArea.innerHTML = `<strong>${giaKhuyenMai}₫</strong> <span>${giaGoc}₫</span>`;
+    var priceArea = div.querySelector('.area_price_top');
+    if (priceArea) {
+        priceArea.style.display = 'none';
+        priceArea.innerHTML = '';
     }
+    updatePriceDisplay(p, null);
 
     document.getElementById('detailPromo').innerText = getPromoDetailString(p);
 
@@ -695,7 +744,7 @@ function generateStarHTML(star, count) {
 function getPromoDetailString(p) {
     if (!p.promo) return "";
     if (p.promo.name === 'tragop') return `Trả góp 0% lãi suất.`;
-    if (p.promo.name === 'giamgia') return `Giảm ngay ${p.promo.value}₫.`;
-    if (p.promo.name === 'giareonline') return `Giá sốc online ${p.promo.value}₫.`;
+    if (p.promo.name === 'giamgia') return `Giảm ${p.promo.value}₫ khi mua tại cửa hàng (không áp dụng online).`;
+    if (p.promo.name === 'giareonline') return `Giảm ${p.promo.value}₫ khi mua online (trên giá từng cấu hình).`;
     return `Nhiều ưu đãi hấp dẫn.`;
 }

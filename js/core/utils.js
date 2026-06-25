@@ -1,5 +1,49 @@
 // js/core/utils.js
 
+function getOnlineDiscountAmount(product, listPrice) {
+    if (!product || !product.promo || product.promo.name !== 'giareonline') return 0;
+    var raw = stringToNum(product.promo.value);
+    if (raw <= 0) return 0;
+    listPrice = parseInt(listPrice, 10) || stringToNum(product.price);
+    if (listPrice <= 0) return 0;
+    // Du lieu cu: khuyen_mai_gia_tri la gia ban cuoi (lon hon ~50% gia niem yet)
+    if (raw > listPrice * 0.5) {
+        return Math.max(0, listPrice - raw);
+    }
+    return raw;
+}
+
+// Giá web: gia_ban variant; giareonline = tru so tien giam
+function getEffectiveProductPrice(product, variantGiaBan) {
+    if (!product) return 0;
+    var base = parseInt(variantGiaBan, 10);
+    if (isNaN(base) || base <= 0) {
+        base = stringToNum(product.price);
+    }
+    if (product.promo && product.promo.name === 'giareonline') {
+        var discount = getOnlineDiscountAmount(product, base);
+        if (discount > 0) {
+            return Math.max(0, base - discount);
+        }
+    }
+    return base;
+}
+
+function getVariantListMinPrice(product, variants) {
+    if (!Array.isArray(variants) || variants.length === 0) {
+        return getEffectiveProductPrice(product, stringToNum(product && product.price));
+    }
+    var minList = null;
+    variants.forEach(function (v) {
+        var p = parseInt(v.gia_ban, 10);
+        if (p > 0 && (minList === null || p < minList)) minList = p;
+    });
+    if (minList === null) {
+        return getEffectiveProductPrice(product, stringToNum(product && product.price));
+    }
+    return getEffectiveProductPrice(product, minList);
+}
+
 // Chuyển số thành chuỗi có dấu phân cách (VD: 10000 -> 10.000)
 function numToString(num, char) {
     if (isNaN(num)) return '0';

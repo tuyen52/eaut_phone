@@ -43,12 +43,18 @@ function normalize_variant_row_update($v, $defaultImg) {
     $ram = trim((string)($v['ram'] ?? ''));
     $rom = trim((string)($v['rom'] ?? ''));
 
+    $giaBan = parse_admin_price_update($v['gia_ban'] ?? 0);
+    if ($giaBan < 0) {
+        $giaBan = 0;
+    }
+
     return [
         'variant_id'   => $variantId,
         'ten_mau'      => $tenMau,
         'ma_mau_hex'   => $hex,
         'hinh_anh'     => $img,
         'so_luong_ton' => $stock,
+        'gia_ban'      => $giaBan,
         'ram'          => $ram,
         'rom'          => $rom
     ];
@@ -61,10 +67,18 @@ function sync_product_stock_update(mysqli $conn, $masp) {
             SELECT IFNULL(SUM(v.so_luong_ton), 0)
             FROM product_variants v
             WHERE v.masp = ?
+        ),
+        gia = COALESCE(
+            (
+                SELECT MIN(v.gia_ban)
+                FROM product_variants v
+                WHERE v.masp = ? AND v.gia_ban > 0
+            ),
+            gia
         )
         WHERE masp = ?
     ");
-    $stmtSync->bind_param("ss", $masp, $masp);
+    $stmtSync->bind_param("sss", $masp, $masp, $masp);
     $stmtSync->execute();
     $stmtSync->close();
 }
@@ -81,8 +95,6 @@ try {
     $ten = trim((string)($data['name'] ?? ''));
     $hang = trim((string)($data['company'] ?? ''));
     $hinh = trim((string)($data['img'] ?? ''));
-
-    $gia = parse_admin_price_update($data['price'] ?? 0);
 
     $promo = is_array($data['promo'] ?? null) ? $data['promo'] : [];
     $kmLoai = trim((string)($promo['name'] ?? ''));
@@ -102,10 +114,6 @@ try {
 
     if ($ten === '' || $hang === '' || $hinh === '') {
         json_response(false, 'Thiếu thông tin sản phẩm bắt buộc!', [], 400);
-    }
-
-    if ($gia < 0) {
-        json_response(false, 'Giá sản phẩm không hợp lệ!', [], 400);
     }
 
     $hasVariantsKey = array_key_exists('variants', $data);
@@ -132,7 +140,6 @@ try {
         SET ten_sp = ?,
             hang_sx = ?,
             hinh_anh = ?,
-            gia = ?,
             khuyen_mai_loai = ?,
             khuyen_mai_gia_tri = ?,
             screen = ?,
@@ -148,11 +155,10 @@ try {
     ");
 
     $stmtProduct->bind_param(
-        "sssissssssssssss",
+        "sssssssssssssss",
         $ten,
         $hang,
         $hinh,
-        $gia,
         $kmLoai,
         $kmGt,
         $screen,
@@ -194,8 +200,20 @@ try {
                 'ten_mau' => 'Mặc định',
                 'ma_mau_hex' => '#000000',
                 'hinh_anh' => $hinh,
-                'so_luong_ton' => 0
+                'so_luong_ton' => 0,
+                'gia_ban' => 0
             ];
+        }
+
+        $hasValidPrice = false;
+        foreach ($normalizedVariants as $nv) {
+            if ((int)($nv['gia_ban'] ?? 0) > 0) {
+                $hasValidPrice = true;
+                break;
+            }
+        }
+        if (!$hasValidPrice) {
+            throw new Exception('Vui lòng nhập giá bán cho ít nhất một biến thể!');
         }
 
         $keepIds = [];
@@ -213,6 +231,7 @@ try {
                 ma_mau_hex = ?,
                 hinh_anh = ?,
                 so_luong_ton = ?,
+                gia_ban = ?,
                 ram = ?,
                 rom = ?
             WHERE variant_id = ? AND masp = ?
@@ -220,9 +239,9 @@ try {
 
         $stmtInsertVariant = $conn->prepare("
             INSERT INTO product_variants (
-                masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton, ram, rom
+                masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton, gia_ban, ram, rom
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         foreach ($normalizedVariants as $v) {
@@ -231,6 +250,7 @@ try {
             $hex        = $v['ma_mau_hex'];
             $imgVariant = $v['hinh_anh'];
             $stock      = (int)$v['so_luong_ton'];
+            $giaBan     = (int)$v['gia_ban'];
             $vRam       = $v['ram'] ?? '';
             $vRom       = $v['rom'] ?? '';
 
@@ -243,11 +263,12 @@ try {
 
                 if ($rsVariant->num_rows > 0) {
                     $stmtUpdateVariant->bind_param(
-                        "ssssisss",
+                        "sssiissis",
                         $tenMau,
                         $hex,
                         $imgVariant,
                         $stock,
+                        $giaBan,
                         $vRam,
                         $vRom,
                         $variantId,
@@ -262,12 +283,13 @@ try {
 
             if (!$updatedExisting) {
                 $stmtInsertVariant->bind_param(
-                    "ssssiss",
+                    "ssssiiss",
                     $masp,
                     $tenMau,
                     $hex,
                     $imgVariant,
                     $stock,
+                    $giaBan,
                     $vRam,
                     $vRom
                 );

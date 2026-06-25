@@ -417,7 +417,7 @@ if (!function_exists('save_order_details_from_cart')) {
             $productImageSnapshot = null;
             $variantNameSnapshot = trim($tenMau . ($ram ? ' | ' . $ram : '') . ($rom ? ' | ' . $rom : ''));
 
-            $stmtProductSnapshot = $conn->prepare("SELECT ten_sp, hinh_anh, gia, khuyen_mai_loai, khuyen_mai_gia_tri FROM products WHERE masp = ? LIMIT 1");
+            $stmtProductSnapshot = $conn->prepare("SELECT ten_sp, hinh_anh FROM products WHERE masp = ? LIMIT 1");
             $stmtProductSnapshot->bind_param("s", $masp);
             $stmtProductSnapshot->execute();
             $rsProductSnapshot = $stmtProductSnapshot->get_result();
@@ -425,10 +425,6 @@ if (!function_exists('save_order_details_from_cart')) {
                 $productRow = $rsProductSnapshot->fetch_assoc();
                 $productNameSnapshot = (string)($productRow['ten_sp'] ?? '');
                 $productImageSnapshot = $productRow['hinh_anh'] ?? null;
-                $basePrice = (float)($productRow['gia'] ?? 0);
-                $promoType = trim((string)($productRow['khuyen_mai_loai'] ?? ''));
-                $promoValue = (float)($productRow['khuyen_mai_gia_tri'] ?? 0);
-                $productPriceSnapshot = ($promoType === 'giareonline' && $promoValue > 0) ? $promoValue : $basePrice;
             }
             $rsProductSnapshot->free();
             $stmtProductSnapshot->close();

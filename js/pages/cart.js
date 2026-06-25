@@ -5,7 +5,7 @@
 // - VNPAY Sandbox
 
 var currentCart = [];
-var variantCache = {}; // variant_id -> {ten_mau, ma_mau_hex, so_luong_ton}
+var variantCache = {}; // variant_id -> {ten_mau, ma_mau_hex, so_luong_ton, gia_ban, ram, rom}
 
 window.onload = function () {
     khoiTao();
@@ -81,7 +81,8 @@ function upgradeOldItemsToVariant() {
                     ma_mau_hex: v.ma_mau_hex,
                     ram: v.ram || null,
                     rom: v.rom || null,
-                    so_luong_ton: parseInt(v.so_luong_ton || 0)
+                    so_luong_ton: parseInt(v.so_luong_ton || 0),
+                    gia_ban: parseInt(v.gia_ban || 0)
                 };
             })
             .catch(() => {});
@@ -103,7 +104,8 @@ function loadVariantInfoForCart() {
                         ma_mau_hex: v.ma_mau_hex,
                         ram: v.ram || null,
                         rom: v.rom || null,
-                        so_luong_ton: parseInt(v.so_luong_ton || 0)
+                        so_luong_ton: parseInt(v.so_luong_ton || 0),
+                        gia_ban: parseInt(v.gia_ban || 0)
                     };
                 }
             })
@@ -141,20 +143,22 @@ function clearLocalCart() {
     capNhat_ThongTin_CurrentUser();
 }
 
+function getItemPrice(item, productObj) {
+    if (!productObj) return 0;
+    var variantGiaBan = 0;
+    if (item.variant_id && variantCache[item.variant_id]) {
+        variantGiaBan = parseInt(variantCache[item.variant_id].gia_ban || 0);
+    }
+    return getEffectiveProductPrice(productObj, variantGiaBan);
+}
+
 function buildCheckoutProducts() {
     var tongTien = 0;
     var listProducts = getListProducts();
 
     var danhSachSanPhamGuiDi = currentCart.map(item => {
         var p = listProducts.find(x => x.masp == item.ma);
-        var price = 0;
-
-        if (p) {
-            price = parseInt(p.price.split('.').join(''));
-            if (p.promo && p.promo.name == 'giareonline') {
-                price = parseInt(p.promo.value.split('.').join(''));
-            }
-        }
+        var price = getItemPrice(item, p);
 
         tongTien += price * item.soluong;
 
@@ -201,10 +205,7 @@ function renderCart() {
         var p = findProduct(item.ma);
         if (!p) return;
 
-        var price = parseInt(p.price.split('.').join(''));
-        if (p.promo && p.promo.name == 'giareonline') {
-            price = parseInt(p.promo.value.split('.').join(''));
-        }
+        var price = getItemPrice(item, p);
 
         var stock = getItemStock(item, p);
         var color = getItemColor(item);
@@ -336,11 +337,7 @@ async function openPaymentModal() {
     currentCart.forEach(item => {
         var p = findProduct(item.ma);
         if (p) {
-            var price = stringToNum(p.price);
-            if (p.promo && p.promo.name == 'giareonline') {
-                price = stringToNum(p.promo.value);
-            }
-            total += price * item.soluong;
+            total += getItemPrice(item, p) * item.soluong;
         }
     });
 
@@ -423,31 +420,9 @@ function processPayment() {
         return;
     }
 
-    var tongTien = 0;
-    var listProducts = getListProducts();
-
-    var danhSachSanPhamGuiDi = currentCart.map(item => {
-        var p = listProducts.find(x => x.masp == item.ma);
-        var price = 0;
-
-        if (p) {
-            price = parseInt(p.price.split('.').join(''));
-            if (p.promo && p.promo.name == 'giareonline') {
-                price = parseInt(p.promo.value.split('.').join(''));
-            }
-        }
-
-        tongTien += price * item.soluong;
-
-        return {
-        masp: item.ma,
-        variant_id: item.variant_id || null,
-        mau_sac: item.mau_sac || null,
-        ram: item.ram || null,
-        rom: item.rom || null,
-        so_luong: item.soluong
-        };
-    });
+    var checkout = buildCheckoutProducts();
+    var tongTien = checkout.tongTien;
+    var danhSachSanPhamGuiDi = checkout.sanPham;
 
         var dataToSend = {
         tong_tien: tongTien,

@@ -190,7 +190,10 @@
                             </div>
                         </td></tr>
 
-                        <tr class="pf-tab pf-tab-basic"><td>Giá tiền:</td><td><input type="number" min="0" required></td></tr>
+                        <tr class="pf-tab pf-tab-basic"><td>Giá tiền:</td><td>
+                            <input type="text" value="0" readonly>
+                            <small class="form-hint">Tự tính = giá thấp nhất các biến thể</small>
+                        </td></tr>
                         <tr class="pf-tab pf-tab-basic"><td>Giới thiệu sản phẩm:</td><td><textarea rows="4" placeholder="Mô tả ngắn về sản phẩm..."></textarea></td></tr>
 
                         <tr class="pf-tab pf-tab-basic"><td>Tồn kho:</td><td>
@@ -208,7 +211,10 @@
                             </select>
                         </td></tr>
 
-                        <tr class="pf-tab pf-tab-basic"><td>Giá trị KM:</td><td><input type="text" placeholder="Số tiền, % hoặc để trống"></td></tr>
+                        <tr class="pf-tab pf-tab-basic"><td>Giá trị KM:</td><td>
+                            <input type="text" class="promo-value-input" placeholder="Số tiền, % hoặc để trống">
+                            <small class="form-hint promo-value-hint">Chọn loại khuyến mãi để xem hướng dẫn nhập.</small>
+                        </td></tr>
 
                         <tr class="pf-tab pf-tab-specs"><td>Màn hình:</td><td><input type="text"></td></tr>
                         <tr class="pf-tab pf-tab-specs"><td>HĐH:</td><td><input type="text"></td></tr>

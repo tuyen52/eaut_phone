@@ -77,6 +77,151 @@
 .area_order .buyNow,
 .area_order .addCart,
 .area_order button { border-radius: 14px; box-shadow: 0 12px 24px rgba(11, 87, 208, 0.12); }
+
+/* Giá ngay trên nút mua */
+.area_price_top {
+    display: none !important;
+}
+
+.detail_price_box {
+    margin: 16px 0 12px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fff7f5 0%, #ffffff 55%, #f8fbff 100%);
+    border: 1.5px solid rgba(225, 12, 0, 0.12);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.detail_price_header {
+    margin-bottom: 6px;
+}
+
+.detail_price_label {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.detail_price_main {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.detail_price_amount {
+    font-size: clamp(28px, 3.2vw, 38px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #e10c00;
+}
+
+.detail_price_currency {
+    font-size: 22px;
+    font-weight: 700;
+    color: #e10c00;
+    margin-bottom: 4px;
+}
+
+.detail_price_meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail_price_row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.4;
+}
+
+.detail_price_row-old .detail_price_old {
+    font-size: 16px;
+    color: #94a3b8;
+    text-decoration: line-through;
+}
+
+.detail_price_row-promo label {
+    display: inline-block;
+    position: relative;
+    font-size: 11px;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 3px 8px;
+    height: auto;
+    line-height: 1.3;
+    margin: 0;
+}
+
+.detail_price_row-promo label.tragop { background: #f28902; }
+.detail_price_row-promo label.giamgia {
+    background-image: linear-gradient(90deg, #ff9c00 0%, #ec1f1f 100%);
+}
+.detail_price_row-promo label.moiramat { background: #1191f8; }
+.detail_price_row-promo label.giareonline { background: #3fb846; }
+
+.detail_price_row-config {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0b57d0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #eff6ff;
+    border: 1px solid rgba(11, 87, 208, 0.12);
+}
+
+.detail_price_row-config .fa {
+    color: #16a34a;
+}
+
+.detail_price_row-hint {
+    font-size: 13px;
+    color: #7c5a00;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #fffbeb;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.detail_price_box .stock_status {
+    margin: 12px 0 0;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+.detail_price_box .stock_status.available {
+    color: #15803d;
+    background: #ecfdf3;
+    border: 1px solid rgba(22, 163, 74, 0.18);
+}
+
+.detail_price_box .stock_status.unavailable {
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid rgba(225, 12, 0, 0.15);
+}
+
+.chitietSanpham .area_order {
+    margin-top: 0;
+}
+
+.chitietSanpham .area_order .buy_now {
+    border-radius: 14px;
+    padding: 12px 0;
+    background: linear-gradient(135deg, #f59000 0%, #fd6e1d 100%);
+    box-shadow: 0 10px 24px rgba(253, 110, 29, 0.28);
+}
+
 @media (max-width: 980px) {
     .chitietSanpham .picture,
     .chitietSanpham .price_sale { width: 100%; padding-left: 0; padding-right: 0; float: none; }
@@ -460,6 +605,11 @@
     font-size: 1.1em;
     font-weight: bold;
     border-radius: 4px;
+}
+
+.detail_price_box .stock_status {
+    margin: 12px 0 0;
+    text-align: left;
 }
 
 .stock_status.available {
