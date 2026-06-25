@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 24, 2026 at 05:51 PM
+-- Generation Time: Jun 25, 2026 at 06:12 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -154,36 +154,37 @@ CREATE TABLE `products` (
   `ram` varchar(50) DEFAULT '',
   `rom` varchar(50) DEFAULT '',
   `micro_usb` varchar(100) DEFAULT '',
-  `battery` varchar(100) DEFAULT ''
+  `battery` varchar(100) DEFAULT '',
+  `gioi_thieu_san_pham` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`masp`, `ten_sp`, `hang_sx`, `hinh_anh`, `gia`, `so_luong_ton`, `so_sao`, `so_danh_gia`, `khuyen_mai_loai`, `khuyen_mai_gia_tri`, `screen`, `os`, `camera`, `camera_front`, `cpu`, `ram`, `rom`, `micro_usb`, `battery`) VALUES
-('APP16', 'iPhone 16 128GB', 'Apple', 'img/products/uploads/ip16xanhduong-1779440286.jpg', 18990000, 25, 0, 0, 'giamgia', '1000000', 'Super Retina XDR 6.1 inch', 'iOS 26', 'Camera kép 48 MP', 'TrueDepth 12 MP', 'Apple A18', '8 GB', '128 GB', 'Không hỗ trợ thẻ nhớ', 'Pin tốt, sạc nhanh USB-C'),
-('APP17', 'iPhone 17 256GB', 'Apple', 'img/products/uploads/t---i-xu---ng--2-1779441601.webp', 24990000, 20, 0, 0, 'moiramat', '', 'Super Retina XDR 6.3 inch 120Hz', 'iOS 26', 'Camera kép 48 MP, quay 4K', 'TrueDepth 24 MP', 'Apple A19', '8 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin cả ngày, sạc nhanh USB-C'),
-('APP17P', 'iPhone 17 Pro 256GB', 'Apple', 'img/products/uploads/shopping-1779441651.webp', 34990000, 11, 0, 0, 'giareonline', '33490000', 'OLED ProMotion 6.3 inch 120Hz', 'iOS 26', 'Camera Pro Fusion 48 MP', 'TrueDepth 24 MP', 'Apple A19 Pro', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin Pro, sạc nhanh USB-C'),
-('HMDPULSEP', 'HMD Pulse Pro 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng-1779441784.jpg', 3990000, 21, 5, 1, 'giamgia', '200000', 'LCD 6.65 inch 90Hz', 'Android 15', 'Camera sau 50 MP', 'Camera selfie 50 MP', 'Unisoc T606', '6 GB', '128 GB', 'MicroSD hỗ trợ', '5000 mAh, pin lâu'),
-('HMDXR21', 'Nokia XR21 5G 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng--1-1779441853.jpg', 7490000, 14, 0, 0, 'tragop', '0', 'LCD 6.49 inch 120Hz', 'Android 14', 'Camera kép 64 MP', 'Camera 16 MP', 'Snapdragon 695 5G', '6 GB', '128 GB', 'MicroSD hỗ trợ', '4800 mAh, bền bỉ'),
-('HWMATEX6', 'Huawei Mate X6 12GB/512GB', 'Huawei', 'img/products/uploads/t---i-xu---ng--2-1779441895.jpg', 41990000, 12, 0, 0, 'tragop', '0', 'Màn hình gập OLED 7.93 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera Ultra Chroma 50 MP', 'Camera 8 MP', 'Kirin flagship', '12 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', 'Pin kép, sạc nhanh SuperCharge'),
-('HWPR80', 'Huawei Pura 80 12GB/256GB', 'Huawei', 'img/products/uploads/t---i-xu---ng--3-1779441927.webp', 18990000, 12, 0, 0, 'moiramat', '', 'OLED 6.6 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera XMAGE 50 MP', 'Camera 13 MP', 'Kirin series', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin lớn, sạc nhanh SuperCharge'),
-('HWPR80U', 'Huawei Pura 80 Ultra 16GB/512GB', 'Huawei', 'img/products/uploads/shopping--1-1779441992.webp', 32990000, 10, 0, 0, 'giareonline', '31490000', 'OLED LTPO 6.8 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera XMAGE cao cấp, tele', 'Camera 13 MP', 'Kirin flagship', '16 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', 'Pin lớn, sạc nhanh SuperCharge'),
-('NOKIAG42', 'Nokia G42 5G 6GB/128GB', 'Nokia', 'img/products/uploads/nokia-g42-5g-viettablet-1779442098.webp', 4490000, 20, 0, 0, 'giareonline', '4190000', 'LCD 6.56 inch 90Hz', 'Android 14', 'Camera chính 50 MP', 'Camera 8 MP', 'Snapdragon 480+ 5G', '6 GB', '128 GB', 'MicroSD hỗ trợ', '5000 mAh'),
-('OPPOA5P', 'OPPO A5 Pro 5G 8GB/256GB', 'Oppo', 'img/products/uploads/t---i-xu---ng--3-1779442158.jpg', 6990000, 20, 0, 0, 'giamgia', '400000', 'LCD 6.67 inch 120Hz', 'Android 15, ColorOS', 'Camera 50 MP', 'Camera 8 MP', 'Dimensity 5G', '8 GB', '256 GB', 'MicroSD hỗ trợ', '5800 mAh, sạc nhanh'),
-('OPPOR15P', 'OPPO Reno15 Pro 5G 12GB/512GB', 'Oppo', 'img/products/uploads/t---i-xu---ng--4-1779442239.jpg', 15990000, 14, 0, 0, 'tragop', '0', 'AMOLED 6.7 inch 120Hz', 'Android 16, ColorOS', 'Camera chân dung 50 MP OIS', 'Camera 50 MP', 'Dimensity AI 5G', '12 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5000 mAh, sạc nhanh 80W'),
-('OPPOX9U', 'OPPO Find X9 Ultra 16GB/512GB', 'Oppo', 'img/products/uploads/t---i-xu---ng--5-1779442269.jpg', 27990000, 12, 0, 0, 'moiramat', '', 'AMOLED 6.82 inch 120Hz', 'Android 16, ColorOS', 'Camera Hasselblad 50 MP', 'Camera 32 MP', 'Dimensity flagship', '16 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5400 mAh, sạc nhanh SuperVOOC'),
-('REALMEC75', 'realme C75 8GB/256GB', 'Realme', 'img/products/uploads/t---i-xu---ng--6-1779442317.jpg', 5290000, 24, 0, 0, 'giareonline', '4990000', 'LCD 6.72 inch 90Hz', 'Android 15, realme UI', 'Camera 50 MP', 'Camera 8 MP', 'Helio G series', '8 GB', '256 GB', 'MicroSD hỗ trợ', '6000 mAh'),
-('REALMEGT8', 'realme GT 8 Pro 16GB/512GB', 'Realme', 'img/products/uploads/t---i-xu---ng--7-1779442339.jpg', 18990000, 21, 0, 0, 'giamgia', '1000000', 'AMOLED 6.78 inch 144Hz', 'Android 16, realme UI', 'Camera 50 MP OIS, góc rộng', 'Camera 32 MP', 'Snapdragon 8 series', '16 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5500 mAh, sạc nhanh 120W'),
-('REDMI15', 'REDMI Note 15 8GB/128GB', 'Xiaomi', 'img/products/uploads/t---i-xu---ng--8-1779442369.jpg', 4990000, 36, 0, 0, 'giareonline', '4590000', 'AMOLED 6.67 inch 120Hz', 'Android 16, HyperOS', 'Camera 108 MP', 'Camera 16 MP', 'Snapdragon tầm trung', '8 GB', '128 GB', 'MicroSD tối đa 1 TB', '5000 mAh, sạc nhanh'),
-('REDMI15P5G', 'REDMI Note 15 Pro 5G 12GB/256GB', 'Xiaomi', 'img/products/uploads/t---i-xu---ng--9-1779442401.jpg', 8990000, 29, 0, 0, 'giamgia', '500000', 'AMOLED 6.83 inch 1.5K 120Hz', 'Android 16, HyperOS', 'Camera 200 MP chống rung OIS', 'Camera 32 MP', 'MediaTek Dimensity 7400-Ultra', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', '6580 mAh, sạc nhanh'),
-('SAMA37', 'Samsung Galaxy A37 5G 8GB/128GB', 'Samsung', 'img/products/uploads/t---i-xu---ng--10-1779442445.jpg', 8290000, 30, 0, 0, 'giareonline', '7890000', 'Super AMOLED 6.6 inch 120Hz', 'Android 16', 'Camera 50 MP', 'Camera 13 MP', 'Exynos tầm trung', '8 GB', '128 GB', 'MicroSD tối đa 1 TB', '5000 mAh'),
-('SAMA57', 'Samsung Galaxy A57 5G 8GB/256GB', 'Samsung', 'img/products/uploads/t---i-xu---ng--11-1779442472.jpg', 11990000, 24, 0, 0, 'giamgia', '700000', 'Super AMOLED 6.7 inch 120Hz', 'Android 16', 'Camera 50 MP chống rung OIS', 'Camera 32 MP', 'Exynos AI Edition', '8 GB', '256 GB', 'MicroSD tối đa 1 TB', '5000 mAh, sạc nhanh'),
-('SAMS26U', 'Samsung Galaxy S26 Ultra 12GB/512GB', 'Samsung', 'img/products/uploads/t---i-xu---ng--12-1779442503.jpg', 33990000, 18, 0, 0, 'moiramat', '', 'Dynamic AMOLED 2X 6.9 inch 120Hz', 'Android 16, One UI AI', 'Camera 200 MP, tele, góc rộng', 'Camera 12 MP', 'Snapdragon 8 Elite for Galaxy', '12 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5000 mAh, sạc nhanh'),
-('VIVOX300', 'Vivo X300 Pro 12GB/512GB', 'Vivo', 'img/products/uploads/t---i-xu---ng--13-1779442533.jpg', 23990000, 18, 0, 0, 'giareonline', '22490000', 'AMOLED 6.78 inch 120Hz', 'Android 16, Funtouch OS', 'Camera ZEISS 50 MP, tele', 'Camera 32 MP', 'Dimensity flagship', '12 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5200 mAh, sạc nhanh'),
-('VIVOY39', 'Vivo Y39 5G 8GB/256GB', 'Vivo', 'img/products/uploads/t---i-xu---ng--14-1779442556.jpg', 6490000, 36, 0, 0, 'giamgia', '300000', 'LCD 6.68 inch 120Hz', 'Android 15, Funtouch OS', 'Camera 50 MP', 'Camera 8 MP', 'Snapdragon 5G', '8 GB', '256 GB', 'MicroSD hỗ trợ', '6500 mAh, sạc nhanh'),
-('XIA15U', 'Xiaomi 15 Ultra 16GB/512GB', 'Xiaomi', 'img/products/uploads/t---i-xu---ng--15-1779442578.jpg', 29990000, 18, 0, 0, 'giareonline', '28490000', 'AMOLED 6.73 inch 2K 120Hz', 'Android 16, HyperOS', 'Camera Leica 50 MP, tele tiềm vọng', 'Camera 32 MP', 'Snapdragon 8 Elite', '16 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5300 mAh, sạc nhanh 90W');
+INSERT INTO `products` (`masp`, `ten_sp`, `hang_sx`, `hinh_anh`, `gia`, `so_luong_ton`, `so_sao`, `so_danh_gia`, `khuyen_mai_loai`, `khuyen_mai_gia_tri`, `screen`, `os`, `camera`, `camera_front`, `cpu`, `ram`, `rom`, `micro_usb`, `battery`, `gioi_thieu_san_pham`) VALUES
+('APP16', 'iPhone 16 128GB', 'Apple', 'img/products/uploads/ip16xanhduong-1779440286.jpg', 18990000, 25, 0, 0, 'giamgia', '1000000', 'Super Retina XDR 6.1 inch', 'iOS 26', 'Camera kép 48 MP', 'TrueDepth 12 MP', 'Apple A18', '8 GB', '128 GB', 'Không hỗ trợ thẻ nhớ', 'Pin tốt, sạc nhanh USB-C', 'iPhone 16 sở hữu thiết kế tinh tế, hiệu năng mạnh mẽ và màn hình hiển thị sắc nét, phù hợp cho cả công việc lẫn giải trí.\n\nMáy mang đến trải nghiệm mượt mà với khả năng chụp ảnh chất lượng cao, pin đáp ứng tốt nhu cầu sử dụng hằng ngày và hệ sinh thái iOS ổn định.'),
+('APP17', 'iPhone 17 256GB', 'Apple', 'img/products/uploads/t---i-xu---ng--2-1779441601.webp', 24990000, 20, 0, 0, 'moiramat', '', 'Super Retina XDR 6.3 inch 120Hz', 'iOS 26', 'Camera kép 48 MP, quay 4K', 'TrueDepth 24 MP', 'Apple A19', '8 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin cả ngày, sạc nhanh USB-C', NULL),
+('APP17P', 'iPhone 17 Pro 256GB', 'Apple', 'img/products/uploads/shopping-1779441651.webp', 34990000, 11, 0, 0, 'giareonline', '33490000', 'OLED ProMotion 6.3 inch 120Hz', 'iOS 26', 'Camera Pro Fusion 48 MP', 'TrueDepth 24 MP', 'Apple A19 Pro', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin Pro, sạc nhanh USB-C', NULL),
+('HMDPULSEP', 'HMD Pulse Pro 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng-1779441784.jpg', 3990000, 21, 5, 1, 'giamgia', '200000', 'LCD 6.65 inch 90Hz', 'Android 15', 'Camera sau 50 MP', 'Camera selfie 50 MP', 'Unisoc T606', '6 GB', '128 GB', 'MicroSD hỗ trợ', '5000 mAh, pin lâu', NULL),
+('HMDXR21', 'Nokia XR21 5G 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng--1-1779441853.jpg', 7490000, 14, 0, 0, 'tragop', '0', 'LCD 6.49 inch 120Hz', 'Android 14', 'Camera kép 64 MP', 'Camera 16 MP', 'Snapdragon 695 5G', '6 GB', '128 GB', 'MicroSD hỗ trợ', '4800 mAh, bền bỉ', NULL),
+('HWMATEX6', 'Huawei Mate X6 12GB/512GB', 'Huawei', 'img/products/uploads/t---i-xu---ng--2-1779441895.jpg', 41990000, 12, 0, 0, 'tragop', '0', 'Màn hình gập OLED 7.93 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera Ultra Chroma 50 MP', 'Camera 8 MP', 'Kirin flagship', '12 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', 'Pin kép, sạc nhanh SuperCharge', NULL),
+('HWPR80', 'Huawei Pura 80 12GB/256GB', 'Huawei', 'img/products/uploads/t---i-xu---ng--3-1779441927.webp', 18990000, 12, 0, 0, 'moiramat', '', 'OLED 6.6 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera XMAGE 50 MP', 'Camera 13 MP', 'Kirin series', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin lớn, sạc nhanh SuperCharge', NULL),
+('HWPR80U', 'Huawei Pura 80 Ultra 16GB/512GB', 'Huawei', 'img/products/uploads/shopping--1-1779441992.webp', 32990000, 10, 0, 0, 'giareonline', '31490000', 'OLED LTPO 6.8 inch 120Hz', 'EMUI / HarmonyOS tùy thị trường', 'Camera XMAGE cao cấp, tele', 'Camera 13 MP', 'Kirin flagship', '16 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', 'Pin lớn, sạc nhanh SuperCharge', NULL),
+('NOKIAG42', 'Nokia G42 5G 6GB/128GB', 'Nokia', 'img/products/uploads/nokia-g42-5g-viettablet-1779442098.webp', 4490000, 20, 0, 0, 'giareonline', '4190000', 'LCD 6.56 inch 90Hz', 'Android 14', 'Camera chính 50 MP', 'Camera 8 MP', 'Snapdragon 480+ 5G', '6 GB', '128 GB', 'MicroSD hỗ trợ', '5000 mAh', NULL),
+('OPPOA5P', 'OPPO A5 Pro 5G 8GB/256GB', 'Oppo', 'img/products/uploads/t---i-xu---ng--3-1779442158.jpg', 6990000, 20, 0, 0, 'giamgia', '400000', 'LCD 6.67 inch 120Hz', 'Android 15, ColorOS', 'Camera 50 MP', 'Camera 8 MP', 'Dimensity 5G', '8 GB', '256 GB', 'MicroSD hỗ trợ', '5800 mAh, sạc nhanh', NULL),
+('OPPOR15P', 'OPPO Reno15 Pro 5G 12GB/512GB', 'Oppo', 'img/products/uploads/t---i-xu---ng--4-1779442239.jpg', 15990000, 14, 0, 0, 'tragop', '0', 'AMOLED 6.7 inch 120Hz', 'Android 16, ColorOS', 'Camera chân dung 50 MP OIS', 'Camera 50 MP', 'Dimensity AI 5G', '12 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5000 mAh, sạc nhanh 80W', NULL),
+('OPPOX9U', 'OPPO Find X9 Ultra 16GB/512GB', 'Oppo', 'img/products/uploads/t---i-xu---ng--5-1779442269.jpg', 27990000, 12, 0, 0, 'moiramat', '', 'AMOLED 6.82 inch 120Hz', 'Android 16, ColorOS', 'Camera Hasselblad 50 MP', 'Camera 32 MP', 'Dimensity flagship', '16 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5400 mAh, sạc nhanh SuperVOOC', NULL),
+('REALMEC75', 'realme C75 8GB/256GB', 'Realme', 'img/products/uploads/t---i-xu---ng--6-1779442317.jpg', 5290000, 24, 0, 0, 'giareonline', '4990000', 'LCD 6.72 inch 90Hz', 'Android 15, realme UI', 'Camera 50 MP', 'Camera 8 MP', 'Helio G series', '8 GB', '256 GB', 'MicroSD hỗ trợ', '6000 mAh', NULL),
+('REALMEGT8', 'realme GT 8 Pro 16GB/512GB', 'Realme', 'img/products/uploads/t---i-xu---ng--7-1779442339.jpg', 18990000, 21, 0, 0, 'giamgia', '1000000', 'AMOLED 6.78 inch 144Hz', 'Android 16, realme UI', 'Camera 50 MP OIS, góc rộng', 'Camera 32 MP', 'Snapdragon 8 series', '16 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5500 mAh, sạc nhanh 120W', NULL),
+('REDMI15', 'REDMI Note 15 8GB/128GB', 'Xiaomi', 'img/products/uploads/t---i-xu---ng--8-1779442369.jpg', 4990000, 36, 0, 0, 'giareonline', '4590000', 'AMOLED 6.67 inch 120Hz', 'Android 16, HyperOS', 'Camera 108 MP', 'Camera 16 MP', 'Snapdragon tầm trung', '8 GB', '128 GB', 'MicroSD tối đa 1 TB', '5000 mAh, sạc nhanh', NULL),
+('REDMI15P5G', 'REDMI Note 15 Pro 5G 12GB/256GB', 'Xiaomi', 'img/products/uploads/t---i-xu---ng--9-1779442401.jpg', 8990000, 29, 0, 0, 'giamgia', '500000', 'AMOLED 6.83 inch 1.5K 120Hz', 'Android 16, HyperOS', 'Camera 200 MP chống rung OIS', 'Camera 32 MP', 'MediaTek Dimensity 7400-Ultra', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', '6580 mAh, sạc nhanh', NULL),
+('SAMA37', 'Samsung Galaxy A37 5G 8GB/128GB', 'Samsung', 'img/products/uploads/t---i-xu---ng--10-1779442445.jpg', 8290000, 30, 0, 0, 'giareonline', '7890000', 'Super AMOLED 6.6 inch 120Hz', 'Android 16', 'Camera 50 MP', 'Camera 13 MP', 'Exynos tầm trung', '8 GB', '128 GB', 'MicroSD tối đa 1 TB', '5000 mAh', NULL),
+('SAMA57', 'Samsung Galaxy A57 5G 8GB/256GB', 'Samsung', 'img/products/uploads/t---i-xu---ng--11-1779442472.jpg', 11990000, 24, 0, 0, 'giamgia', '700000', 'Super AMOLED 6.7 inch 120Hz', 'Android 16', 'Camera 50 MP chống rung OIS', 'Camera 32 MP', 'Exynos AI Edition', '8 GB', '256 GB', 'MicroSD tối đa 1 TB', '5000 mAh, sạc nhanh', NULL),
+('SAMS26U', 'Samsung Galaxy S26 Ultra 12GB/512GB', 'Samsung', 'img/products/uploads/t---i-xu---ng--12-1779442503.jpg', 33990000, 18, 0, 0, 'moiramat', '', 'Dynamic AMOLED 2X 6.9 inch 120Hz', 'Android 16, One UI AI', 'Camera 200 MP, tele, góc rộng', 'Camera 12 MP', 'Snapdragon 8 Elite for Galaxy', '12 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5000 mAh, sạc nhanh', NULL),
+('VIVOX300', 'Vivo X300 Pro 12GB/512GB', 'Vivo', 'img/products/uploads/t---i-xu---ng--13-1779442533.jpg', 23990000, 18, 0, 0, 'giareonline', '22490000', 'AMOLED 6.78 inch 120Hz', 'Android 16, Funtouch OS', 'Camera ZEISS 50 MP, tele', 'Camera 32 MP', 'Dimensity flagship', '12 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5200 mAh, sạc nhanh', NULL),
+('VIVOY39', 'Vivo Y39 5G 8GB/256GB', 'Vivo', 'img/products/uploads/t---i-xu---ng--14-1779442556.jpg', 6490000, 36, 0, 0, 'giamgia', '300000', 'LCD 6.68 inch 120Hz', 'Android 15, Funtouch OS', 'Camera 50 MP', 'Camera 8 MP', 'Snapdragon 5G', '8 GB', '256 GB', 'MicroSD hỗ trợ', '6500 mAh, sạc nhanh', NULL),
+('XIA15U', 'Xiaomi 15 Ultra 16GB/512GB', 'Xiaomi', 'img/products/uploads/t---i-xu---ng--15-1779442578.jpg', 29990000, 18, 0, 0, 'giareonline', '28490000', 'AMOLED 6.73 inch 2K 120Hz', 'Android 16, HyperOS', 'Camera Leica 50 MP, tele tiềm vọng', 'Camera 32 MP', 'Snapdragon 8 Elite', '16 GB', '512 GB', 'Không hỗ trợ thẻ nhớ', '5300 mAh, sạc nhanh 90W', NULL);
 
 -- --------------------------------------------------------
 
@@ -195,74 +196,77 @@ CREATE TABLE `product_variants` (
   `variant_id` int(11) NOT NULL,
   `masp` varchar(20) NOT NULL,
   `ten_mau` varchar(50) NOT NULL,
+  `ram` varchar(50) NOT NULL DEFAULT '',
+  `rom` varchar(50) NOT NULL DEFAULT '',
   `ma_mau_hex` char(7) NOT NULL,
   `hinh_anh` text DEFAULT NULL,
   `so_luong_ton` int(11) NOT NULL DEFAULT 0,
   `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `variant_code` varchar(120) GENERATED ALWAYS AS (concat(`masp`,'_',`ten_mau`,'_',`ram`,'_',`rom`)) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `product_variants`
 --
 
-INSERT INTO `product_variants` (`variant_id`, `masp`, `ten_mau`, `ma_mau_hex`, `hinh_anh`, `so_luong_ton`, `created_at`, `updated_at`) VALUES
-(1, 'APP17', 'Xanh lưu ly', '#8DB9E8', 'img/products/modern/APP17_1.svg', 7, '2026-05-21 12:57:27', '2026-06-03 18:55:17'),
-(2, 'APP17', 'Đen', '#202124', 'img/products/modern/APP17_2.svg', 7, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
-(3, 'APP17', 'Hồng đào', '#F6B8B8', 'img/products/modern/APP17_3.svg', 6, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
-(4, 'APP17P', 'Titan tự nhiên', '#B8B0A3', 'img/products/modern/APP17P_1.svg', 6, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
-(5, 'APP17P', 'Xanh đậm', '#27384A', 'img/products/modern/APP17P_2.svg', 5, '2026-05-21 12:57:27', '2026-05-24 12:33:54'),
-(7, 'APP16', 'Xanh dương', '#73A9D8', 'img/products/uploads/ip16xanhduong-1779440292.jpg', 10, '2026-05-21 12:57:27', '2026-06-10 09:30:12'),
-(8, 'APP16', 'Trắng', '#F8FAFC', 'img/products/uploads/t---i-xu---ng-1779441006.webp', 7, '2026-05-21 12:57:27', '2026-05-24 11:47:15'),
-(9, 'APP16', 'Đen', '#111827', 'img/products/uploads/t---i-xu---ng-1779441044.webp', 8, '2026-05-21 12:57:27', '2026-05-22 16:10:46'),
-(10, 'SAMS26U', 'Đen phantom', '#111827', 'img/products/modern/SAMS26U_1.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(11, 'SAMS26U', 'Xám titan', '#8A8D91', 'img/products/modern/SAMS26U_2.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(12, 'SAMS26U', 'Xanh navy', '#1E3A5F', 'img/products/modern/SAMS26U_3.svg', 5, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(13, 'SAMA57', 'Tím lavender', '#B9A7E8', 'img/products/modern/SAMA57_1.svg', 8, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(14, 'SAMA57', 'Xanh mint', '#A7E8C6', 'img/products/modern/SAMA57_2.svg', 8, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(15, 'SAMA57', 'Đen', '#1F2937', 'img/products/modern/SAMA57_3.svg', 8, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(16, 'SAMA37', 'Đen', '#111827', 'img/products/modern/SAMA37_1.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(17, 'SAMA37', 'Xanh băng', '#BFE3F8', 'img/products/modern/SAMA37_2.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(18, 'SAMA37', 'Bạc', '#D1D5DB', 'img/products/modern/SAMA37_3.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(19, 'XIA15U', 'Đen cổ điển', '#0F172A', 'img/products/modern/XIA15U_1.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(20, 'XIA15U', 'Trắng gốm', '#F3F4F6', 'img/products/modern/XIA15U_2.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(21, 'XIA15U', 'Bạc titan', '#C0C5CC', 'img/products/modern/XIA15U_3.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(22, 'REDMI15P5G', 'Đen', '#101828', 'img/products/modern/REDMI15P5G_1.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(23, 'REDMI15P5G', 'Xám titan', '#8A8D91', 'img/products/modern/REDMI15P5G_2.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(24, 'REDMI15P5G', 'Tím khói', '#8B7ED8', 'img/products/modern/REDMI15P5G_3.svg', 9, '2026-05-21 12:57:28', '2026-05-22 00:02:44'),
-(25, 'REDMI15', 'Đen midnight', '#0F172A', 'img/products/modern/REDMI15_1.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(26, 'REDMI15', 'Xanh lá', '#74C69D', 'img/products/modern/REDMI15_2.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(27, 'REDMI15', 'Tím nhạt', '#C4B5FD', 'img/products/modern/REDMI15_3.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(28, 'OPPOX9U', 'Đen vũ trụ', '#111827', 'img/products/modern/OPPOX9U_1.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(29, 'OPPOX9U', 'Trắng ngọc', '#F6F7F9', 'img/products/modern/OPPOX9U_2.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(31, 'OPPOR15P', 'Hồng pastel', '#F7B6C2', 'img/products/modern/OPPOR15P_1.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(32, 'OPPOR15P', 'Xanh ngọc', '#99D8D0', 'img/products/modern/OPPOR15P_2.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(34, 'OPPOA5P', 'Đen', '#111827', 'img/products/modern/OPPOA5P_1.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(36, 'OPPOA5P', 'Tím nhạt', '#C4B5FD', 'img/products/modern/OPPOA5P_3.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(37, 'VIVOX300', 'Xanh trời', '#8EC5FC', 'img/products/modern/VIVOX300_1.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(38, 'VIVOX300', 'Đen sao đêm', '#0B1020', 'img/products/modern/VIVOX300_2.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(39, 'VIVOX300', 'Trắng ánh ngọc', '#F1F5F9', 'img/products/modern/VIVOX300_3.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(40, 'VIVOY39', 'Đen', '#111827', 'img/products/modern/VIVOY39_1.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(41, 'VIVOY39', 'Xanh ngọc', '#5EEAD4', 'img/products/modern/VIVOY39_2.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(42, 'VIVOY39', 'Tím ánh sao', '#A78BFA', 'img/products/modern/VIVOY39_3.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(43, 'REALMEGT8', 'Cam racing', '#F97316', 'img/products/modern/REALMEGT8_1.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(44, 'REALMEGT8', 'Đen carbon', '#171717', 'img/products/modern/REALMEGT8_2.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(45, 'REALMEGT8', 'Bạc tốc độ', '#D1D5DB', 'img/products/modern/REALMEGT8_3.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(46, 'REALMEC75', 'Đen bão tố', '#1F2937', 'img/products/modern/REALMEC75_1.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(48, 'REALMEC75', 'Xanh lá', '#65A30D', 'img/products/modern/REALMEC75_3.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(49, 'HMDPULSEP', 'Tím twilight', '#8B5CF6', 'img/products/modern/HMDPULSEP_1.svg', 10, '2026-05-21 12:57:28', '2026-06-10 09:22:24'),
-(50, 'HMDPULSEP', 'Đen meteor', '#111827', 'img/products/modern/HMDPULSEP_2.svg', 11, '2026-05-21 12:57:28', '2026-06-08 08:54:13'),
-(52, 'HMDXR21', 'Đen bền bỉ', '#111827', 'img/products/modern/HMDXR21_1.svg', 7, '2026-05-21 12:57:28', '2026-06-08 10:57:57'),
-(53, 'HMDXR21', 'Xanh midnight', '#1E3A8A', 'img/products/modern/HMDXR21_2.svg', 7, '2026-05-21 12:57:28', '2026-05-24 14:59:08'),
-(55, 'NOKIAG42', 'Tím so purple', '#7C3AED', 'img/products/modern/NOKIAG42_1.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(57, 'NOKIAG42', 'Hồng nhạt', '#F9A8D4', 'img/products/modern/NOKIAG42_3.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(58, 'HWPR80', 'Đen nhám', '#111827', 'img/products/modern/HWPR80_1.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(59, 'HWPR80', 'Trắng nhám', '#F8FAFC', 'img/products/modern/HWPR80_2.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(61, 'HWPR80U', 'Đen ceramic', '#0F172A', 'img/products/modern/HWPR80U_1.svg', 5, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(62, 'HWPR80U', 'Vàng ánh kim', '#C9A227', 'img/products/modern/HWPR80U_2.svg', 5, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(64, 'HWMATEX6', 'Đen obsidian', '#111827', 'img/products/modern/HWMATEX6_1.svg', 4, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(65, 'HWMATEX6', 'Đỏ vũ trụ', '#991B1B', 'img/products/modern/HWMATEX6_2.svg', 4, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
-(66, 'HWMATEX6', 'Xám tinh vân', '#6B7280', 'img/products/modern/HWMATEX6_3.svg', 4, '2026-05-21 12:57:28', '2026-05-21 12:57:28');
+INSERT INTO `product_variants` (`variant_id`, `masp`, `ten_mau`, `ram`, `rom`, `ma_mau_hex`, `hinh_anh`, `so_luong_ton`, `created_at`, `updated_at`) VALUES
+(1, 'APP17', 'Xanh lưu ly', '', '', '#8DB9E8', 'img/products/modern/APP17_1.svg', 7, '2026-05-21 12:57:27', '2026-06-03 18:55:17'),
+(2, 'APP17', 'Đen', '', '', '#202124', 'img/products/modern/APP17_2.svg', 7, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
+(3, 'APP17', 'Hồng đào', '', '', '#F6B8B8', 'img/products/modern/APP17_3.svg', 6, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
+(4, 'APP17P', 'Titan tự nhiên', '', '', '#B8B0A3', 'img/products/modern/APP17P_1.svg', 6, '2026-05-21 12:57:27', '2026-05-21 12:57:27'),
+(5, 'APP17P', 'Xanh đậm', '', '', '#27384A', 'img/products/modern/APP17P_2.svg', 5, '2026-05-21 12:57:27', '2026-05-24 12:33:54'),
+(7, 'APP16', 'Xanh dương', '8 GB', '128 GB', '#73A9D8', 'img/products/uploads/ip16xanhduong-1779440292.jpg', 10, '2026-05-21 12:57:27', '2026-06-24 23:34:54'),
+(8, 'APP16', 'Trắng', '8 GB', '128 GB', '#F8FAFC', 'img/products/uploads/t---i-xu---ng-1779441006.webp', 7, '2026-05-21 12:57:27', '2026-06-24 23:34:54'),
+(9, 'APP16', 'Đen', '8 GB', '128 GB', '#111827', 'img/products/uploads/t---i-xu---ng-1779441044.webp', 8, '2026-05-21 12:57:27', '2026-06-24 23:34:54'),
+(10, 'SAMS26U', 'Đen phantom', '', '', '#111827', 'img/products/modern/SAMS26U_1.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(11, 'SAMS26U', 'Xám titan', '', '', '#8A8D91', 'img/products/modern/SAMS26U_2.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(12, 'SAMS26U', 'Xanh navy', '', '', '#1E3A5F', 'img/products/modern/SAMS26U_3.svg', 5, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(13, 'SAMA57', 'Tím lavender', '', '', '#B9A7E8', 'img/products/modern/SAMA57_1.svg', 8, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(14, 'SAMA57', 'Xanh mint', '', '', '#A7E8C6', 'img/products/modern/SAMA57_2.svg', 8, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(15, 'SAMA57', 'Đen', '', '', '#1F2937', 'img/products/modern/SAMA57_3.svg', 8, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(16, 'SAMA37', 'Đen', '', '', '#111827', 'img/products/modern/SAMA37_1.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(17, 'SAMA37', 'Xanh băng', '', '', '#BFE3F8', 'img/products/modern/SAMA37_2.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(18, 'SAMA37', 'Bạc', '', '', '#D1D5DB', 'img/products/modern/SAMA37_3.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(19, 'XIA15U', 'Đen cổ điển', '', '', '#0F172A', 'img/products/modern/XIA15U_1.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(20, 'XIA15U', 'Trắng gốm', '', '', '#F3F4F6', 'img/products/modern/XIA15U_2.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(21, 'XIA15U', 'Bạc titan', '', '', '#C0C5CC', 'img/products/modern/XIA15U_3.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(22, 'REDMI15P5G', 'Đen', '', '', '#101828', 'img/products/modern/REDMI15P5G_1.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(23, 'REDMI15P5G', 'Xám titan', '', '', '#8A8D91', 'img/products/modern/REDMI15P5G_2.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(24, 'REDMI15P5G', 'Tím khói', '', '', '#8B7ED8', 'img/products/modern/REDMI15P5G_3.svg', 9, '2026-05-21 12:57:28', '2026-05-22 00:02:44'),
+(25, 'REDMI15', 'Đen midnight', '', '', '#0F172A', 'img/products/modern/REDMI15_1.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(26, 'REDMI15', 'Xanh lá', '', '', '#74C69D', 'img/products/modern/REDMI15_2.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(27, 'REDMI15', 'Tím nhạt', '', '', '#C4B5FD', 'img/products/modern/REDMI15_3.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(28, 'OPPOX9U', 'Đen vũ trụ', '', '', '#111827', 'img/products/modern/OPPOX9U_1.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(29, 'OPPOX9U', 'Trắng ngọc', '', '', '#F6F7F9', 'img/products/modern/OPPOX9U_2.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(31, 'OPPOR15P', 'Hồng pastel', '', '', '#F7B6C2', 'img/products/modern/OPPOR15P_1.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(32, 'OPPOR15P', 'Xanh ngọc', '', '', '#99D8D0', 'img/products/modern/OPPOR15P_2.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(34, 'OPPOA5P', 'Đen', '', '', '#111827', 'img/products/modern/OPPOA5P_1.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(36, 'OPPOA5P', 'Tím nhạt', '', '', '#C4B5FD', 'img/products/modern/OPPOA5P_3.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(37, 'VIVOX300', 'Xanh trời', '', '', '#8EC5FC', 'img/products/modern/VIVOX300_1.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(38, 'VIVOX300', 'Đen sao đêm', '', '', '#0B1020', 'img/products/modern/VIVOX300_2.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(39, 'VIVOX300', 'Trắng ánh ngọc', '', '', '#F1F5F9', 'img/products/modern/VIVOX300_3.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(40, 'VIVOY39', 'Đen', '', '', '#111827', 'img/products/modern/VIVOY39_1.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(41, 'VIVOY39', 'Xanh ngọc', '', '', '#5EEAD4', 'img/products/modern/VIVOY39_2.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(42, 'VIVOY39', 'Tím ánh sao', '', '', '#A78BFA', 'img/products/modern/VIVOY39_3.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(43, 'REALMEGT8', 'Cam racing', '', '', '#F97316', 'img/products/modern/REALMEGT8_1.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(44, 'REALMEGT8', 'Đen carbon', '', '', '#171717', 'img/products/modern/REALMEGT8_2.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(45, 'REALMEGT8', 'Bạc tốc độ', '', '', '#D1D5DB', 'img/products/modern/REALMEGT8_3.svg', 7, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(46, 'REALMEC75', 'Đen bão tố', '', '', '#1F2937', 'img/products/modern/REALMEC75_1.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(48, 'REALMEC75', 'Xanh lá', '', '', '#65A30D', 'img/products/modern/REALMEC75_3.svg', 12, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(49, 'HMDPULSEP', 'Tím twilight', '', '', '#8B5CF6', 'img/products/modern/HMDPULSEP_1.svg', 10, '2026-05-21 12:57:28', '2026-06-10 09:22:24'),
+(50, 'HMDPULSEP', 'Đen meteor', '', '', '#111827', 'img/products/modern/HMDPULSEP_2.svg', 11, '2026-05-21 12:57:28', '2026-06-08 08:54:13'),
+(52, 'HMDXR21', 'Đen bền bỉ', '', '', '#111827', 'img/products/modern/HMDXR21_1.svg', 7, '2026-05-21 12:57:28', '2026-06-08 10:57:57'),
+(53, 'HMDXR21', 'Xanh midnight', '', '', '#1E3A8A', 'img/products/modern/HMDXR21_2.svg', 7, '2026-05-21 12:57:28', '2026-05-24 14:59:08'),
+(55, 'NOKIAG42', 'Tím so purple', '', '', '#7C3AED', 'img/products/modern/NOKIAG42_1.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(57, 'NOKIAG42', 'Hồng nhạt', '', '', '#F9A8D4', 'img/products/modern/NOKIAG42_3.svg', 10, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(58, 'HWPR80', 'Đen nhám', '', '', '#111827', 'img/products/modern/HWPR80_1.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(59, 'HWPR80', 'Trắng nhám', '', '', '#F8FAFC', 'img/products/modern/HWPR80_2.svg', 6, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(61, 'HWPR80U', 'Đen ceramic', '', '', '#0F172A', 'img/products/modern/HWPR80U_1.svg', 5, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(62, 'HWPR80U', 'Vàng ánh kim', '', '', '#C9A227', 'img/products/modern/HWPR80U_2.svg', 5, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(64, 'HWMATEX6', 'Đen obsidian', '', '', '#111827', 'img/products/modern/HWMATEX6_1.svg', 4, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(65, 'HWMATEX6', 'Đỏ vũ trụ', '', '', '#991B1B', 'img/products/modern/HWMATEX6_2.svg', 4, '2026-05-21 12:57:28', '2026-05-21 12:57:28'),
+(66, 'HWMATEX6', 'Xám tinh vân', '', '', '#6B7280', 'img/products/modern/HWMATEX6_3.svg', 4, '2026-05-21 12:57:28', '2026-05-21 12:57:28');
 
 --
 -- Triggers `product_variants`
@@ -328,6 +332,7 @@ CREATE TABLE `rate` (
   `variant_id` int(11) DEFAULT NULL,
   `mau_sac` varchar(50) DEFAULT NULL,
   `username` varchar(50) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
   `so_sao` int(11) NOT NULL,
   `binh_luan` text NOT NULL,
   `ngay_dg` datetime DEFAULT current_timestamp()
@@ -337,8 +342,8 @@ CREATE TABLE `rate` (
 -- Dumping data for table `rate`
 --
 
-INSERT INTO `rate` (`id`, `masp`, `variant_id`, `mau_sac`, `username`, `so_sao`, `binh_luan`, `ngay_dg`) VALUES
-(1, 'HMDPULSEP', 50, 'Đen meteor', 'tuyen', 5, 'sản phẩm tốt', '2026-06-08 10:57:29');
+INSERT INTO `rate` (`id`, `masp`, `variant_id`, `mau_sac`, `username`, `user_id`, `so_sao`, `binh_luan`, `ngay_dg`) VALUES
+(1, 'HMDPULSEP', 50, 'Đen meteor', 'tuyen', 4, 5, 'sản phẩm tốt', '2026-06-08 10:57:29');
 
 -- --------------------------------------------------------
 
@@ -450,6 +455,7 @@ ALTER TABLE `products`
 ALTER TABLE `product_variants`
   ADD PRIMARY KEY (`variant_id`),
   ADD UNIQUE KEY `uq_masp_ten_mau` (`masp`,`ten_mau`),
+  ADD UNIQUE KEY `uq_variant_combo` (`masp`,`ten_mau`,`ram`,`rom`),
   ADD KEY `idx_masp` (`masp`);
 
 --
@@ -459,7 +465,8 @@ ALTER TABLE `rate`
   ADD PRIMARY KEY (`id`),
   ADD KEY `masp` (`masp`),
   ADD KEY `username` (`username`),
-  ADD KEY `idx_rate_variant` (`variant_id`);
+  ADD KEY `idx_rate_variant` (`variant_id`),
+  ADD KEY `fk_rate_user_id` (`user_id`);
 
 --
 -- Indexes for table `users`
@@ -572,6 +579,7 @@ ALTER TABLE `product_variants`
 -- Constraints for table `rate`
 --
 ALTER TABLE `rate`
+  ADD CONSTRAINT `fk_rate_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `rate_ibfk_1` FOREIGN KEY (`masp`) REFERENCES `products` (`masp`) ON DELETE CASCADE,
   ADD CONSTRAINT `rate_ibfk_2` FOREIGN KEY (`username`) REFERENCES `users` (`username`) ON DELETE CASCADE;
 

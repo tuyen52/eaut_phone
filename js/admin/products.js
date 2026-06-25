@@ -131,6 +131,7 @@ function addKhungSuaSanPham(masp) {
             </td></tr>
 
             <tr><td>Giá tiền:</td><td><input type="text" value="${sp.price}" required></td></tr>
+            <tr><td>Giới thiệu sản phẩm:</td><td><textarea rows="4" style="width:100%">${sp.gioi_thieu_san_pham || ''}</textarea></td></tr>
 
             <tr><td>Tồn kho (tổng):</td><td>
                 <input type="number" value="${sp.inventory || 0}" readonly>
@@ -433,6 +434,12 @@ function layThongTinSanPhamTuTable(idFrame) {
     var name = getValueByLabel(khung, 'Tên sản phẩm');
     var price = getValueByLabel(khung, 'Giá tiền');
     var inventory = parseInt(getValueByLabel(khung, 'Tồn kho') || '0') || 0;
+    var introArea = khung.querySelectorAll('textarea');
+    var gioiThieu = '';
+    if (introArea && introArea.length) {
+        var introIndex = introArea.length > 1 ? 1 : 0;
+        gioiThieu = (introArea[introIndex].value || '').trim();
+    }
 
     var companySel = findSelectByLabel(khung, 'Hãng');
     var company = companySel ? companySel.value : '';
@@ -451,6 +458,10 @@ function layThongTinSanPhamTuTable(idFrame) {
         rom: getValueByLabel(khung, 'ROM'),
         battery: getValueByLabel(khung, 'Pin')
     };
+
+    var gioiThieu = '';
+    var gioiThieuArea = khung.querySelector('textarea');
+    if (gioiThieuArea) gioiThieu = gioiThieuArea.value.trim();
 
     if (!name || !price) { alert('Vui lòng điền tên và giá'); return false; }
 
@@ -496,6 +507,7 @@ function layThongTinSanPhamTuTable(idFrame) {
         inventory: inventory,
         promo: { name: promoName, value: promoVal },
         detail: detail,
+        gioi_thieu_san_pham: gioiThieu,
 
         variants: variants,
         variants_replace: 1

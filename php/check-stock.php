@@ -10,7 +10,7 @@ if (isset($_GET['variant_id'])) {
         exit();
     }
 
-    $stmt = $conn->prepare("SELECT so_luong_ton, ten_mau FROM product_variants WHERE variant_id = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT so_luong_ton, ten_mau, ram, rom FROM product_variants WHERE variant_id = ? LIMIT 1");
     $stmt->bind_param("i", $variant_id);
     $stmt->execute();
     $res = $stmt->get_result();
@@ -20,7 +20,9 @@ if (isset($_GET['variant_id'])) {
         echo json_encode([
             "status" => true,
             "stock" => (int)$row['so_luong_ton'],
-            "ten_mau" => $row['ten_mau']
+            "ten_mau" => $row['ten_mau'],
+            "ram" => $row['ram'] ?? null,
+            "rom" => $row['rom'] ?? null
         ]);
     } else {
         echo json_encode(["status" => false, "stock" => 0]);

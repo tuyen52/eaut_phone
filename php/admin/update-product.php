@@ -93,6 +93,7 @@ try {
     $ram = trim((string)($detail['ram'] ?? ''));
     $rom = trim((string)($detail['rom'] ?? ''));
     $battery = trim((string)($detail['battery'] ?? ''));
+    $gioiThieu = trim((string)($data['gioi_thieu_san_pham'] ?? ''));
 
     if ($ten === '' || $hang === '' || $hinh === '') {
         json_response(false, 'Thiếu thông tin sản phẩm bắt buộc!', [], 400);
@@ -136,12 +137,13 @@ try {
             cpu = ?,
             ram = ?,
             rom = ?,
-            battery = ?
+            battery = ?,
+            gioi_thieu_san_pham = ?
         WHERE masp = ?
     ");
 
     $stmtProduct->bind_param(
-        "sssisssssssssss",
+        "sssissssssssssss",
         $ten,
         $hang,
         $hinh,
@@ -156,6 +158,7 @@ try {
         $ram,
         $rom,
         $battery,
+        $gioiThieu,
         $masp
     );
 

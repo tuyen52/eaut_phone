@@ -106,6 +106,7 @@ try {
     $ram = trim((string)($detail['ram'] ?? ''));
     $rom = trim((string)($detail['rom'] ?? ''));
     $battery = trim((string)($detail['battery'] ?? ''));
+    $gioiThieu = trim((string)($data['gioi_thieu_san_pham'] ?? ''));
 
     $tonKhoCu = isset($data['inventory']) ? (int)$data['inventory'] : 0;
     if ($tonKhoCu < 0) $tonKhoCu = 0;
@@ -142,13 +143,13 @@ try {
         INSERT INTO products (
             masp, ten_sp, hang_sx, hinh_anh, gia,
             khuyen_mai_loai, khuyen_mai_gia_tri, so_luong_ton,
-            screen, os, camera, camera_front, cpu, ram, rom, battery
+            screen, os, camera, camera_front, cpu, ram, rom, battery, gioi_thieu_san_pham
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $stmtProduct->bind_param(
-        "ssssississssssss",
+        "ssssississsssssss",
         $masp,
         $ten,
         $hang,
@@ -164,7 +165,8 @@ try {
         $cpu,
         $ram,
         $rom,
-        $battery
+        $battery,
+        $gioiThieu
     );
 
     $stmtProduct->execute();

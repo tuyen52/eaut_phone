@@ -63,12 +63,12 @@ function get_server_product_price(mysqli $conn, string $masp): int
     return $basePrice;
 }
 
-function get_variant_color_name(mysqli $conn, int $variantId, string $masp): ?string
+function get_variant_info(mysqli $conn, int $variantId, string $masp): ?array
 {
     if ($variantId <= 0) return null;
 
     $stmt = $conn->prepare("
-        SELECT ten_mau
+        SELECT ten_mau, ma_mau_hex, ram, rom
         FROM product_variants
         WHERE variant_id = ? AND masp = ?
         LIMIT 1
@@ -86,7 +86,12 @@ function get_variant_color_name(mysqli $conn, int $variantId, string $masp): ?st
     $row = $rs->fetch_assoc();
     $stmt->close();
 
-    return $row['ten_mau'] ?? null;
+    return [
+        'ten_mau' => $row['ten_mau'] ?? null,
+        'ma_mau_hex' => $row['ma_mau_hex'] ?? null,
+        'ram' => $row['ram'] ?? null,
+        'rom' => $row['rom'] ?? null
+    ];
 }
 
 function build_server_cart_items(mysqli $conn, array $items): array
@@ -120,18 +125,20 @@ function build_server_cart_items(mysqli $conn, array $items): array
         }
 
         /*
-            Nếu có variant_id thì lấy tên màu thật từ DB.
-            Không tin mau_sac do client gửi để tránh giả màu/variant.
+            Nếu có variant_id thì lấy thông tin thật từ DB.
+            Không tin mau_sac/ram/rom do client gửi để tránh giả cấu hình.
         */
-        $mauSac = null;
+        $variantInfo = null;
         if ($variantId > 0) {
-            $mauSac = get_variant_color_name($conn, $variantId, $masp);
+            $variantInfo = get_variant_info($conn, $variantId, $masp);
         }
 
         $result[] = [
             'masp' => $masp,
             'variant_id' => $variantId > 0 ? $variantId : null,
-            'mau_sac' => $mauSac,
+            'mau_sac' => $variantInfo['ten_mau'] ?? null,
+            'ram' => $variantInfo['ram'] ?? null,
+            'rom' => $variantInfo['rom'] ?? null,
             'so_luong' => $soLuong,
             'gia' => $serverPrice
         ];

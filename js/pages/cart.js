@@ -41,7 +41,9 @@ function normalizeCart(arr) {
             soluong: parseInt(it.soluong || 1),
             variant_id: (it.variant_id !== undefined && it.variant_id !== null && it.variant_id !== '') ? parseInt(it.variant_id) : null,
             mau_sac: it.mau_sac || null,
-            ma_mau_hex: it.ma_mau_hex || null
+            ma_mau_hex: it.ma_mau_hex || null,
+            ram: it.ram || null,
+            rom: it.rom || null
         };
     }).filter(Boolean);
 }
@@ -77,6 +79,8 @@ function upgradeOldItemsToVariant() {
                 variantCache[item.variant_id] = {
                     ten_mau: v.ten_mau,
                     ma_mau_hex: v.ma_mau_hex,
+                    ram: v.ram || null,
+                    rom: v.rom || null,
                     so_luong_ton: parseInt(v.so_luong_ton || 0)
                 };
             })
@@ -97,6 +101,8 @@ function loadVariantInfoForCart() {
                     variantCache[id] = {
                         ten_mau: v.ten_mau,
                         ma_mau_hex: v.ma_mau_hex,
+                        ram: v.ram || null,
+                        rom: v.rom || null,
                         so_luong_ton: parseInt(v.so_luong_ton || 0)
                     };
                 }
@@ -117,7 +123,9 @@ function getItemColor(item) {
     var v = item.variant_id ? variantCache[item.variant_id] : null;
     return {
         name: item.mau_sac || (v ? v.ten_mau : null),
-        hex: item.ma_mau_hex || (v ? v.ma_mau_hex : null) || '#000000'
+        hex: item.ma_mau_hex || (v ? v.ma_mau_hex : null) || '#000000',
+        ram: item.ram || (v ? v.ram : null),
+        rom: item.rom || (v ? v.rom : null)
     };
 }
 
@@ -154,6 +162,8 @@ function buildCheckoutProducts() {
             masp: item.ma,
             variant_id: item.variant_id || null,
             mau_sac: item.mau_sac || null,
+            ram: item.ram || null,
+            rom: item.rom || null,
             so_luong: item.soluong,
             gia: price
         };
@@ -219,7 +229,10 @@ function renderCart() {
                             </span>
                         </div>
                         <div style="margin-top:4px; font-size:12px; color:#777;">
-                            Variant: ${item.variant_id || 'N/A'} | Kho màu: ${stock}
+                            RAM: ${color.ram || item.ram || 'N/A'} | ROM: ${color.rom || item.rom || 'N/A'}
+                        </div>
+                        <div style="margin-top:4px; font-size:12px; color:#777;">
+                            Variant: ${item.variant_id || 'N/A'} | Kho biến thể: ${stock}
                         </div>
                     </div>
                 </div>
@@ -430,6 +443,8 @@ function processPayment() {
         masp: item.ma,
         variant_id: item.variant_id || null,
         mau_sac: item.mau_sac || null,
+        ram: item.ram || null,
+        rom: item.rom || null,
         so_luong: item.soluong
         };
     });
