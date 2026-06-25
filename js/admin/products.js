@@ -107,89 +107,77 @@ function addKhungSuaSanPham(masp) {
 
     var khung = document.getElementById('khungSuaSanPham');
     var html = `
-    <span class="close" onclick="this.parentElement.style.transform = 'scale(0)';">&times;</span>
-    <form>
-        <table class="overlayTable table-outline table-content table-header">
-            <tr><th colspan="2">Sửa Sản Phẩm: ${sp.name}</th></tr>
+    <div class="product-form-panel">
+        <div class="product-form-header">
+            <h2><i class="fa fa-pencil-square-o"></i> Sửa sản phẩm: ${escapeHtml(sp.name)}</h2>
+            <span class="close close-modal" onclick="this.closest('.overlay').style.transform='scale(0)';">&times;</span>
+        </div>
+        ${getProductFormTabsHtml()}
+        <div class="product-form-body">
+            <form>
+                <table class="overlayTable product-form-table table-outline table-content table-header">
+                    <tr class="pf-tab pf-tab-basic"><td>Mã sản phẩm:</td><td><input type="text" value="${escapeHtml(sp.masp)}" readonly></td></tr>
+                    <tr class="pf-tab pf-tab-basic"><td>Tên sản phẩm:</td><td><input type="text" value="${escapeHtml(sp.name)}" required></td></tr>
 
-            <tr><td>Mã sản phẩm:</td><td><input type="text" value="${sp.masp}" readonly></td></tr>
-            <tr><td>Tên sản phẩm:</td><td><input type="text" value="${sp.name}" required></td></tr>
-
-            <tr><td>Hãng:</td><td>
-                <select name="chonCompany">
-                    ${["Apple", "Samsung", "Oppo", "Nokia", "Huawei", "Xiaomi", "Realme", "Vivo"]
+                    <tr class="pf-tab pf-tab-basic"><td>Hãng:</td><td>
+                        <select name="chonCompany">
+                            ${["Apple", "Samsung", "Oppo", "Nokia", "Huawei", "Xiaomi", "Realme", "Vivo"]
         .map(c => `<option value="${c}" ${sp.company == c ? 'selected' : ''}>${c}</option>`).join('')}
-                </select>
-            </td></tr>
+                        </select>
+                    </td></tr>
 
-            <tr><td>Hình:</td><td>
-                <img class="hinhDaiDien" id="anhSua" src="${sp.img}">
-                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
-                    <input class="admin-image-file" type="file" accept="image/*" data-target="anhSua">
-                    <button type="button" onclick="uploadAdminImage(this.previousElementSibling, 'anhSua')">Upload ảnh</button>
-                </div>
-            </td></tr>
-
-            <tr><td>Giá tiền:</td><td><input type="text" value="${sp.price}" required></td></tr>
-            <tr><td>Giới thiệu sản phẩm:</td><td><textarea rows="4" style="width:100%">${sp.gioi_thieu_san_pham || ''}</textarea></td></tr>
-
-            <tr><td>Tồn kho (tổng):</td><td>
-                <input type="number" value="${sp.inventory || 0}" readonly>
-                <small style="display:block;color:#777;margin-top:4px">Tự tính = tổng tồn kho theo màu</small>
-            </td></tr>
-
-            <tr><td>Khuyến mãi:</td><td>
-                <select>
-                    <option value="">Không</option>
-                    <option value="tragop" ${sp.promo.name == 'tragop' ? 'selected' : ''}>Trả góp</option>
-                    <option value="giamgia" ${sp.promo.name == 'giamgia' ? 'selected' : ''}>Giảm giá</option>
-                    <option value="giareonline" ${sp.promo.name == 'giareonline' ? 'selected' : ''}>Giá rẻ online</option>
-                    <option value="moiramat" ${sp.promo.name == 'moiramat' ? 'selected' : ''}>Mới ra mắt</option>
-                </select>
-            </td></tr>
-
-            <tr><td>Giá trị KM:</td><td><input type="text" value="${sp.promo.value || ''}"></td></tr>
-
-            <!-- Variant -->
-            <tr><th colspan="2">Biến thể màu (Variant)</th></tr>
-            <tr class="variant_section">
-                <td colspan="2">
-                    <div style="padding:6px 0">
-                        <div style="display:flex; gap:8px; font-weight:bold; margin-bottom:6px; align-items:center;">
-                            <div style="flex:2">Tên màu</div>
-                            <div style="flex:1">Mã hex</div>
-                            <div style="flex:2">Ảnh theo màu</div>
-                            <div style="flex:1">Tồn kho</div>
-                            <div style="width:40px"></div>
+                    <tr class="pf-tab pf-tab-basic"><td>Hình ảnh:</td><td>
+                        <img class="hinhDaiDien" id="anhSua" src="${escapeHtml(sp.img)}">
+                        <div class="product-form-upload-row">
+                            <input class="admin-image-file" type="file" accept="image/*" data-target="anhSua">
+                            <button type="button" class="btn-form-secondary" onclick="uploadAdminImage(this.previousElementSibling, 'anhSua')">
+                                <i class="fa fa-upload"></i> Upload ảnh
+                            </button>
                         </div>
-                        <div class="variant_rows"></div>
-                        <div style="margin-top:8px">
-                            <button type="button" onclick="addVariantRow('khungSuaSanPham')">+ Thêm màu</button>
-                            <small style="display:block;color:#777;margin-top:6px">
-                                Có thể dán link ảnh (img/...jpg) hoặc chọn file để upload lên server.
-                            </small>
-                        </div>
-                    </div>
-                </td>
-            </tr>
+                    </td></tr>
 
-            <tr><th colspan="2">Thông số kĩ thuật</th></tr>
-            <tr><td>Màn hình:</td><td><input type="text" value="${sp.detail.screen || ''}"></td></tr>
-            <tr><td>HĐH:</td><td><input type="text" value="${sp.detail.os || ''}"></td></tr>
-            <tr><td>Cam sau:</td><td><input type="text" value="${sp.detail.camara || ''}"></td></tr>
-            <tr><td>Cam trước:</td><td><input type="text" value="${sp.detail.camaraFront || ''}"></td></tr>
-            <tr><td>CPU:</td><td><input type="text" value="${sp.detail.cpu || ''}"></td></tr>
-            <tr><td>RAM:</td><td><input type="text" value="${sp.detail.ram || ''}"></td></tr>
-            <tr><td>ROM:</td><td><input type="text" value="${sp.detail.rom || ''}"></td></tr>
-            <tr><td>Pin:</td><td><input type="text" value="${sp.detail.battery || ''}"></td></tr>
+                    <tr class="pf-tab pf-tab-basic"><td>Giá tiền:</td><td><input type="text" value="${escapeHtml(String(sp.price))}" required></td></tr>
+                    <tr class="pf-tab pf-tab-basic"><td>Giới thiệu sản phẩm:</td><td><textarea rows="4">${escapeHtml(sp.gioi_thieu_san_pham || '')}</textarea></td></tr>
 
-            <tr><td colspan="2" class="table-footer">
-                <button type="button" onclick="suaSanPham('${sp.masp}')">LƯU THAY ĐỔI</button>
-            </td></tr>
-        </table>
-    </form>`;
+                    <tr class="pf-tab pf-tab-basic"><td>Tồn kho (tổng):</td><td>
+                        <input type="number" value="${sp.inventory || 0}" readonly>
+                        <small class="form-hint">Tự tính = tổng tồn kho các biến thể</small>
+                    </td></tr>
+
+                    <tr class="pf-tab pf-tab-basic"><td>Khuyến mãi:</td><td>
+                        <select>
+                            <option value="">Không</option>
+                            <option value="tragop" ${sp.promo.name == 'tragop' ? 'selected' : ''}>Trả góp</option>
+                            <option value="giamgia" ${sp.promo.name == 'giamgia' ? 'selected' : ''}>Giảm giá</option>
+                            <option value="giareonline" ${sp.promo.name == 'giareonline' ? 'selected' : ''}>Giá rẻ online</option>
+                            <option value="moiramat" ${sp.promo.name == 'moiramat' ? 'selected' : ''}>Mới ra mắt</option>
+                        </select>
+                    </td></tr>
+
+                    <tr class="pf-tab pf-tab-basic"><td>Giá trị KM:</td><td><input type="text" value="${escapeHtml(sp.promo.value || '')}"></td></tr>
+
+                    ${getVariantSectionHtml('khungSuaSanPham')}
+
+                    <tr class="pf-tab pf-tab-specs"><td>Màn hình:</td><td><input type="text" value="${escapeHtml(sp.detail.screen || '')}"></td></tr>
+                    <tr class="pf-tab pf-tab-specs"><td>HĐH:</td><td><input type="text" value="${escapeHtml(sp.detail.os || '')}"></td></tr>
+                    <tr class="pf-tab pf-tab-specs"><td>Cam sau:</td><td><input type="text" value="${escapeHtml(sp.detail.camara || '')}"></td></tr>
+                    <tr class="pf-tab pf-tab-specs"><td>Cam trước:</td><td><input type="text" value="${escapeHtml(sp.detail.camaraFront || '')}"></td></tr>
+                    <tr class="pf-tab pf-tab-specs"><td>CPU:</td><td><input type="text" value="${escapeHtml(sp.detail.cpu || '')}"></td></tr>
+                    <tr class="pf-tab pf-tab-specs"><td>RAM:</td><td><input type="text" value="${escapeHtml(sp.detail.ram || '')}"></td></tr>
+                    <tr class="pf-tab pf-tab-specs"><td>ROM:</td><td><input type="text" value="${escapeHtml(sp.detail.rom || '')}"></td></tr>
+                    <tr class="pf-tab pf-tab-specs"><td>Pin:</td><td><input type="text" value="${escapeHtml(sp.detail.battery || '')}"></td></tr>
+                </table>
+            </form>
+        </div>
+        <div class="product-form-footer">
+            <button type="button" onclick="suaSanPham('${escapeHtml(sp.masp)}')">
+                <i class="fa fa-save"></i> Lưu thay đổi
+            </button>
+        </div>
+    </div>`;
     khung.innerHTML = html;
     khung.style.transform = 'scale(1)';
+    initProductFormTabs(khung);
 
     loadVariantsIntoFrame('khungSuaSanPham', masp);
 }
@@ -217,7 +205,54 @@ function suaSanPham(masp) {
         .catch(() => alert("Lỗi kết nối Server!"));
 }
 
-// ======================= VARIANT UI (ADMIN) =======================
+// ======================= VARIANT UI (ADMIN) — nhóm theo màu + tab =======================
+
+function getProductFormTabsHtml() {
+    return `
+        <div class="product-form-tabs">
+            <button type="button" class="pf-tab-btn active" data-tab="basic"><i class="fa fa-info-circle"></i> Thông tin</button>
+            <button type="button" class="pf-tab-btn" data-tab="variants"><i class="fa fa-th-large"></i> Biến thể</button>
+            <button type="button" class="pf-tab-btn" data-tab="specs"><i class="fa fa-list-ul"></i> Thông số</button>
+        </div>
+    `;
+}
+
+function initProductFormTabs(khung) {
+    if (!khung) return;
+    var showTab = function (tab) {
+        khung.querySelectorAll('.pf-tab-btn').forEach(function (b) {
+            b.classList.toggle('active', b.getAttribute('data-tab') === tab);
+        });
+        khung.querySelectorAll('.pf-tab').forEach(function (row) {
+            var match = row.classList.contains('pf-tab-' + tab);
+            row.style.display = match ? '' : 'none';
+        });
+    };
+    khung.querySelectorAll('.pf-tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            showTab(btn.getAttribute('data-tab'));
+        });
+    });
+    showTab('basic');
+}
+
+function getVariantSectionHtml(frameId) {
+    return `
+        <tr class="pf-tab pf-tab-variants variant_section">
+            <td colspan="2" class="pf-tab-cell-full">
+                <div class="variant-editor">
+                    <div class="variant-groups"></div>
+                    <div class="variant-toolbar">
+                        <button type="button" class="btn-add-variant" onclick="addColorGroup('${frameId}')">
+                            <i class="fa fa-plus"></i> Thêm màu mới
+                        </button>
+                        <small class="form-hint">Biến thể được nhóm theo màu. Mỗi màu có nhiều cấu hình RAM/ROM — bấm mũi tên để thu gọn.</small>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
 
 function ensureVariantSection(frameId) {
     var khung = document.getElementById(frameId);
@@ -226,159 +261,286 @@ function ensureVariantSection(frameId) {
     var table = khung.querySelector('table');
     if (!table) return;
 
-    if (khung.querySelector('.variant_section')) return;
+    if (khung.querySelector('.variant_section')) {
+        initProductFormTabs(khung);
+        return;
+    }
 
     var trs = Array.from(table.querySelectorAll('tr'));
-    var specsRow = trs.find(tr => tr.textContent.toLowerCase().includes('thông số'));
+    var specsRow = trs.find(tr => tr.classList.contains('pf-tab-specs') || tr.textContent.toLowerCase().includes('thông số'));
     var insertPoint = specsRow ? specsRow : trs[trs.length - 1];
 
-    var html = `
-        <tr><th colspan="2">Biến thể màu (Variant)</th></tr>
-        <tr class="variant_section">
-            <td colspan="2">
-                <div style="padding:6px 0">
-                    <div style="display:flex; gap:8px; font-weight:bold; margin-bottom:6px; align-items:center;">
-                        <div style="flex:2">Tên màu</div>
-                        <div style="flex:1">Mã hex</div>
-                        <div style="flex:2">Ảnh theo màu</div>
-                        <div style="flex:1">Tồn kho</div>
-                        <div style="width:40px"></div>
-                    </div>
-                    <div class="variant_rows"></div>
-                    <div style="margin-top:8px">
-                        <button type="button" onclick="addVariantRow('${frameId}')">+ Thêm màu</button>
-                        <small style="display:block;color:#777;margin-top:6px">
-                            Có thể dán link ảnh (img/...jpg) hoặc chọn file để upload lên server.
-                        </small>
-                    </div>
-                </div>
-            </td>
-        </tr>
-    `;
+    insertPoint.insertAdjacentHTML('beforebegin', getVariantSectionHtml(frameId));
 
-    insertPoint.insertAdjacentHTML('beforebegin', html);
-
-    if (khung.querySelectorAll('.variant_row').length === 0) {
-        addVariantRow(frameId, { variant_id: 0, ten_mau: 'Mặc định', ma_mau_hex: '#000000', so_luong_ton: 0 });
+    if (!khung.querySelector('.variant-color-group')) {
+        addColorGroup(frameId, { ten_mau: 'Mặc định', ma_mau_hex: '#000000', so_luong_ton: 0 });
     }
 
     var invInput = findInputByLabel(khung, 'Tồn kho');
     if (invInput) invInput.readOnly = true;
 
+    initProductFormTabs(khung);
     updateInventoryFromVariants(frameId);
 }
 
 function renderVariantRows(frameId, variants) {
     var khung = document.getElementById(frameId);
     if (!khung) return;
-    var rowsDiv = khung.querySelector('.variant_rows');
-    if (!rowsDiv) return;
+    var groupsDiv = khung.querySelector('.variant-groups');
+    if (!groupsDiv) return;
 
-    rowsDiv.innerHTML = '';
+    groupsDiv.innerHTML = '';
 
     if (!Array.isArray(variants) || variants.length === 0) {
-        addVariantRow(frameId, { variant_id: 0, ten_mau: 'Mặc định', ma_mau_hex: '#000000', so_luong_ton: 0 });
+        addColorGroup(frameId, { ten_mau: 'Mặc định', ma_mau_hex: '#000000', so_luong_ton: 0 });
         return;
     }
 
-    variants.forEach(v => addVariantRow(frameId, v));
+    var byColor = {};
+    variants.forEach(function (v) {
+        var key = (v.ten_mau || 'Mặc định').trim();
+        if (!byColor[key]) byColor[key] = [];
+        byColor[key].push(v);
+    });
+
+    Object.keys(byColor).forEach(function (color) {
+        var list = byColor[color];
+        var group = buildColorGroupElement(frameId, list[0]);
+        groupsDiv.appendChild(group);
+        list.forEach(function (v) { appendConfigRow(group, v); });
+        updateGroupCount(group);
+    });
+
     updateInventoryFromVariants(frameId);
 }
 
-function addVariantRow(frameId, v) {
-    var khung = document.getElementById(frameId);
-    if (!khung) return;
-    var rowsDiv = khung.querySelector('.variant_rows');
+function buildColorGroupElement(frameId, meta) {
+    meta = meta || {};
+    var ten_mau = (meta.ten_mau || '').trim();
+    var hex = (meta.ma_mau_hex || '#000000').trim();
+    if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) hex = '#000000';
+    var imgV = (meta.hinh_anh || '').trim();
+
+    var group = document.createElement('div');
+    group.className = 'variant-color-group';
+    group.innerHTML = `
+        <div class="variant-color-header">
+            <button type="button" class="btn-collapse" onclick="toggleColorGroup(this)" title="Thu gọn / mở rộng">
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <span class="color-swatch" style="background:${hex}"></span>
+            <input class="variant_group_name" type="text" placeholder="Tên màu" value="${escapeHtml(ten_mau)}">
+            <input class="variant_group_hex" type="text" placeholder="#RRGGBB" value="${escapeHtml(hex)}">
+            <div class="variant_imgwrap variant_group_imgwrap">
+                <img class="variant_preview variant_group_preview" src="${escapeHtml(imgV)}" style="${imgV ? '' : 'display:none;'}">
+                <input class="variant_group_img" type="text" placeholder="img/..." value="${escapeHtml(imgV)}">
+                <label class="variant-upload-btn" title="Upload ảnh">
+                    <input class="variant_group_file" type="file" accept="image/*">
+                    <i class="fa fa-image"></i>
+                </label>
+            </div>
+            <span class="variant-group-badge">0 cấu hình</span>
+            <button type="button" class="btn-remove-group" onclick="removeColorGroup(this)" title="Xóa cả màu">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div class="variant-color-body">
+            <div class="variant-config-head">
+                <span>RAM</span><span>ROM</span><span>Tồn kho</span><span></span>
+            </div>
+            <div class="variant_rows"></div>
+            <button type="button" class="btn-add-config" onclick="addConfigToGroup(this)">
+                <i class="fa fa-plus"></i> Thêm cấu hình RAM/ROM
+            </button>
+        </div>
+    `;
+
+    wireColorGroupEvents(group, frameId);
+    return group;
+}
+
+function wireColorGroupEvents(group, frameId) {
+    var nameInput = group.querySelector('.variant_group_name');
+    var hexInput = group.querySelector('.variant_group_hex');
+    var imgInput = group.querySelector('.variant_group_img');
+    var fileInput = group.querySelector('.variant_group_file');
+    var previewImg = group.querySelector('.variant_group_preview');
+    var swatch = group.querySelector('.color-swatch');
+
+    var sync = function () { syncGroupRows(group); };
+
+    if (nameInput) nameInput.addEventListener('input', sync);
+
+    if (hexInput) {
+        hexInput.addEventListener('blur', function () {
+            var val = (hexInput.value || '').trim();
+            if (!/^#[0-9A-Fa-f]{6}$/.test(val)) val = '#000000';
+            hexInput.value = val;
+            if (swatch) swatch.style.background = val;
+            sync();
+        });
+        hexInput.addEventListener('input', function () {
+            if (swatch && /^#[0-9A-Fa-f]{6}$/.test(hexInput.value.trim())) {
+                swatch.style.background = hexInput.value.trim();
+            }
+        });
+    }
+
+    if (imgInput) {
+        imgInput.addEventListener('blur', function () {
+            var val = (imgInput.value || '').trim();
+            if (val) {
+                previewImg.style.display = '';
+                previewImg.src = val;
+            } else {
+                previewImg.style.display = 'none';
+                previewImg.src = '';
+            }
+            sync();
+        });
+    }
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            if (!fileInput.files || !fileInput.files[0]) return;
+            uploadImageFile(fileInput.files[0]).then(function (res) {
+                if (res && res.status && res.path) {
+                    imgInput.value = res.path;
+                    previewImg.style.display = '';
+                    previewImg.src = res.path;
+                    sync();
+                } else {
+                    alert((res && res.message) ? res.message : 'Upload ảnh thất bại.');
+                }
+            }).catch(function () { alert('Không thể upload ảnh.'); });
+        });
+    }
+}
+
+function appendConfigRow(group, v) {
+    v = v || {};
+    var rowsDiv = group.querySelector('.variant_rows');
     if (!rowsDiv) return;
 
-    v = v || {};
-    var variant_id = parseInt(v.variant_id || 0);
-    var ten_mau = (v.ten_mau || '').trim();
-    var hex = (v.ma_mau_hex || '#000000').trim();
-    var imgV = (v.hinh_anh || '').trim();
-    var stock = parseInt(v.so_luong_ton || 0);
-
     var row = document.createElement('div');
-    row.className = 'variant_row';
-    row.setAttribute('data-variant-id', variant_id);
-    row.style.display = 'flex';
-    row.style.gap = '8px';
-    row.style.marginBottom = '6px';
-    row.style.alignItems = 'center';
-
-    var previewStyle = imgV ? '' : 'display:none;';
+    row.className = 'variant_row variant-config-row';
+    row.setAttribute('data-variant-id', parseInt(v.variant_id || 0));
     row.innerHTML = `
-        <input class="variant_name" style="flex:2" type="text" placeholder="VD: Đen" value="${escapeHtml(ten_mau)}">
-        <input class="variant_hex" style="flex:1" type="text" placeholder="#RRGGBB" value="${escapeHtml(hex)}">
-
-        <div class="variant_imgwrap" style="flex:2; display:flex; gap:6px; align-items:center;">
-            <img class="variant_preview" src="${escapeHtml(imgV)}" style="width:34px;height:34px;object-fit:cover;border:1px solid #ddd;border-radius:4px; ${previewStyle}">
-            <input class="variant_img" style="flex:1" type="text" placeholder="Ảnh màu (img/...jpg hoặc URL)" value="${escapeHtml(imgV)}">
-            <label title="Chọn ảnh" style="width:38px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid #ddd;border-radius:4px;cursor:pointer;background:#fff;">
-                <input class="variant_file" type="file" accept="image/*" style="display:none;">
-                <i class="fa fa-image"></i>
-            </label>
-        </div>
-
-        <input class="variant_stock" style="flex:1" type="number" min="0" value="${isNaN(stock) ? 0 : stock}">
-        <button type="button" style="width:40px" title="Xóa" onclick="removeVariantRow(this)">X</button>
+        <input type="hidden" class="variant_name">
+        <input type="hidden" class="variant_hex">
+        <input type="hidden" class="variant_img">
+        <input class="variant_ram" type="text" placeholder="8 GB" value="${escapeHtml(v.ram || '')}">
+        <input class="variant_rom" type="text" placeholder="128 GB" value="${escapeHtml(v.rom || '')}">
+        <input class="variant_stock" type="number" min="0" value="${isNaN(parseInt(v.so_luong_ton)) ? 0 : parseInt(v.so_luong_ton)}">
+        <button type="button" class="btn-variant-remove" title="Xóa cấu hình" onclick="removeVariantRow(this)">
+            <i class="fa fa-trash"></i>
+        </button>
     `;
 
     rowsDiv.appendChild(row);
-
-    var stockInput = row.querySelector('.variant_stock');
-    var hexInput = row.querySelector('.variant_hex');
-    var imgInput = row.querySelector('.variant_img');
-    var fileInput = row.querySelector('.variant_file');
-    var previewImg = row.querySelector('.variant_preview');
-
-    stockInput.addEventListener('input', () => updateInventoryFromVariants(frameId));
-
-    hexInput.addEventListener('blur', () => {
-        var val = (hexInput.value || '').trim();
-        if (!/^#[0-9A-Fa-f]{6}$/.test(val)) hexInput.value = '#000000';
+    row.querySelector('.variant_stock').addEventListener('input', function () {
+        var khung = group.closest('[id^="khung"]');
+        if (khung) updateInventoryFromVariants(khung.id);
     });
+    syncGroupRows(group);
+}
 
-    imgInput.addEventListener('blur', () => {
-        var val = (imgInput.value || '').trim();
-        if (val) {
-            previewImg.style.display = '';
-            previewImg.src = val;
-        } else {
-            previewImg.style.display = 'none';
-            previewImg.src = '';
-        }
+function syncGroupRows(group) {
+    if (!group) return;
+    var name = (group.querySelector('.variant_group_name')?.value || '').trim();
+    var hex = (group.querySelector('.variant_group_hex')?.value || '').trim();
+    var img = (group.querySelector('.variant_group_img')?.value || '').trim();
+    if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) hex = '#000000';
+
+    group.querySelectorAll('.variant_row').forEach(function (row) {
+        var n = row.querySelector('.variant_name');
+        var h = row.querySelector('.variant_hex');
+        var i = row.querySelector('.variant_img');
+        if (n) n.value = name;
+        if (h) h.value = hex;
+        if (i) i.value = img;
     });
+}
 
-    fileInput.addEventListener('change', () => {
-        if (!fileInput.files || !fileInput.files[0]) return;
-        uploadImageFile(fileInput.files[0]).then(function (res) {
-            if (res && res.status && res.path) {
-                imgInput.value = res.path;
-                previewImg.style.display = '';
-                previewImg.src = res.path;
-            } else {
-                alert((res && res.message) ? res.message : 'Upload ảnh thất bại.');
-            }
-        }).catch(function () {
-            alert('Không thể upload ảnh.');
-        });
+function syncAllVariantGroups(frameId) {
+    var khung = document.getElementById(frameId);
+    if (!khung) return;
+    khung.querySelectorAll('.variant-color-group').forEach(syncGroupRows);
+}
+
+function updateGroupCount(group) {
+    var n = group.querySelectorAll('.variant_row').length;
+    var badge = group.querySelector('.variant-group-badge');
+    if (badge) badge.textContent = n + ' cấu hình';
+}
+
+function addColorGroup(frameId, meta) {
+    meta = meta || {};
+    var khung = document.getElementById(frameId);
+    var groupsDiv = khung?.querySelector('.variant-groups');
+    if (!groupsDiv) return null;
+
+    var group = buildColorGroupElement(frameId, meta);
+    groupsDiv.appendChild(group);
+    appendConfigRow(group, {
+        variant_id: 0,
+        ram: meta.ram || '',
+        rom: meta.rom || '',
+        so_luong_ton: meta.so_luong_ton || 0
     });
-
+    updateGroupCount(group);
     updateInventoryFromVariants(frameId);
+    return group;
+}
+
+function addConfigToGroup(btn) {
+    var group = btn.closest('.variant-color-group');
+    if (!group) return;
+    var khung = btn.closest('[id^="khung"]');
+    appendConfigRow(group, { variant_id: 0, ram: '', rom: '', so_luong_ton: 0 });
+    updateGroupCount(group);
+    if (khung) updateInventoryFromVariants(khung.id);
+}
+
+function toggleColorGroup(btn) {
+    var group = btn.closest('.variant-color-group');
+    if (group) group.classList.toggle('is-collapsed');
+}
+
+function removeColorGroup(btn) {
+    if (!confirm('Xóa cả nhóm màu này và tất cả cấu hình RAM/ROM?')) return;
+    var khung = btn.closest('[id^="khung"]');
+    var group = btn.closest('.variant-color-group');
+    if (group) group.remove();
+
+    if (khung && !khung.querySelector('.variant-color-group')) {
+        addColorGroup(khung.id, { ten_mau: 'Mặc định', ma_mau_hex: '#000000' });
+    }
+    if (khung) updateInventoryFromVariants(khung.id);
+}
+
+function addVariantRow(frameId, v) {
+    addColorGroup(frameId, v || {});
 }
 
 function removeVariantRow(btn) {
     var row = btn.closest('.variant_row');
     if (!row) return;
 
-    var khung = btn.closest('[id]');
+    var group = btn.closest('.variant-color-group');
+    var khung = btn.closest('[id^="khung"]');
     row.remove();
 
-    var rowsDiv = khung.querySelector('.variant_rows');
-    if (rowsDiv && rowsDiv.querySelectorAll('.variant_row').length === 0) {
-        addVariantRow(khung.id, { variant_id: 0, ten_mau: 'Mặc định', ma_mau_hex: '#000000', so_luong_ton: 0 });
-    } else {
+    if (group) {
+        updateGroupCount(group);
+        if (group.querySelectorAll('.variant_row').length === 0) {
+            group.remove();
+        }
+    }
+
+    if (khung && !khung.querySelector('.variant-color-group')) {
+        addColorGroup(khung.id, { ten_mau: 'Mặc định', ma_mau_hex: '#000000' });
+    } else if (khung) {
         updateInventoryFromVariants(khung.id);
     }
 }
@@ -418,6 +580,8 @@ function loadVariantsIntoFrame(frameId, masp) {
 function layThongTinSanPhamTuTable(idFrame) {
     var khung = document.getElementById(idFrame);
     if (!khung) return false;
+
+    syncAllVariantGroups(idFrame);
 
     ensureVariantSection(idFrame);
 
@@ -485,7 +649,9 @@ function layThongTinSanPhamTuTable(idFrame) {
             ten_mau: ten_mau,
             ma_mau_hex: hex,
             hinh_anh: imgV,
-            so_luong_ton: stock
+            so_luong_ton: stock,
+            ram: (r.querySelector('.variant_ram')?.value || '').trim(),
+            rom: (r.querySelector('.variant_rom')?.value || '').trim()
         });
     });
 

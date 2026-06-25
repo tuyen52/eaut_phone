@@ -56,11 +56,16 @@ function normalize_variants_for_add($variants, $defaultImg, $fallbackStock) {
             $stock = 0;
         }
 
+        $ram = trim((string)($v['ram'] ?? ''));
+        $rom = trim((string)($v['rom'] ?? ''));
+
         $result[] = [
-            'ten_mau' => $tenMau,
-            'ma_mau_hex' => $hex,
-            'hinh_anh' => $img,
-            'so_luong_ton' => $stock
+            'ten_mau'      => $tenMau,
+            'ma_mau_hex'   => $hex,
+            'hinh_anh'     => $img,
+            'so_luong_ton' => $stock,
+            'ram'          => $ram,
+            'rom'          => $rom
         ];
 
         $totalStock += $stock;
@@ -174,24 +179,28 @@ try {
 
     $stmtVariant = $conn->prepare("
         INSERT INTO product_variants (
-            masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton
+            masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton, ram, rom
         )
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
 
     foreach ($variants as $v) {
-        $tenMau = $v['ten_mau'];
-        $hex = $v['ma_mau_hex'];
+        $tenMau     = $v['ten_mau'];
+        $hex        = $v['ma_mau_hex'];
         $imgVariant = $v['hinh_anh'];
-        $stock = (int)$v['so_luong_ton'];
+        $stock      = (int)$v['so_luong_ton'];
+        $vRam       = $v['ram'] ?? '';
+        $vRom       = $v['rom'] ?? '';
 
         $stmtVariant->bind_param(
-            "ssssi",
+            "ssssiss",
             $masp,
             $tenMau,
             $hex,
             $imgVariant,
-            $stock
+            $stock,
+            $vRam,
+            $vRom
         );
 
         $stmtVariant->execute();

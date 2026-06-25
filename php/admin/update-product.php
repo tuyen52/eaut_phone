@@ -40,12 +40,17 @@ function normalize_variant_row_update($v, $defaultImg) {
         $stock = 0;
     }
 
+    $ram = trim((string)($v['ram'] ?? ''));
+    $rom = trim((string)($v['rom'] ?? ''));
+
     return [
-        'variant_id' => $variantId,
-        'ten_mau' => $tenMau,
-        'ma_mau_hex' => $hex,
-        'hinh_anh' => $img,
-        'so_luong_ton' => $stock
+        'variant_id'   => $variantId,
+        'ten_mau'      => $tenMau,
+        'ma_mau_hex'   => $hex,
+        'hinh_anh'     => $img,
+        'so_luong_ton' => $stock,
+        'ram'          => $ram,
+        'rom'          => $rom
     ];
 }
 
@@ -207,23 +212,27 @@ try {
             SET ten_mau = ?,
                 ma_mau_hex = ?,
                 hinh_anh = ?,
-                so_luong_ton = ?
+                so_luong_ton = ?,
+                ram = ?,
+                rom = ?
             WHERE variant_id = ? AND masp = ?
         ");
 
         $stmtInsertVariant = $conn->prepare("
             INSERT INTO product_variants (
-                masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton
+                masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton, ram, rom
             )
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ");
 
         foreach ($normalizedVariants as $v) {
-            $variantId = (int)$v['variant_id'];
-            $tenMau = $v['ten_mau'];
-            $hex = $v['ma_mau_hex'];
+            $variantId  = (int)$v['variant_id'];
+            $tenMau     = $v['ten_mau'];
+            $hex        = $v['ma_mau_hex'];
             $imgVariant = $v['hinh_anh'];
-            $stock = (int)$v['so_luong_ton'];
+            $stock      = (int)$v['so_luong_ton'];
+            $vRam       = $v['ram'] ?? '';
+            $vRom       = $v['rom'] ?? '';
 
             $updatedExisting = false;
 
@@ -234,11 +243,13 @@ try {
 
                 if ($rsVariant->num_rows > 0) {
                     $stmtUpdateVariant->bind_param(
-                        "sssiis",
+                        "ssssisss",
                         $tenMau,
                         $hex,
                         $imgVariant,
                         $stock,
+                        $vRam,
+                        $vRom,
                         $variantId,
                         $masp
                     );
@@ -251,12 +262,14 @@ try {
 
             if (!$updatedExisting) {
                 $stmtInsertVariant->bind_param(
-                    "ssssi",
+                    "ssssiss",
                     $masp,
                     $tenMau,
                     $hex,
                     $imgVariant,
-                    $stock
+                    $stock,
+                    $vRam,
+                    $vRom
                 );
 
                 $stmtInsertVariant->execute();

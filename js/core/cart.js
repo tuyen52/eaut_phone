@@ -97,7 +97,8 @@ async function themVaoGioHang(masp, tensp, variant_id, mau_sac, ma_mau_hex, soLu
         if (typeof animateCartNumber === 'function') animateCartNumber();
         if (typeof capNhat_ThongTin_CurrentUser === 'function') capNhat_ThongTin_CurrentUser();
 
-        alert(`Đã thêm '${tensp}' - ${finalColorName || 'màu'} vào giỏ hàng!`);
+        var variantLabel = [finalColorName, finalRam, finalRom].filter(Boolean).join(' | ');
+        alert(`Đã thêm '${tensp}' - ${variantLabel || 'biến thể'} vào giỏ hàng!`);
     } catch (e) {
         console.error(e);
         alert("Lỗi kết nối Server, vui lòng thử lại!");

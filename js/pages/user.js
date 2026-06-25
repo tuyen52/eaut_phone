@@ -351,7 +351,7 @@ function renderOrderHistory() {
             var safeVariantId = escapeHtml(s.variant_id || '');
 
             var mauTxt = '';
-            if (s.mau_sac) {
+            if (safeMauSac) {
                 mauTxt = ` <span class="colorTag">(${safeMauSac})</span>`;
             } else if (s.variant_id) {
                 mauTxt = ` <span style="color:#777;font-size:13px;">(Variant #${safeVariantId})</span>`;

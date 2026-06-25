@@ -123,23 +123,19 @@ function renderVariantOptions(p, variants) {
     });
 
     optionsDiv.innerHTML = colors.map(v => {
-        var disabled = (parseInt(v.so_luong_ton) || 0) <= 0 ? 'disabled' : '';
-        var disabledClass = disabled ? 'disabled' : '';
-        var note = disabled ? ' (Hết)' : '';
+        var outOfStock = (parseInt(v.so_luong_ton) || 0) <= 0;
+        var disabledClass = outOfStock ? 'disabled' : '';
+        var note = outOfStock ? ' (Hết)' : '';
         var hex = v.ma_mau_hex || '#000000';
 
-        return `
-            <div class="variant_btn ${disabledClass}" 
-                 data-color="${escapeHtml(v.ten_mau)}" 
-                 data-disabled="${disabled ? 1 : 0}"
-                 title="${escapeHtml(v.ten_mau)}${note}">
-                <span class="swatch" style="background:${hex}"></span>
-                <span>${escapeHtml(v.ten_mau)}${note}</span>
-            </div>
-        `;
-    }).join('') + `
-        <div id="variantComboArea" style="width:100%; margin-top:12px;"></div>
-    `;
+        return `<div class="variant_btn ${disabledClass}"
+                     data-color="${escapeHtml(v.ten_mau)}"
+                     data-disabled="${outOfStock ? 1 : 0}"
+                     title="${escapeHtml(v.ten_mau)}${note}">
+                    <span class="swatch" style="background:${hex}"></span>
+                    <span>${escapeHtml(v.ten_mau)}${note}</span>
+                </div>`;
+    }).join('');
 
     var btns = optionsDiv.querySelectorAll('.variant_btn');
     btns.forEach(btn => {
@@ -176,16 +172,23 @@ function renderRamRomPicker(p, variants, color) {
         if (v.rom && !roms.includes(v.rom)) roms.push(v.rom);
     });
 
-    var ramHtml = rams.length ? rams.map(r => `<button type="button" class="variant_choice" data-ram="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('') : '<span style="color:#777">Chưa có RAM</span>';
-    var romHtml = roms.length ? roms.map(r => `<button type="button" class="variant_choice" data-rom="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('') : '<span style="color:#777">Chưa có bộ nhớ</span>';
+    var ramHtml = rams.length
+        ? rams.map(r => `<button type="button" class="variant_choice" data-ram="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('')
+        : '<span style="color:#aaa;font-size:13px;">Chưa có dữ liệu RAM</span>';
+
+    var romHtml = roms.length
+        ? roms.map(r => `<button type="button" class="variant_choice" data-rom="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('')
+        : '<span style="color:#aaa;font-size:13px;">Chưa có dữ liệu bộ nhớ</span>';
 
     comboArea.innerHTML = `
-        <div style="margin-top:10px;">
-            <div style="font-weight:600; margin-bottom:6px;">Chọn RAM</div>
+        <hr class="variant_divider">
+        <div class="variant_section">
+            <div class="variant_section_label">RAM</div>
             <div class="variant_choice_group" id="ramChoices">${ramHtml}</div>
         </div>
-        <div style="margin-top:10px;">
-            <div style="font-weight:600; margin-bottom:6px;">Chọn bộ nhớ</div>
+        <hr class="variant_divider">
+        <div class="variant_section">
+            <div class="variant_section_label">Bộ nhớ trong</div>
             <div class="variant_choice_group" id="romChoices">${romHtml}</div>
         </div>
     `;
@@ -217,7 +220,9 @@ function renderRomChoices(p, variants, ram) {
     variants.filter(v => !ram || v.ram === ram).forEach(v => {
         if (v.rom && !roms.includes(v.rom)) roms.push(v.rom);
     });
-    romChoices.innerHTML = roms.length ? roms.map(r => `<button type="button" class="variant_choice" data-rom="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('') : '<span style="color:#777">Không có bộ nhớ phù hợp</span>';
+    romChoices.innerHTML = roms.length
+        ? roms.map(r => `<button type="button" class="variant_choice" data-rom="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('')
+        : '<span style="color:#aaa;font-size:13px;">Không có bộ nhớ phù hợp</span>';
 
     romChoices.querySelectorAll('[data-rom]').forEach(btn => btn.addEventListener('click', function () {
         selectedRom = btn.getAttribute('data-rom');
