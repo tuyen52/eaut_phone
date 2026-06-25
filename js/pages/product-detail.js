@@ -10,16 +10,29 @@ var selectedColor = null;
 var selectedRam = null;
 var selectedRom = null;
 
-// --- [MỚI] Đổi ảnh theo biến thể ---
-function applyVariantImage(p, v) {
-    var img = (v && v.hinh_anh && String(v.hinh_anh).trim() !== '') ? v.hinh_anh : (p && p.img ? p.img : '');
+// Chi dung anh variant neu la upload that (khong doi sang SVG placeholder)
+function resolveVariantImage(p, v) {
+    var fallback = (p && p.img) ? String(p.img).trim() : '';
+    if (!v || !v.hinh_anh) return fallback;
+
+    var variantImg = String(v.hinh_anh).trim();
+    if (!variantImg) return fallback;
+
+    if (variantImg.indexOf('uploads/') !== -1) {
+        return variantImg;
+    }
+    return fallback;
+}
+
+function setDetailProductImage(img, altText) {
     if (!img) return;
 
-    var smallImg = document.querySelector('.picture img');
-    if (smallImg) {
-        smallImg.src = img;
-        smallImg.removeAttribute('width');
-        smallImg.removeAttribute('height');
+    var mainImg = document.getElementById('mainProductImg');
+    if (mainImg) {
+        mainImg.src = img;
+        if (altText) mainImg.alt = altText;
+        mainImg.removeAttribute('width');
+        mainImg.removeAttribute('height');
     }
 
     var bigImg = document.getElementById('bigimg');
@@ -32,6 +45,12 @@ function applyVariantImage(p, v) {
     if (typeof renderSmallImages === 'function') {
         renderSmallImages(img);
     }
+}
+
+function applyVariantImage(p, v) {
+    var img = resolveVariantImage(p, v);
+    if (!img) return;
+    setDetailProductImage(img, p && p.name ? p.name : '');
 }
 
 window.onload = function () {
@@ -395,8 +414,7 @@ function renderProductDetail(p) {
 
     div.querySelector('.rating').innerHTML = generateStarHTML(p.star, p.rateCount);
 
-    div.querySelector('.picture img').src = p.img;
-    document.getElementById('bigimg').src = p.img;
+    setDetailProductImage(p.img, p.name || '');
 
     var priceArea = div.querySelector('.area_price_top');
     if (priceArea) {
@@ -457,7 +475,6 @@ function renderProductDetail(p) {
         }
     }
 
-    renderSmallImages(p.img);
 }
 
 function renderSmallImages(mainImg) {
