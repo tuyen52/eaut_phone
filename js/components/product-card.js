@@ -55,7 +55,7 @@ function renderProductCardHTML(p) {
             ${promoObj.toWeb()}
             <div class="tooltip">
                 <button class="themvaogio" aria-label="Thêm vào giỏ" title="Thêm vào giỏ" onclick="themVaoGioHang(decodeURIComponent('${encodedMasp}'), decodeURIComponent('${encodedName}')); return false;">
-                    <i class="fa fa-plus" aria-hidden="true"></i>
+                    <i class="fa fa-shopping-cart" aria-hidden="true"></i>
                 </button>
             </div>
         </a>
