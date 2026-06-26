@@ -30,12 +30,13 @@ function fetchOrderHistory() {
             <div class="ordersFilters">
                 <select id="orderStatusFilter">
                     <option value="all">Tất cả trạng thái</option>
-                    <option value="Chờ thanh toán">Chờ thanh toán</option>
-                    <option value="Chờ xử lý">Chờ xử lý</option>
-                    <option value="Đang giao hàng">Đang giao hàng</option>
-                    <option value="Đã nhận hàng">Đã nhận hàng</option>
-                    <option value="Hoàn thành">Hoàn thành</option>
-                    <option value="Hủy">Đã hủy</option>
+                    <option value="pending">Chờ xử lý</option>
+                    <option value="confirmed">Đã xác nhận</option>
+                    <option value="processing">Đang chuẩn bị</option>
+                    <option value="shipping">Đang giao hàng</option>
+                    <option value="completed">Hoàn thành</option>
+                    <option value="cancelled">Đã hủy</option>
+                    <option value="delivery_failed">Giao thất bại</option>
                 </select>
                 <input id="orderSearch" type="text" placeholder="Tìm mã đơn (#123)">
                 <button type="button" class="uBtn uBtnPrimary" id="btnReloadOrders">Tải lại</button>
@@ -81,24 +82,24 @@ function fetchOrderHistory() {
 
 function getStatusIndex(st) {
     if (!st) return 0;
-    if (String(st).toLowerCase().includes('hủy')) return -1;
-    if (st === 'Chờ thanh toán') return -2;
-    if (st === 'Chờ xử lý') return 0;
-    if (st === 'Đang giao hàng') return 1;
-    if (st === 'Đã nhận hàng') return 2;
-    if (st === 'Hoàn thành') return 3;
+    var s = String(st).toLowerCase();
+    if (s === 'cancelled' || s === 'delivery_failed') return -1;
+    if (s === 'pending') return 0;
+    if (s === 'confirmed' || s === 'processing') return 1;
+    if (s === 'shipping') return 2;
+    if (s === 'completed') return 3;
     return 0;
 }
 
 function statusBadgeColor(st) {
     if (!st) return '#6c757d';
     var s = String(st).toLowerCase();
-    if (s.includes('hủy')) return '#dc3545';
-    if (st === 'Chờ thanh toán') return '#b26a00';
-    if (st === 'Chờ xử lý') return '#ff9800';
-    if (st === 'Đang giao hàng') return '#17a2b8';
-    if (st === 'Đã nhận hàng') return '#0d6efd';
-    if (st === 'Hoàn thành') return '#28a745';
+    if (s === 'cancelled' || s === 'delivery_failed') return '#dc3545';
+    if (s === 'pending') return '#ff9800';
+    if (s === 'confirmed') return '#ff9800';
+    if (s === 'processing') return '#17a2b8';
+    if (s === 'shipping') return '#17a2b8';
+    if (s === 'completed') return '#28a745';
     return '#6c757d';
 }
 
@@ -129,14 +130,11 @@ function renderTrackingBar(status) {
     var idx = getStatusIndex(status);
 
     if (idx === -1) {
-        return `<div class="trackWrap"><span class="statusBadge" style="background:#dc3545">Đơn đã bị hủy</span></div>`;
+        var label = String(status).toLowerCase() === 'delivery_failed' ? 'Giao hàng thất bại' : 'Đơn đã bị hủy';
+        return `<div class="trackWrap"><span class="statusBadge" style="background:#dc3545">${label}</span></div>`;
     }
 
-    if (idx === -2) {
-        return `<div class="trackWrap"><span class="statusBadge" style="background:#b26a00">Đơn đang chờ thanh toán trực tuyến</span></div>`;
-    }
-
-    var steps = ['Chờ xử lý', 'Đang giao', 'Đã nhận', 'Hoàn thành'];
+    var steps = ['Chờ xử lý', 'Chuẩn bị hàng', 'Đang giao', 'Hoàn thành'];
     var html = `<div class="trackWrap">`;
     steps.forEach((label, i) => {
         var done = i <= idx;
@@ -157,11 +155,7 @@ function renderOrderHistory() {
     var orders = Array.isArray(currentUser.donhang) ? currentUser.donhang.slice() : [];
 
     if (__orderFilterStatus !== 'all') {
-        if (__orderFilterStatus === 'Hủy') {
-            orders = orders.filter(o => String(o.tinhTrang || '').toLowerCase().includes('hủy'));
-        } else {
-            orders = orders.filter(o => (o.tinhTrang || '') === __orderFilterStatus);
-        }
+        orders = orders.filter(o => (o.tinhTrang || '') === __orderFilterStatus);
     }
 
     if (__orderSearch) {
@@ -209,9 +203,9 @@ function renderOrderHistory() {
         }).join('');
 
         var actionBtn = '';
-        if (st === 'Đang giao hàng') {
+        if (st === 'shipping') {
             actionBtn = `<button class="uBtn uBtnSuccess" onclick="userNhanHang(${maDon})">Đã nhận được hàng</button>`;
-        } else if (st === 'Chờ xử lý' || st === 'Chờ thanh toán') {
+        } else if (st === 'pending') {
             actionBtn = `<button class="uBtn uBtnDanger" onclick="userHuyDon(${maDon})">Hủy đơn</button>`;
         }
 
@@ -274,12 +268,12 @@ function renderOrderHistory() {
 
 function userNhanHang(maDon) {
     if (!confirm('Xác nhận bạn đã nhận được hàng và sản phẩm nguyên vẹn?')) return;
-    updateOrderStatusAPI(maDon, 'Đã nhận hàng');
+    updateOrderStatusAPI(maDon, 'completed');
 }
 
 function userHuyDon(maDon) {
     if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?')) return;
-    updateOrderStatusAPI(maDon, 'Đã hủy bởi Khách');
+    updateOrderStatusAPI(maDon, 'cancelled');
 }
 
 function toggleUserOrderDetails(id) {
@@ -368,5 +362,5 @@ function formatDateTime(value) {
 
 function canWriteReviewStatus(status) {
     var s = String(status || '').trim().toLowerCase();
-    return s === 'đã nhận hàng' || s === 'hoàn thành' || s === 'completed' || s === 'delivered';
+    return s === 'completed' || s === 'hoàn thành' || s === 'delivered';
 }

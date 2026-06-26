@@ -147,15 +147,21 @@ try {
     }
 
     /*
-        User chỉ được hủy đơn khi đơn còn pending (đang chờ admin xác nhận).
-        User không được can thiệp các trạng thái giao hàng khác.
+        User được:
+        - hủy đơn khi đơn còn pending
+        - xác nhận nhận hàng khi đơn đang shipping
     */
     if (!$isAdmin) {
-        if ($trangThaiMoi !== 'cancelled') {
-            throw new Exception("Chỉ được hủy đơn khi đang chờ admin xác nhận!");
-        }
-        if ($trangThaiCu !== 'pending') {
-            throw new Exception("Đơn đã được admin xác nhận nên không thể hủy nữa!");
+        if ($trangThaiMoi === 'cancelled') {
+            if ($trangThaiCu !== 'pending') {
+                throw new Exception("Đơn đã được admin xác nhận nên không thể hủy nữa!");
+            }
+        } elseif ($trangThaiMoi === 'completed') {
+            if ($trangThaiCu !== 'shipping') {
+                throw new Exception("Chỉ xác nhận nhận hàng khi đơn đang giao!");
+            }
+        } else {
+            throw new Exception("Bạn không có quyền chuyển đơn sang trạng thái này!");
         }
     }
 
@@ -269,7 +275,7 @@ try {
     $stmtUp->close();
 
     $stmtLog = $conn->prepare("INSERT INTO order_status_logs (ma_don, status, note) VALUES (?, ?, ?)");
-    $note = 'updated_by_admin';
+    $note = $isAdmin ? 'updated_by_admin' : 'updated_by_user';
     $stmtLog->bind_param("iss", $maDon, $trangThaiMoi, $note);
     $stmtLog->execute();
     $stmtLog->close();

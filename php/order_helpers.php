@@ -754,6 +754,7 @@ if (!function_exists('normalize_order_status')) {
             'đã xác nhận' => 'confirmed',
             'đang xử lý' => 'processing',
             'đang giao hàng' => 'shipping',
+            'đã nhận hàng' => 'completed',
             'hoàn thành' => 'completed',
             'đã hủy' => 'cancelled',
             'đã hủy bởi khách' => 'cancelled',
