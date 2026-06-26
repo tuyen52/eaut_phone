@@ -315,6 +315,7 @@ img[alt=""] {
 .sanPham {
 	width: calc((100% - 56px) / 5);
 	min-width: 0;
+	align-self: flex-start;
 	border: 1px solid rgba(15, 23, 42, 0.08);
 	border-radius: 22px;
 	overflow: hidden;
@@ -328,8 +329,12 @@ img[alt=""] {
 	box-shadow: 0 18px 34px rgba(15, 23, 42, 0.1);
 }
 .sanPham a {
-	height: 100%;
-	padding: 14px 0 16px;
+	display: block;
+	position: relative;
+	height: 378px;
+	min-height: 378px;
+	padding: 14px 0 46px;
+	box-sizing: border-box;
 }
 .sanPham a img {
 	width: 190px;
@@ -355,15 +360,34 @@ img[alt=""] {
 .sanPham .price span { color: #98a2b3; }
 .sanPham label { top: 182px; left: 14px; }
 
-.themvaogio {
-	border-color: rgba(11, 87, 208, 0.14);
-	background: #fff;
-	color: var(--primary);
-	box-shadow: 0 8px 18px rgba(15,23,42,.06);
+.sanPham .ratingresult:empty {
+	display: none;
+	padding: 0;
+	margin: 0;
 }
+
+.sanPham .tooltip {
+	position: static;
+	display: block;
+	height: 0;
+	overflow: visible;
+}
+
+.themvaogio {
+	position: absolute;
+	right: 10px;
+	bottom: 10px;
+	z-index: 5;
+	border: none;
+	background: rgba(11, 87, 208, 0.08);
+	color: var(--primary);
+	box-shadow: inset 0 0 0 1px rgba(11, 87, 208, 0.12);
+}
+
 .themvaogio:hover {
-	background: var(--primary);
+	background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
 	color: #fff;
+	box-shadow: 0 6px 16px rgba(11, 87, 208, 0.28);
 }
 
 /* Product showcase blocks */

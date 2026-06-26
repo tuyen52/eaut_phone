@@ -213,40 +213,40 @@ function renderHomeSections() {
     // 1. Sản phẩm bán chạy
     var banChay = getTopSellingProducts(limit);
     if (banChay.length === 0) banChay = list.slice(0, limit); 
-    addKhungSanPham('SẢN PHẨM BÁN CHẠY', yellow_red, banChay, div, 'sort=rateCount-decrease');
+    addKhungSanPham('SẢN PHẨM BÁN CHẠY', yellow_red, banChay, div, 'sort=rateCount-decrease', 'hot');
 
     // 2. Nổi bật nhất (Nhiều sao)
     var noiBat = list.filter(p => p.star >= 3).slice(0, limit);
-    addKhungSanPham('NỔI BẬT NHẤT', yellow_red, noiBat, div, 'star=3&sort=rateCount-decrease');
+    addKhungSanPham('NỔI BẬT NHẤT', yellow_red, noiBat, div, 'star=3&sort=rateCount-decrease', 'hot');
 
     // 3. Mới ra mắt
     var moiRaMat = list.filter(p => p.promo.name === 'moiramat').slice(0, limit);
-    addKhungSanPham('SẢN PHẨM MỚI', blue, moiRaMat, div, 'promo=moiramat&sort=rateCount-decrease');
+    addKhungSanPham('SẢN PHẨM MỚI', blue, moiRaMat, div, 'promo=moiramat&sort=rateCount-decrease', 'new');
 
     // 4. Trả góp
     var traGop = list.filter(p => p.promo.name === 'tragop').slice(0, limit);
-    addKhungSanPham('TRẢ GÓP 0%', yellow_red, traGop, div, 'promo=tragop');
+    addKhungSanPham('TRẢ GÓP 0%', yellow_red, traGop, div, 'promo=tragop', 'hot');
 
     // 5. Giá sốc Online
     var giaSoc = list.filter(p => p.promo.name === 'giareonline').slice(0, limit);
-    addKhungSanPham('GIÁ SỐC ONLINE', green, giaSoc, div, 'promo=giareonline');
+    addKhungSanPham('GIÁ SỐC ONLINE', green, giaSoc, div, 'promo=giareonline', 'deal');
 
     // 6. Giảm giá lớn
     var giamGia = list.filter(p => p.promo.name === 'giamgia').slice(0, limit);
-    addKhungSanPham('GIẢM GIÁ LỚN', yellow_red, giamGia, div, 'promo=giamgia');
+    addKhungSanPham('GIẢM GIÁ LỚN', yellow_red, giamGia, div, 'promo=giamgia', 'hot');
     
     // 7. Giá rẻ cho mọi nhà (Dưới 3tr)
     var giaRe = list.filter(p => stringToNum(p.price) <= 3000000).slice(0, limit);
-    addKhungSanPham('GIÁ RẺ CHO MỌI NHÀ', green, giaRe, div, 'price=0-3000000');
+    addKhungSanPham('GIÁ RẺ CHO MỌI NHÀ', green, giaRe, div, 'price=0-3000000', 'deal');
 }
 
-function addKhungSanPham(tenKhung, color, products, ele, filterQuery) {
-	var gradient = `background-image: linear-gradient(120deg, ${color[0]} 0%, ${color[1]} 50%, ${color[0]} 100%);`
-	var borderColor = `border-color: ${color[0]}`;
-	var borderA = `border-left: 2px solid ${color[0]}; border-right: 2px solid ${color[0]};`;
+function addKhungSanPham(tenKhung, color, products, ele, filterQuery, theme) {
+	theme = theme || 'hot';
 
-	var s = `<div class="khungSanPham" style="${borderColor}">
-				<h3 class="tenKhung" style="${gradient}">* ${tenKhung} *</h3>
+	var s = `<div class="khungSanPham khungSanPham--${theme}">
+				<div class="khungSanPham-head">
+					<h3 class="tenKhung">${tenKhung}</h3>
+				</div>
 				<div class="listSpTrongKhung flexContain">`;
 
 	products.forEach(p => {
@@ -254,10 +254,10 @@ function addKhungSanPham(tenKhung, color, products, ele, filterQuery) {
 	});
 
 	s += `</div>
-			<a class="xemTatCa" href="index.html?${filterQuery || ''}" style="${borderA}">
-				Xem tất cả
+			<a class="xemTatCa" href="index.html?${filterQuery || ''}">
+				Xem tất cả <i class="fa fa-angle-right"></i>
 			</a>
-		</div> <hr>`;
+		</div>`;
 
 	ele.innerHTML += s;
 }
