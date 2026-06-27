@@ -18,6 +18,7 @@ function mapProductRowToJson($row) {
             "name"  => $row['khuyen_mai_loai'],
             "value" => $row['khuyen_mai_gia_tri']
         ],
+        "gioi_thieu_san_pham" => $row['gioi_thieu_san_pham'] ?? '',
         // [QUAN TRỌNG] Đã lấy được chi tiết từ DB
         "detail"    => [
             "screen" => $row['screen'],

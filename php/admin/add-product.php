@@ -21,7 +21,7 @@ function normalize_hex_color($hex) {
     return $hex;
 }
 
-function normalize_variants_for_add($variants, $defaultImg, $fallbackStock) {
+function normalize_variants_for_add($variants, $defaultImg, $fallbackStock, $fallbackPrice) {
     if (!is_array($variants)) {
         $variants = [];
     }
@@ -31,12 +31,14 @@ function normalize_variants_for_add($variants, $defaultImg, $fallbackStock) {
             'ten_mau' => 'Mặc định',
             'ma_mau_hex' => '#000000',
             'hinh_anh' => $defaultImg,
-            'so_luong_ton' => $fallbackStock
+            'so_luong_ton' => $fallbackStock,
+            'gia_ban' => max(0, (int)$fallbackPrice)
         ]];
     }
 
     $result = [];
     $totalStock = 0;
+    $minPrice = null;
 
     foreach ($variants as $v) {
         if (!is_array($v)) continue;
@@ -56,14 +58,28 @@ function normalize_variants_for_add($variants, $defaultImg, $fallbackStock) {
             $stock = 0;
         }
 
+        $ram = trim((string)($v['ram'] ?? ''));
+        $rom = trim((string)($v['rom'] ?? ''));
+
+        $giaBan = parse_admin_price($v['gia_ban'] ?? 0);
+        if ($giaBan <= 0) {
+            $giaBan = max(0, (int)$fallbackPrice);
+        }
+
         $result[] = [
-            'ten_mau' => $tenMau,
-            'ma_mau_hex' => $hex,
-            'hinh_anh' => $img,
-            'so_luong_ton' => $stock
+            'ten_mau'      => $tenMau,
+            'ma_mau_hex'   => $hex,
+            'hinh_anh'     => $img,
+            'so_luong_ton' => $stock,
+            'gia_ban'      => $giaBan,
+            'ram'          => $ram,
+            'rom'          => $rom
         ];
 
         $totalStock += $stock;
+        if ($giaBan > 0 && ($minPrice === null || $giaBan < $minPrice)) {
+            $minPrice = $giaBan;
+        }
     }
 
     if (count($result) === 0) {
@@ -73,13 +89,17 @@ function normalize_variants_for_add($variants, $defaultImg, $fallbackStock) {
             'ten_mau' => 'Mặc định',
             'ma_mau_hex' => '#000000',
             'hinh_anh' => $defaultImg,
-            'so_luong_ton' => $stock
+            'so_luong_ton' => $stock,
+            'gia_ban' => max(0, (int)$fallbackPrice)
         ];
 
         $totalStock = $stock;
+        if ($fallbackPrice > 0) {
+            $minPrice = max(0, (int)$fallbackPrice);
+        }
     }
 
-    return [$result, $totalStock];
+    return [$result, $totalStock, $minPrice ?? 0];
 }
 
 try {
@@ -106,6 +126,7 @@ try {
     $ram = trim((string)($detail['ram'] ?? ''));
     $rom = trim((string)($detail['rom'] ?? ''));
     $battery = trim((string)($detail['battery'] ?? ''));
+    $gioiThieu = trim((string)($data['gioi_thieu_san_pham'] ?? ''));
 
     $tonKhoCu = isset($data['inventory']) ? (int)$data['inventory'] : 0;
     if ($tonKhoCu < 0) $tonKhoCu = 0;
@@ -114,15 +135,20 @@ try {
         json_response(false, 'Thiếu thông tin sản phẩm bắt buộc!', [], 400);
     }
 
-    if ($gia < 0) {
-        json_response(false, 'Giá sản phẩm không hợp lệ!', [], 400);
+    if ($gia <= 0) {
+        json_response(false, 'Vui lòng nhập giá bán cho ít nhất một biến thể!', [], 400);
     }
 
-    [$variants, $totalStock] = normalize_variants_for_add(
+    [$variants, $totalStock, $minPrice] = normalize_variants_for_add(
         $data['variants'] ?? [],
         $hinh,
-        $tonKhoCu
+        $tonKhoCu,
+        $gia
     );
+
+    if ($minPrice > 0) {
+        $gia = $minPrice;
+    }
 
     // Kiểm tra trùng mã sản phẩm
     $stmtCheck = $conn->prepare("SELECT masp FROM products WHERE masp = ? LIMIT 1");
@@ -142,13 +168,13 @@ try {
         INSERT INTO products (
             masp, ten_sp, hang_sx, hinh_anh, gia,
             khuyen_mai_loai, khuyen_mai_gia_tri, so_luong_ton,
-            screen, os, camera, camera_front, cpu, ram, rom, battery
+            screen, os, camera, camera_front, cpu, ram, rom, battery, gioi_thieu_san_pham
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $stmtProduct->bind_param(
-        "ssssississssssss",
+        "ssssississsssssss",
         $masp,
         $ten,
         $hang,
@@ -164,7 +190,8 @@ try {
         $cpu,
         $ram,
         $rom,
-        $battery
+        $battery,
+        $gioiThieu
     );
 
     $stmtProduct->execute();
@@ -172,24 +199,30 @@ try {
 
     $stmtVariant = $conn->prepare("
         INSERT INTO product_variants (
-            masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton
+            masp, ten_mau, ma_mau_hex, hinh_anh, so_luong_ton, gia_ban, ram, rom
         )
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     foreach ($variants as $v) {
-        $tenMau = $v['ten_mau'];
-        $hex = $v['ma_mau_hex'];
+        $tenMau     = $v['ten_mau'];
+        $hex        = $v['ma_mau_hex'];
         $imgVariant = $v['hinh_anh'];
-        $stock = (int)$v['so_luong_ton'];
+        $stock      = (int)$v['so_luong_ton'];
+        $giaBan     = (int)$v['gia_ban'];
+        $vRam       = $v['ram'] ?? '';
+        $vRom       = $v['rom'] ?? '';
 
         $stmtVariant->bind_param(
-            "ssssi",
+            "ssssiiss",
             $masp,
             $tenMau,
             $hex,
             $imgVariant,
-            $stock
+            $stock,
+            $giaBan,
+            $vRam,
+            $vRom
         );
 
         $stmtVariant->execute();
@@ -197,17 +230,25 @@ try {
 
     $stmtVariant->close();
 
-    // Đồng bộ tồn kho tổng = tổng tồn kho các variant
+    // Đồng bộ tồn kho + giá min (trigger cũng cập nhật khi insert variant)
     $stmtSync = $conn->prepare("
         UPDATE products
         SET so_luong_ton = (
             SELECT IFNULL(SUM(v.so_luong_ton), 0)
             FROM product_variants v
             WHERE v.masp = ?
+        ),
+        gia = COALESCE(
+            (
+                SELECT MIN(v.gia_ban)
+                FROM product_variants v
+                WHERE v.masp = ? AND v.gia_ban > 0
+            ),
+            gia
         )
         WHERE masp = ?
     ");
-    $stmtSync->bind_param("ss", $masp, $masp);
+    $stmtSync->bind_param("sss", $masp, $masp, $masp);
     $stmtSync->execute();
     $stmtSync->close();
 

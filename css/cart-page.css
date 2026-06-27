@@ -1,0 +1,542 @@
+/* Trang giỏ hàng — layout & modal */
+
+.cartPage {
+	max-width: 1060px;
+	margin: 0 auto;
+	padding: 20px 16px 40px;
+	box-sizing: border-box;
+}
+
+.cartPage-header {
+	margin-bottom: 18px;
+}
+
+.cartPage-header h1 {
+	margin: 0 0 6px;
+	font-size: 26px;
+	font-weight: 800;
+	color: #101828;
+	letter-spacing: -0.02em;
+}
+
+.cartPage-header p {
+	margin: 0;
+	font-size: 14px;
+	color: #667085;
+}
+
+.cartCard {
+	background: #fff;
+	border: 1px solid rgba(15, 23, 42, 0.07);
+	border-radius: 20px;
+	box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
+	padding: 8px 16px 20px;
+	overflow: hidden;
+}
+
+.cartCard .listSanPham {
+	margin-top: 8px;
+	margin-bottom: 0;
+}
+
+/* Product row */
+.cartProductCell {
+	text-align: left !important;
+	padding-left: 12px !important;
+}
+
+.cartProductRow {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.cartProductImg {
+	width: 72px;
+	height: 72px;
+	object-fit: contain;
+	background: #f8fafc;
+	border-radius: 12px;
+	border: 1px solid #f1f5f9;
+	flex-shrink: 0;
+}
+
+.cartProductInfo a {
+	color: #101828 !important;
+	font-weight: 600 !important;
+	font-size: 15px !important;
+	text-decoration: none;
+	display: block;
+	line-height: 1.35;
+}
+
+.cartProductInfo a:hover {
+	color: #0b57d0 !important;
+}
+
+.cartProductMeta {
+	margin-top: 8px;
+	font-size: 13px;
+	color: #64748b;
+	line-height: 1.5;
+}
+
+.cartColorDot {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	border: 1px solid rgba(0, 0, 0, 0.12);
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.cartColorName {
+	font-weight: 600;
+	color: #334155;
+}
+
+.cartSpec {
+	font-size: 12px;
+	color: #94a3b8;
+	margin-top: 2px;
+}
+
+.cartStockHint {
+	font-size: 12px;
+	color: #94a3b8;
+	margin-top: 6px;
+}
+
+.cartPriceCell {
+	font-weight: 700;
+	color: #101828;
+	white-space: nowrap;
+}
+
+.cartSubtotalCell {
+	font-weight: 800;
+	color: #dc2626;
+	white-space: nowrap;
+}
+
+.cartRemoveBtn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 38px;
+	height: 38px;
+	border-radius: 10px;
+	cursor: pointer;
+	color: #94a3b8;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cartRemoveBtn:hover {
+	color: #dc2626;
+	background: #fef2f2;
+}
+
+/* Qty — đồng bộ class soluong từ gioHang.css */
+.cartCard .soluong {
+	margin: 0 auto;
+}
+
+/* Summary row */
+.cartSummaryRow td {
+	background: transparent !important;
+	box-shadow: none !important;
+	padding-top: 20px !important;
+}
+
+.cartSummaryRow:hover {
+	transform: none !important;
+	box-shadow: none !important;
+}
+
+.cartSummaryLabel {
+	text-align: right !important;
+	font-weight: 700 !important;
+	font-size: 16px !important;
+	color: #64748b !important;
+}
+
+.cartSummaryTotal {
+	font-weight: 800 !important;
+	font-size: 22px !important;
+	color: #dc2626 !important;
+}
+
+.cartSummaryActions {
+	text-align: right !important;
+}
+
+/* Empty states */
+.cartEmpty,
+.cartLoginEmpty {
+	text-align: center;
+	padding: 48px 24px;
+}
+
+.cartEmpty-icon,
+.cartLoginEmpty-icon {
+	font-size: 48px;
+	color: #cbd5e1;
+	margin-bottom: 14px;
+}
+
+.cartEmpty h2,
+.cartLoginEmpty h2 {
+	margin: 0 0 8px;
+	font-size: 18px;
+	font-weight: 700;
+	color: #101828;
+}
+
+.cartEmpty p,
+.cartLoginEmpty p {
+	margin: 0 0 20px;
+	font-size: 14px;
+	color: #667085;
+}
+
+.cartEmpty a,
+.cartLoginEmpty .cartBtnPrimary {
+	display: inline-block;
+	background: #0b57d0;
+	color: #fff;
+	padding: 11px 22px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: none;
+	border: none;
+	cursor: pointer;
+}
+
+.cartEmpty a:hover {
+	opacity: 0.92;
+}
+
+/* ===== Payment modal ===== */
+#paymentModal {
+	display: none;
+	position: fixed;
+	z-index: 100;
+	inset: 0;
+	overflow: auto;
+	background: rgba(15, 23, 42, 0.45);
+	backdrop-filter: blur(4px);
+}
+
+.paymentModal-box {
+	background: #fff;
+	margin: 3% auto;
+	padding: 0;
+	border-radius: 20px;
+	width: 95%;
+	max-width: 720px;
+	position: relative;
+	box-shadow: 0 24px 56px rgba(15, 23, 42, 0.18);
+	overflow: hidden;
+	animation: cartModalIn 0.25s ease;
+}
+
+@keyframes cartModalIn {
+	from { opacity: 0; transform: translateY(12px) scale(0.98); }
+	to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.paymentModal-close {
+	position: absolute;
+	right: 16px;
+	top: 14px;
+	width: 36px;
+	height: 36px;
+	border: none;
+	background: #f1f5f9;
+	border-radius: 10px;
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	color: #64748b;
+	z-index: 2;
+	transition: background 0.15s ease;
+}
+
+.paymentModal-close:hover {
+	background: #e2e8f0;
+	color: #101828;
+}
+
+.paymentModal-head {
+	padding: 22px 24px 18px;
+	background: linear-gradient(135deg, #0b57d0 0%, #2563eb 100%);
+	color: #fff;
+}
+
+.paymentModal-head h2 {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 700;
+	text-align: center;
+	text-transform: none;
+}
+
+#paymentModal .paymentModal-head h2 {
+	color: #fff !important;
+}
+
+.paymentModal-body {
+	padding: 22px 24px;
+	display: flex;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+
+.paymentModal-col {
+	flex: 1;
+	min-width: 280px;
+}
+
+.paymentModal-sectionTitle {
+	margin: 0 0 16px;
+	font-size: 15px;
+	font-weight: 700;
+	color: #101828;
+}
+
+#paymentModal .paymentModal-sectionTitle {
+	color: #101828 !important;
+}
+
+.paymentField {
+	margin-bottom: 14px;
+}
+
+.paymentField label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #344054;
+}
+
+.paymentField .req {
+	color: #dc2626;
+}
+
+.paymentField input,
+.paymentField textarea {
+	width: 100%;
+	padding: 11px 14px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	box-sizing: border-box;
+	font-size: 14px;
+	font-family: inherit;
+	outline: none;
+	transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.paymentField input:focus,
+.paymentField textarea:focus {
+	border-color: #93c5fd;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.paymentField textarea {
+	resize: vertical;
+	min-height: 88px;
+}
+
+.paymentField--address {
+	position: relative;
+}
+
+.paymentField--address textarea {
+	padding-right: 88px;
+}
+
+.paymentBtnLocation {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	background: #fff;
+	border: 1px solid #bfdbfe;
+	border-radius: 8px;
+	cursor: pointer;
+	color: #0b57d0;
+	padding: 6px 10px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.paymentBtnLocation:hover {
+	background: #eff6ff;
+}
+
+.paymentModal-divider {
+	width: 1px;
+	background: #f1f5f9;
+	align-self: stretch;
+}
+
+.paymentOption {
+	margin-bottom: 12px;
+	padding: 14px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	cursor: pointer;
+	transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.paymentOption:has(input:checked) {
+	border-color: #93c5fd;
+	background: #eff6ff;
+}
+
+.paymentOption label {
+	cursor: pointer;
+	font-weight: 600;
+	font-size: 14px;
+	color: #101828;
+	margin-left: 6px;
+}
+
+.paymentOptionHint {
+	font-size: 13px;
+	color: #64748b;
+	margin: 8px 0 0 26px;
+	line-height: 1.45;
+}
+
+.paymentOptionHint .fa-check-circle {
+	color: #16a34a;
+}
+
+#vnpayInfo {
+	display: none;
+	margin-top: 10px;
+	padding: 12px;
+	background: #fff;
+	border-radius: 10px;
+	border: 1px dashed #93c5fd;
+	font-size: 13px;
+	color: #334155;
+	line-height: 1.55;
+}
+
+#vnpayInfo p {
+	margin: 0 0 6px;
+}
+
+#vnpayInfo p:last-child {
+	margin-bottom: 0;
+}
+
+.paymentModal-foot {
+	padding: 16px 24px 22px;
+	border-top: 1px solid #f1f5f9;
+	text-align: right;
+	background: #fafbfc;
+}
+
+.paymentModal-total {
+	font-size: 18px;
+	margin-bottom: 14px;
+	color: #101828;
+}
+
+#paymentTotal {
+	color: #dc2626;
+	font-weight: 800;
+	font-size: 22px;
+}
+
+.paymentModal-actions {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+}
+
+.paymentBtnBack {
+	background: #fff;
+	color: #64748b;
+	padding: 11px 22px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.paymentBtnBack:hover {
+	background: #f8fafc;
+}
+
+.paymentBtnSubmit {
+	background: linear-gradient(135deg, #0b57d0 0%, #2563eb 100%);
+	color: #fff;
+	padding: 11px 28px;
+	border: none;
+	border-radius: 10px;
+	cursor: pointer;
+	font-size: 15px;
+	font-weight: 700;
+	box-shadow: 0 8px 20px rgba(11, 87, 208, 0.25);
+}
+
+.paymentBtnSubmit:hover {
+	opacity: 0.95;
+}
+
+@media (max-width: 768px) {
+	.cartPage-header h1 {
+		font-size: 22px;
+	}
+
+	.cartCard {
+		padding: 4px 8px 16px;
+		border-radius: 16px;
+	}
+
+	.cartProductRow {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.paymentModal-divider {
+		display: none;
+	}
+
+	.paymentModal-body {
+		padding: 18px 16px;
+	}
+
+	.paymentModal-foot {
+		padding: 14px 16px 18px;
+	}
+
+	.paymentModal-actions {
+		flex-direction: column-reverse;
+	}
+
+	.paymentBtnBack,
+	.paymentBtnSubmit {
+		width: 100%;
+		text-align: center;
+	}
+}
+
+@media (max-width: 720px) {
+	.listSanPham td.cartProductCell::before {
+		display: none;
+	}
+
+	.listSanPham td.cartProductCell {
+		display: block;
+		text-align: left !important;
+	}
+}

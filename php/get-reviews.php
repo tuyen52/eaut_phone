@@ -31,7 +31,7 @@ if ($hasRateUserId && $hasUsersUserId) {
     $sql = "
         SELECT r.id, r.masp, r.user_id, r.username, r.so_sao, r.binh_luan, r.ngay_dg,
                r.variant_id, r.mau_sac,
-               pv.ma_mau_hex,
+               pv.ma_mau_hex, pv.ten_mau, pv.ram, pv.rom,
                u.ho, u.ten
         FROM rate r
         LEFT JOIN product_variants pv ON r.variant_id = pv.variant_id
@@ -46,7 +46,7 @@ if ($hasRateUserId && $hasUsersUserId) {
     $sql = "
         SELECT r.id, r.masp, r.username, r.so_sao, r.binh_luan, r.ngay_dg,
                r.variant_id, r.mau_sac,
-               pv.ma_mau_hex
+               pv.ma_mau_hex, pv.ten_mau, pv.ram, pv.rom
         FROM rate r
         LEFT JOIN product_variants pv ON r.variant_id = pv.variant_id
         WHERE r.masp = ?
@@ -77,6 +77,9 @@ while ($row = $result->fetch_assoc()) {
         'timestamp' => $row['ngay_dg'],
         'variant_id' => $row['variant_id'] !== null ? (int)$row['variant_id'] : null,
         'mau_sac' => $row['mau_sac'],
+        'ten_mau' => $row['ten_mau'] ?? null,
+        'ram' => $row['ram'] ?? null,
+        'rom' => $row['rom'] ?? null,
         'ma_mau_hex' => $row['ma_mau_hex'] ?? null
     ];
 }

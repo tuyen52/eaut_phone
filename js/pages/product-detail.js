@@ -2,21 +2,39 @@
 
 var sanPhamHienTai = null;
 var selectedRating = 0;
+var reviewFormMode = 'hidden'; // hidden | new | edit
+var cachedUserReview = null;
 
-// --- [MỚI] Biến thể màu (variant) ---
+// --- [MỚI] Biến thể màu / RAM / ROM ---
 var variantsHienTai = [];
 var selectedVariant = null;
+var selectedColor = null;
+var selectedRam = null;
+var selectedRom = null;
 
-// --- [MỚI] Đổi ảnh theo màu (variant image swap) ---
-function applyVariantImage(p, v) {
-    var img = (v && v.hinh_anh && String(v.hinh_anh).trim() !== '') ? v.hinh_anh : (p && p.img ? p.img : '');
+// Chi dung anh variant neu la upload that (khong doi sang SVG placeholder)
+function resolveVariantImage(p, v) {
+    var fallback = (p && p.img) ? String(p.img).trim() : '';
+    if (!v || !v.hinh_anh) return fallback;
+
+    var variantImg = String(v.hinh_anh).trim();
+    if (!variantImg) return fallback;
+
+    if (variantImg.indexOf('uploads/') !== -1) {
+        return variantImg;
+    }
+    return fallback;
+}
+
+function setDetailProductImage(img, altText) {
     if (!img) return;
 
-    var smallImg = document.querySelector('.picture img');
-    if (smallImg) {
-        smallImg.src = img;
-        smallImg.removeAttribute('width');
-        smallImg.removeAttribute('height');
+    var mainImg = document.getElementById('mainProductImg');
+    if (mainImg) {
+        mainImg.src = img;
+        if (altText) mainImg.alt = altText;
+        mainImg.removeAttribute('width');
+        mainImg.removeAttribute('height');
     }
 
     var bigImg = document.getElementById('bigimg');
@@ -29,6 +47,12 @@ function applyVariantImage(p, v) {
     if (typeof renderSmallImages === 'function') {
         renderSmallImages(img);
     }
+}
+
+function applyVariantImage(p, v) {
+    var img = resolveVariantImage(p, v);
+    if (!img) return;
+    setDetailProductImage(img, p && p.name ? p.name : '');
 }
 
 window.onload = function () {
@@ -66,9 +90,59 @@ function showNotFound() {
 }
 
 /* =========================================================
-   VARIANT MÀU (CHỌN MÀU TRƯỚC KHI MUA)
+   VARIANT MÀU / RAM / ROM
    - API: php/get-product-variants.php?masp=...
    ========================================================= */
+
+function updatePriceDisplay(p, variant) {
+    var box = document.getElementById('detailPriceBox');
+    var labelEl = document.getElementById('detailPriceLabel');
+    var mainEl = document.getElementById('detailPriceMain');
+    var metaEl = document.getElementById('detailPriceMeta');
+    var topArea = document.querySelector('.chitietSanpham .area_price_top');
+    if (!box || !mainEl || !metaEl || !p) return;
+
+    var variantPrice = variant ? parseInt(variant.gia_ban, 10) : 0;
+    var listPrice = variantPrice > 0 ? variantPrice : getVariantListMinPrice(p, variantsHienTai);
+    var sellPrice = getEffectiveProductPrice(p, listPrice);
+    var hasExactVariant = variant && variantPrice > 0;
+
+    if (labelEl) {
+        labelEl.textContent = hasExactVariant ? 'Giá biến thể đã chọn' : 'Giá từ';
+    }
+
+    mainEl.innerHTML =
+        '<span class="detail_price_amount">' + numToString(sellPrice) + '</span>' +
+        '<span class="detail_price_currency">₫</span>';
+
+    var metaHtml = '';
+
+    if (p.promo && p.promo.name === 'giareonline' && listPrice > sellPrice) {
+        metaHtml += '<div class="detail_price_row detail_price_row-old">' +
+            '<span class="detail_price_old">' + numToString(listPrice) + '₫</span></div>';
+    }
+
+    if (p.promo && p.promo.name) {
+        metaHtml += '<div class="detail_price_row detail_price_row-promo">' +
+            new Promo(p.promo.name, p.promo.value).toWeb() + '</div>';
+    }
+
+    if (hasExactVariant) {
+        var configText = [variant.ten_mau, variant.ram, variant.rom].filter(Boolean).join(' · ');
+        metaHtml += '<div class="detail_price_row detail_price_row-config">' +
+            '<i class="fa fa-check-circle"></i> ' + escapeHtml(configText) + '</div>';
+    } else if (variantsHienTai.length) {
+        metaHtml += '<div class="detail_price_row detail_price_row-hint">' +
+            'Chọn đủ màu, RAM và bộ nhớ để xem giá chính xác</div>';
+    }
+
+    metaEl.innerHTML = metaHtml;
+
+    if (topArea) {
+        topArea.style.display = 'none';
+        topArea.innerHTML = '';
+    }
+}
 
 function loadVariantsForProduct(p) {
     var picker = document.getElementById('variantPicker');
@@ -78,24 +152,31 @@ function loadVariantsForProduct(p) {
     if (!picker || !optionsDiv || !hintDiv) return;
 
     picker.style.display = 'block';
-    optionsDiv.innerHTML = '<span style="color:#777">Đang tải màu...</span>';
+    optionsDiv.innerHTML = '<span style="color:#777">Đang tải biến thể...</span>';
     hintDiv.className = 'variant_hint';
-    hintDiv.innerText = 'Vui lòng chọn màu trước khi mua.';
+    hintDiv.innerText = 'Vui lòng chọn màu, RAM và bộ nhớ trước khi mua.';
 
     fetch('php/get-product-variants.php?masp=' + encodeURIComponent(p.masp))
         .then(res => res.json())
         .then(list => {
             if (!Array.isArray(list)) list = [];
             variantsHienTai = list;
+            resetVariantSelection();
             renderVariantOptions(p, list);
-
-            // reset ảnh về ảnh sản phẩm mặc định khi load màu
             applyVariantImage(p, null);
+            updatePriceDisplay(p, null);
         })
         .catch(err => {
             console.error(err);
-            optionsDiv.innerHTML = '<span style="color:red">Lỗi tải danh sách màu!</span>';
+            optionsDiv.innerHTML = '<span style="color:red">Lỗi tải danh sách biến thể!</span>';
         });
+}
+
+function resetVariantSelection() {
+    selectedVariant = null;
+    selectedColor = null;
+    selectedRam = null;
+    selectedRom = null;
 }
 
 function renderVariantOptions(p, variants) {
@@ -104,51 +185,153 @@ function renderVariantOptions(p, variants) {
     if (!optionsDiv || !hintDiv) return;
 
     if (!variants.length) {
-        optionsDiv.innerHTML = '<span style="color:#777">Chưa có màu cho sản phẩm này.</span>';
+        optionsDiv.innerHTML = '<span style="color:#777">Chưa có biến thể cho sản phẩm này.</span>';
         return;
     }
 
-    optionsDiv.innerHTML = variants.map(v => {
-        var disabled = (parseInt(v.so_luong_ton) || 0) <= 0 ? 'disabled' : '';
-        var disabledClass = disabled ? 'disabled' : '';
-        var note = disabled ? ' (Hết)' : '';
+    var colors = [];
+    variants.forEach(v => {
+        if (!colors.some(c => c.ten_mau === v.ten_mau)) colors.push(v);
+    });
+
+    optionsDiv.innerHTML = colors.map(v => {
+        var outOfStock = (parseInt(v.so_luong_ton) || 0) <= 0;
+        var disabledClass = outOfStock ? 'disabled' : '';
+        var note = outOfStock ? ' (Hết)' : '';
         var hex = v.ma_mau_hex || '#000000';
 
-        return `
-            <div class="variant_btn ${disabledClass}" 
-                 data-variant-id="${v.variant_id}" 
-                 data-disabled="${disabled ? 1 : 0}"
-                 title="${v.ten_mau}${note}">
-                <span class="swatch" style="background:${hex}"></span>
-                <span>${v.ten_mau}${note}</span>
-            </div>
-        `;
+        return `<div class="variant_btn ${disabledClass}"
+                     data-color="${escapeHtml(v.ten_mau)}"
+                     data-disabled="${outOfStock ? 1 : 0}"
+                     title="${escapeHtml(v.ten_mau)}${note}">
+                    <span class="swatch" style="background:${hex}"></span>
+                    <span>${escapeHtml(v.ten_mau)}${note}</span>
+                </div>`;
     }).join('');
 
     var btns = optionsDiv.querySelectorAll('.variant_btn');
     btns.forEach(btn => {
         btn.addEventListener('click', function () {
             if (btn.getAttribute('data-disabled') == '1') return;
-
-            var vid = parseInt(btn.getAttribute('data-variant-id'));
-            var v = variants.find(x => parseInt(x.variant_id) === vid);
-            if (!v) return;
-
+            selectedColor = btn.getAttribute('data-color');
             btns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-
-            selectedVariant = v;
-
-            // [MỚI] đổi ảnh theo màu ngay khi chọn
-            applyVariantImage(p, v);
-
+            selectedVariant = null;
+            selectedRam = null;
+            selectedRom = null;
+            var colorVariant = variants.find(x => x.ten_mau === selectedColor);
+            renderRamRomPicker(p, variants, selectedColor);
+            applyVariantImage(p, colorVariant || null);
             hintDiv.className = 'variant_hint ok';
-            hintDiv.innerText = `Đã chọn màu: ${v.ten_mau}`;
-
+            hintDiv.innerText = 'Đã chọn màu: ' + selectedColor + '. Vui lòng chọn RAM và bộ nhớ.';
             updateStockAndBuyButton(p);
+            updatePriceDisplay(p, null);
         });
     });
 
+    renderRamRomPicker(p, variants, selectedColor);
+    updateStockAndBuyButton(p);
+}
+
+function renderRamRomPicker(p, variants, color) {
+    var comboArea = document.getElementById('variantComboArea');
+    if (!comboArea) return;
+
+    var filtered = color ? variants.filter(v => v.ten_mau === color) : variants.slice();
+    var rams = [];
+    var roms = [];
+
+    filtered.forEach(v => {
+        if (v.ram && !rams.includes(v.ram)) rams.push(v.ram);
+        if (v.rom && !roms.includes(v.rom)) roms.push(v.rom);
+    });
+
+    var ramHtml = rams.length
+        ? rams.map(r => `<button type="button" class="variant_choice" data-ram="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('')
+        : '<span style="color:#aaa;font-size:13px;">Chưa có dữ liệu RAM</span>';
+
+    var romHtml = roms.length
+        ? roms.map(r => `<button type="button" class="variant_choice" data-rom="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('')
+        : '<span style="color:#aaa;font-size:13px;">Chưa có dữ liệu bộ nhớ</span>';
+
+    comboArea.innerHTML = `
+        <hr class="variant_divider">
+        <div class="variant_section">
+            <div class="variant_section_label">RAM</div>
+            <div class="variant_choice_group" id="ramChoices">${ramHtml}</div>
+        </div>
+        <hr class="variant_divider">
+        <div class="variant_section">
+            <div class="variant_section_label">Bộ nhớ trong</div>
+            <div class="variant_choice_group" id="romChoices">${romHtml}</div>
+        </div>
+    `;
+
+    var ramBtns = comboArea.querySelectorAll('[data-ram]');
+    var romBtns = comboArea.querySelectorAll('[data-rom]');
+
+    ramBtns.forEach(btn => btn.addEventListener('click', function () {
+        selectedRam = btn.getAttribute('data-ram');
+        ramBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedRom = null;
+        renderRomChoices(p, filtered, selectedRam);
+        updateSelectedVariantFromChoices(p, filtered);
+    }));
+
+    romBtns.forEach(btn => btn.addEventListener('click', function () {
+        selectedRom = btn.getAttribute('data-rom');
+        romBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateSelectedVariantFromChoices(p, filtered);
+    }));
+}
+
+function renderRomChoices(p, variants, ram) {
+    var romChoices = document.getElementById('romChoices');
+    if (!romChoices) return;
+    var roms = [];
+    variants.filter(v => !ram || v.ram === ram).forEach(v => {
+        if (v.rom && !roms.includes(v.rom)) roms.push(v.rom);
+    });
+    romChoices.innerHTML = roms.length
+        ? roms.map(r => `<button type="button" class="variant_choice" data-rom="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('')
+        : '<span style="color:#aaa;font-size:13px;">Không có bộ nhớ phù hợp</span>';
+
+    romChoices.querySelectorAll('[data-rom]').forEach(btn => btn.addEventListener('click', function () {
+        selectedRom = btn.getAttribute('data-rom');
+        romChoices.querySelectorAll('[data-rom]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateSelectedVariantFromChoices(p, variants);
+    }));
+}
+
+function updateSelectedVariantFromChoices(p, variants) {
+    if (!selectedColor || !selectedRam || !selectedRom) {
+        updateStockAndBuyButton(p);
+        return;
+    }
+
+    var v = variants.find(x => x.ten_mau === selectedColor && x.ram === selectedRam && x.rom === selectedRom);
+    var hintDiv = document.getElementById('variantHint');
+
+    if (!v) {
+        selectedVariant = null;
+        if (hintDiv) {
+            hintDiv.className = 'variant_hint';
+            hintDiv.innerText = 'Tổ hợp bạn chọn không tồn tại.';
+        }
+        updateStockAndBuyButton(p);
+        return;
+    }
+
+    selectedVariant = v;
+    applyVariantImage(p, v);
+    if (hintDiv) {
+        hintDiv.className = 'variant_hint ok';
+        hintDiv.innerText = `Đã chọn: ${v.ten_mau} | ${v.ram} | ${v.rom}`;
+    }
+    updatePriceDisplay(p, v);
     updateStockAndBuyButton(p);
 }
 
@@ -163,6 +346,8 @@ function updateStockAndBuyButton(p) {
     if (totalStock <= 0) {
         btnMua.classList.add('disabled');
         btnMua.onclick = function (e) { if (e) e.preventDefault(); };
+        stockDiv.innerHTML = 'Hết hàng';
+        stockDiv.className = 'stock_status unavailable';
         return;
     }
 
@@ -172,17 +357,17 @@ function updateStockAndBuyButton(p) {
 
         btnMua.classList.add('disabled');
         btnMua.onclick = function (e) { if (e) e.preventDefault(); handleAddToCart(p); };
-        btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Chọn màu để mua';
+        btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Chọn biến thể để mua';
 
         if (hintDiv) {
             hintDiv.className = 'variant_hint';
-            hintDiv.innerText = 'Vui lòng chọn màu trước khi mua.';
+            hintDiv.innerText = 'Vui lòng chọn màu, RAM và bộ nhớ trước khi mua.';
         }
         return;
     }
 
     var variantStock = parseInt(selectedVariant.so_luong_ton) || 0;
-    stockDiv.innerHTML = `Còn hàng màu ${selectedVariant.ten_mau}: ${variantStock}`;
+    stockDiv.innerHTML = `Còn hàng: ${variantStock} (${selectedVariant.ten_mau} | ${selectedVariant.ram} | ${selectedVariant.rom})`;
     stockDiv.className = variantStock > 0 ? 'stock_status available' : 'stock_status unavailable';
 
     if (variantStock > 0) {
@@ -192,13 +377,13 @@ function updateStockAndBuyButton(p) {
     } else {
         btnMua.classList.add('disabled');
         btnMua.onclick = function (e) { if (e) e.preventDefault(); handleAddToCart(p); };
-        btnMua.querySelector('b').innerText = 'Hết hàng (màu đã chọn)';
+        btnMua.querySelector('b').innerText = 'Hết hàng (biến thể đã chọn)';
     }
 }
 
 function handleAddToCart(p) {
     if (!selectedVariant) {
-        alert('Bạn phải chọn màu trước khi thêm vào giỏ / mua.');
+        alert('Bạn phải chọn đủ màu, RAM và bộ nhớ trước khi thêm vào giỏ / mua.');
         var picker = document.getElementById('variantPicker');
         if (picker) picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
@@ -206,7 +391,7 @@ function handleAddToCart(p) {
 
     var variantStock = parseInt(selectedVariant.so_luong_ton) || 0;
     if (variantStock <= 0) {
-        alert('Màu bạn chọn hiện đã hết hàng. Vui lòng chọn màu khác.');
+        alert('Biến thể bạn chọn hiện đã hết hàng. Vui lòng chọn cấu hình khác.');
         return;
     }
 
@@ -215,7 +400,10 @@ function handleAddToCart(p) {
         p.name,
         selectedVariant.variant_id,
         selectedVariant.ten_mau,
-        selectedVariant.ma_mau_hex
+        selectedVariant.ma_mau_hex,
+        1,
+        selectedVariant.ram,
+        selectedVariant.rom
     );
 }
 
@@ -228,20 +416,14 @@ function renderProductDetail(p) {
 
     div.querySelector('.rating').innerHTML = generateStarHTML(p.star, p.rateCount);
 
-    div.querySelector('.picture img').src = p.img;
-    document.getElementById('bigimg').src = p.img;
+    setDetailProductImage(p.img, p.name || '');
 
-    var priceArea = div.querySelector('.area_price');
-    var giaGoc = numToString(stringToNum(p.price));
-    var giaKhuyenMai = (p.promo && p.promo.value != null)
-        ? numToString(stringToNum(p.promo.value))
-        : '';
-
-    if (p.promo.name !== 'giareonline') {
-        priceArea.innerHTML = `<strong>${giaGoc}₫</strong>` + new Promo(p.promo.name, p.promo.value).toWeb();
-    } else {
-        priceArea.innerHTML = `<strong>${giaKhuyenMai}₫</strong> <span>${giaGoc}₫</span>`;
+    var priceArea = div.querySelector('.area_price_top');
+    if (priceArea) {
+        priceArea.style.display = 'none';
+        priceArea.innerHTML = '';
     }
+    updatePriceDisplay(p, null);
 
     document.getElementById('detailPromo').innerText = getPromoDetailString(p);
 
@@ -265,7 +447,7 @@ function renderProductDetail(p) {
     var stock = parseInt(p.inventory) || 0;
 
     variantsHienTai = [];
-    selectedVariant = null;
+    resetVariantSelection();
 
     if (stock > 0) {
         stockDiv.innerHTML = `Còn hàng: ${stock} (tổng)`;
@@ -273,7 +455,7 @@ function renderProductDetail(p) {
 
         btnMua.classList.add('disabled');
         btnMua.onclick = function (e) { if (e) e.preventDefault(); handleAddToCart(p); };
-        btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Chọn màu để mua';
+        btnMua.querySelector('b').innerHTML = '<i class="fa fa-cart-plus"></i> Chọn biến thể để mua';
     } else {
         stockDiv.innerHTML = 'Hết hàng';
         stockDiv.className = 'stock_status unavailable';
@@ -282,7 +464,19 @@ function renderProductDetail(p) {
         btnMua.querySelector('b').innerText = 'Hết hàng';
     }
 
-    renderSmallImages(p.img);
+    var introBox = document.getElementById('productIntro');
+    var introContent = document.getElementById('productIntroContent');
+    var introText = (p.gioi_thieu_san_pham || '').trim();
+    if (introBox && introContent) {
+        if (introText) {
+            introBox.style.display = 'block';
+            introContent.innerText = introText;
+        } else {
+            introBox.style.display = 'none';
+            introContent.innerHTML = '';
+        }
+    }
+
 }
 
 function renderSmallImages(mainImg) {
@@ -339,7 +533,7 @@ function renderSuggestion(currentP, list) {
 
 function checkDaMuaSanPham(user, masp) {
     if (!user.donhang || user.donhang.length === 0) return false;
-    // user.donhang giờ đã được tải từ API (user.js)
+    // user.donhang được tải từ get-order-history.php (trang Đơn hàng của tôi)
     for (var don of user.donhang) {
         if (don.tinhTrang === 'Đã nhận hàng' || don.tinhTrang === 'Hoàn thành') {
             for (var sp of don.sp) {
@@ -373,7 +567,12 @@ function displayReviews() {
                     stars += `<i class="fa ${i <= rating ? 'fa-star' : 'fa-star-o'}"></i>`;
                 }
 
-                var mau = r.mau_sac ? r.mau_sac : (r.variant_id ? ('Variant #' + r.variant_id) : '');
+                var mauParts = [
+                    (r.mau_sac || r.ten_mau || '').trim(),
+                    (r.ram || '').trim(),
+                    (r.rom || '').trim()
+                ].filter(Boolean);
+                var mau = mauParts.length ? mauParts.join(' | ') : (r.variant_id ? ('Variant #' + r.variant_id) : '');
                 var safeMau = escapeHtml(mau);
                 var safeUsername = escapeHtml(r.username);
                 var safeComment = escapeHtml(r.comment).replace(/\n/g, '<br>');
@@ -387,7 +586,7 @@ function displayReviews() {
                     : '';
 
                 var mauHtml = mau
-                    ? `<div style="margin-top:4px;font-size:12px;color:#0056b3;">Màu đã mua: ${swatch}<b>${safeMau}</b></div>`
+                    ? `<div style="margin-top:4px;font-size:12px;color:#0056b3;">Biến thể đã mua: ${swatch}<b>${safeMau}</b></div>`
                     : '';
 
                 div.innerHTML += `
@@ -413,7 +612,6 @@ function setupReviewForm() {
     var formDiv = document.getElementById('write-review');
     var loginMsg = document.getElementById('loginToReview');
 
-    // Tạo thông báo chưa mua hàng
     var notBoughtMsg = document.getElementById('notBoughtMsg');
     if (!notBoughtMsg) {
         notBoughtMsg = document.createElement('p');
@@ -427,47 +625,158 @@ function setupReviewForm() {
         document.getElementById('review-form-section').prepend(notBoughtMsg);
     }
 
+    reviewFormMode = 'hidden';
+    cachedUserReview = null;
+    hideMyReviewPanel();
+    formDiv.style.display = 'none';
+    loginMsg.style.display = 'none';
+    notBoughtMsg.style.display = 'none';
+
     if (!user) {
-        formDiv.style.display = 'none';
         loginMsg.style.display = 'block';
-        notBoughtMsg.style.display = 'none';
         return;
     }
 
-    fetch('php/check-bought-product.php?masp=' + encodeURIComponent(sanPhamHienTai.masp), {
+    fetch('php/check-review-status.php?masp=' + encodeURIComponent(sanPhamHienTai.masp), {
         method: 'GET',
         credentials: 'same-origin'
     })
         .then(function (res) {
-            if (!res.ok) throw new Error('CHECK_BUY_FAILED');
+            if (!res.ok) throw new Error('CHECK_REVIEW_FAILED');
             return res.json();
         })
         .then(function (data) {
-            if (data && data.bought === true) {
-                formDiv.style.display = 'block';
-                loginMsg.style.display = 'none';
-                notBoughtMsg.style.display = 'none';
-            } else {
-                formDiv.style.display = 'none';
-                loginMsg.style.display = 'none';
-                notBoughtMsg.style.display = 'block';
-                notBoughtMsg.innerText = 'Bạn cần mua và nhận hàng sản phẩm này để có thể viết đánh giá.';
+            if (!data || data.status !== true) {
+                throw new Error('CHECK_REVIEW_FAILED');
             }
-        })
-        .catch(function () {
-            // Fallback cũ để không làm thay đổi logic website
-            if (!checkDaMuaSanPham(user, sanPhamHienTai.masp)) {
-                formDiv.style.display = 'none';
-                loginMsg.style.display = 'none';
+
+            if (!data.bought) {
                 notBoughtMsg.style.display = 'block';
                 notBoughtMsg.innerText = 'Bạn cần mua và nhận hàng sản phẩm này để có thể viết đánh giá.';
                 return;
             }
 
-            formDiv.style.display = 'block';
-            loginMsg.style.display = 'none';
-            notBoughtMsg.style.display = 'none';
+            if (data.reviewed && data.review) {
+                cachedUserReview = data.review;
+                showMyReviewPanel(data.review);
+                prepareReviewEditor('edit', data.review, false);
+            } else {
+                cachedUserReview = null;
+                hideMyReviewPanel();
+                prepareReviewEditor('new', null, true);
+            }
+        })
+        .catch(function () {
+            if (!checkDaMuaSanPham(user, sanPhamHienTai.masp)) {
+                notBoughtMsg.style.display = 'block';
+                notBoughtMsg.innerText = 'Bạn cần mua và nhận hàng sản phẩm này để có thể viết đánh giá.';
+                return;
+            }
+
+            cachedUserReview = null;
+            hideMyReviewPanel();
+            prepareReviewEditor('new', null, true);
         });
+}
+
+function buildStarIconsHTML(rating) {
+    var stars = '';
+    var value = parseInt(rating, 10) || 0;
+    if (value < 0) value = 0;
+    if (value > 5) value = 5;
+    for (var i = 1; i <= 5; i++) {
+        stars += '<i class="fa ' + (i <= value ? 'fa-star' : 'fa-star-o') + '"></i>';
+    }
+    return stars;
+}
+
+function showMyReviewPanel(review) {
+    var panel = document.getElementById('my-review-panel');
+    var starsEl = document.getElementById('myReviewStars');
+    var commentEl = document.getElementById('myReviewComment');
+    var dateEl = document.getElementById('myReviewDate');
+    if (!panel || !review) return;
+
+    if (starsEl) starsEl.innerHTML = buildStarIconsHTML(review.rating);
+    if (commentEl) commentEl.textContent = review.comment || '';
+    if (dateEl) {
+        dateEl.textContent = review.timestamp
+            ? ('Cập nhật: ' + new Date(review.timestamp).toLocaleString())
+            : '';
+    }
+    panel.style.display = 'block';
+}
+
+function hideMyReviewPanel() {
+    var panel = document.getElementById('my-review-panel');
+    if (panel) panel.style.display = 'none';
+}
+
+function openReviewEditor() {
+    if (!cachedUserReview) return;
+    hideMyReviewPanel();
+    prepareReviewEditor('edit', cachedUserReview, true);
+}
+
+function closeReviewEditor() {
+    var formDiv = document.getElementById('write-review');
+    if (formDiv) formDiv.style.display = 'none';
+
+    if (cachedUserReview) {
+        showMyReviewPanel(cachedUserReview);
+        reviewFormMode = 'edit';
+        return;
+    }
+
+    reviewFormMode = 'hidden';
+}
+
+function prepareReviewEditor(mode, review, showForm) {
+    reviewFormMode = mode;
+
+    var formDiv = document.getElementById('write-review');
+    var titleEl = document.getElementById('reviewFormTitle');
+    var hintEl = document.getElementById('reviewFormHint');
+    var submitBtn = document.getElementById('reviewSubmitBtn');
+    var cancelBtn = document.getElementById('reviewCancelBtn');
+
+    if (mode === 'edit' && review) {
+        if (titleEl) {
+            titleEl.innerHTML = '<i class="fa fa-pencil-square-o"></i> Sửa đánh giá của bạn';
+        }
+        if (hintEl) {
+            hintEl.style.display = 'block';
+            hintEl.textContent = 'Mỗi tài khoản chỉ có một đánh giá cho sản phẩm này.';
+        }
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fa fa-save"></i> Cập nhật đánh giá';
+        }
+        if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+        fillReviewForm(review.rating, review.comment);
+    } else {
+        if (titleEl) {
+            titleEl.innerHTML = '<i class="fa fa-pencil-square-o"></i> Viết đánh giá của bạn';
+        }
+        if (hintEl) {
+            hintEl.style.display = 'none';
+            hintEl.textContent = '';
+        }
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fa fa-paper-plane"></i> Gửi đánh giá';
+        }
+        if (cancelBtn) cancelBtn.style.display = 'none';
+        resetReviewForm();
+    }
+
+    if (formDiv) {
+        formDiv.style.display = showForm ? 'block' : 'none';
+    }
+}
+
+function fillReviewForm(rating, comment) {
+    selectStar(parseInt(rating, 10) || 0);
+    var commentEl = document.getElementById('commentText');
+    if (commentEl) commentEl.value = comment || '';
 }
 
 function submitReview() {
@@ -517,7 +826,12 @@ function submitReview() {
             var ok = (resp && (resp.status === true || resp.success === true));
             if (ok) {
                 alert(resp.message || "Gửi đánh giá thành công!");
-                resetReviewForm();
+                cachedUserReview = Object.assign({}, cachedUserReview || {}, {
+                    rating: selectedRating,
+                    comment: comment,
+                    timestamp: new Date().toISOString()
+                });
+                closeReviewEditor();
                 displayReviews();
             } else {
                 alert("Lỗi: " + (resp.message || "Không rõ lỗi"));
@@ -564,7 +878,7 @@ function generateStarHTML(star, count) {
 function getPromoDetailString(p) {
     if (!p.promo) return "";
     if (p.promo.name === 'tragop') return `Trả góp 0% lãi suất.`;
-    if (p.promo.name === 'giamgia') return `Giảm ngay ${p.promo.value}₫.`;
-    if (p.promo.name === 'giareonline') return `Giá sốc online ${p.promo.value}₫.`;
+    if (p.promo.name === 'giamgia') return `Giảm ${p.promo.value}₫ khi mua tại cửa hàng (không áp dụng online).`;
+    if (p.promo.name === 'giareonline') return `Giảm ${p.promo.value}₫ khi mua online (trên giá từng cấu hình).`;
     return `Nhiều ưu đãi hấp dẫn.`;
 }

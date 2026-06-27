@@ -99,7 +99,7 @@ function addToWeb(p, ele, returnString) {
 			<div class="tooltip">
 				<button class="themvaogio" onclick="themVaoGioHang('`+p.masp+`', '`+p.name+`'); return false;">
 					<span class="tooltiptext" style="font-size: 15px;">Thêm vào giỏ</span>
-					+
+					<i class="fa fa-shopping-cart" aria-hidden="true"></i>
 				</button>
 			</div>
 		</a>

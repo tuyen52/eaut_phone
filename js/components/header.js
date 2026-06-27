@@ -46,11 +46,35 @@ function addHeader() {
             <div class="tools-member">
                 <div class="member">
                     <a href="javascript:checkTaiKhoan()">
-                        <i class="fa fa-user"></i> Tài khoản
+                        <i class="fa fa-user"></i>
+                        <span class="member-label">Tài khoản</span>
                     </a>
                     <div class="menuMember hide">
-                        <a href="nguoidung.html">Trang người dùng</a>
-                        <a href="javascript:logOut();">Đăng xuất</a>
+                        <div class="menuMember-head">
+                            <div class="menuMember-avatar" id="menuMemberAvatar">U</div>
+                            <div class="menuMember-meta">
+                                <strong id="menuMemberName">Khách</strong>
+                                <span>Quản lý tài khoản của bạn</span>
+                            </div>
+                        </div>
+                        <nav class="menuMember-nav">
+                            <a href="nguoidung.html" class="menuMember-link">
+                                <i class="fa fa-user-o"></i>
+                                <span>Thông tin tài khoản</span>
+                                <i class="fa fa-angle-right menuMember-arrow"></i>
+                            </a>
+                            <a href="donhang-cua-toi.html" class="menuMember-link">
+                                <i class="fa fa-file-text-o"></i>
+                                <span>Đơn hàng của tôi</span>
+                                <i class="fa fa-angle-right menuMember-arrow"></i>
+                            </a>
+                        </nav>
+                        <div class="menuMember-foot">
+                            <a href="javascript:logOut();" class="menuMember-link menuMember-logout">
+                                <i class="fa fa-sign-out"></i>
+                                <span>Đăng xuất</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <div class="cart">
@@ -67,78 +91,90 @@ function addHeader() {
 function addContainTaiKhoan() {
     document.write(`
 	<div class="containTaikhoan">
-        <span class="close" onclick="showTaiKhoan(false);">&times;</span>
+        <button type="button" class="auth-close" onclick="showTaiKhoan(false);" aria-label="Đóng">&times;</button>
         <div class="taikhoan">
             <div class="auth-brand">
                 <div class="auth-brand__icon"><i class="fa fa-mobile"></i></div>
-                <div>
+                <div class="auth-brand__text">
                     <h1>EAUT PHONE</h1>
-                    <p>Đăng nhập hoặc tạo tài khoản để mua sắm nhanh hơn</p>
+                    <p>Đăng nhập hoặc tạo tài khoản để mua sắm</p>
                 </div>
             </div>
             <ul class="tab-group">
-                <li class="tab active"><a href="#login"><i class="fa fa-sign-in"></i> Đăng nhập</a></li>
-                <li class="tab"><a href="#signup"><i class="fa fa-user-plus"></i> Đăng kí</a></li>
+                <li class="tab active"><a href="#login">Đăng nhập</a></li>
+                <li class="tab"><a href="#signup">Đăng ký</a></li>
             </ul>
             <div class="tab-content">
-                <div id="login">
-                    <h2>Chào mừng bạn trở lại!</h2>
-                    <p class="auth-subtitle">Vui lòng đăng nhập để tiếp tục thanh toán và theo dõi đơn hàng.</p>
-                    <form onsubmit="return logIn(this);">
+                <div id="login" class="auth-panel">
+                    <h2>Chào mừng trở lại</h2>
+                    <p class="auth-subtitle">Đăng nhập để thanh toán và theo dõi đơn hàng.</p>
+                    <form class="auth-form" onsubmit="return logIn(this);">
                         <div class="field-wrap">
                             <label>Tên đăng nhập<span class="req">*</span></label>
-                            <input name='username' type="text" required autocomplete="off" placeholder="Nhập tên đăng nhập" />
+                            <input name='username' type="text" required autocomplete="username" placeholder="Nhập tên đăng nhập" />
                         </div>
                         <div class="field-wrap">
                             <label>Mật khẩu<span class="req">*</span></label>
-                            <input name="pass" type="password" required autocomplete="off" placeholder="Nhập mật khẩu" />
+                            <input name="pass" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu" />
                         </div>
-                        
                         <div class="auth-meta-row">
-                            <p class="forgot"><a href="forgot-pass.html"><i class="fa fa-key"></i> Quên mật khẩu?</a></p>
+                            <p class="forgot"><a href="forgot-pass.html">Quên mật khẩu?</a></p>
                         </div>
-                        
-                        <button type="submit" class="button button-block"><i class="fa fa-lock"></i> Đăng nhập</button>
+                        <button type="submit" class="button button-block">Đăng nhập</button>
                     </form>
                 </div>
-                <div id="signup" style="display: none;">
-                    <h2>Tạo tài khoản mới</h2>
-                    <p class="auth-subtitle">Đăng kí nhanh để lưu giỏ hàng, đơn hàng và nhận ưu đãi.</p>
-                    <form onsubmit="return signUp(this);">
+                <div id="signup" class="auth-panel" style="display: none;">
+                    <h2>Tạo tài khoản</h2>
+                    <p class="auth-subtitle">Đăng ký để lưu giỏ hàng và quản lý đơn hàng.</p>
+                    <form class="auth-form" onsubmit="return signUp(this);">
                         <div class="top-row">
                             <div class="field-wrap">
                                 <label>Họ<span class="req">*</span></label>
-                                <input name="ho" type="text" required autocomplete="off" placeholder="Nhập họ" />
+                                <input name="ho" type="text" required autocomplete="given-name" placeholder="Họ" />
                             </div>
                             <div class="field-wrap">
                                 <label>Tên<span class="req">*</span></label>
-                                <input name="ten" type="text" required autocomplete="off" placeholder="Nhập tên" />
+                                <input name="ten" type="text" required autocomplete="family-name" placeholder="Tên" />
                             </div>
                         </div>
                         <div class="field-wrap">
-                            <label>Địa chỉ Email<span class="req">*</span></label>
-                            <input name="email" type="email" required autocomplete="off" placeholder="Nhập email" />
+                            <label>Email<span class="req">*</span></label>
+                            <input name="email" type="email" required autocomplete="email" placeholder="email@example.com" />
                         </div>
                         <div class="field-wrap">
                             <label>Tên đăng nhập<span class="req">*</span></label>
-                            <input name="newUser" type="text" required autocomplete="off" placeholder="Chọn tên đăng nhập" />
+                            <input name="newUser" type="text" required autocomplete="username" placeholder="Chọn tên đăng nhập" />
                         </div>
                         <div class="field-wrap">
                             <label>Mật khẩu<span class="req">*</span></label>
-                            <input name="newPass" type="password" required autocomplete="off" placeholder="Tạo mật khẩu" />
+                            <input name="newPass" type="password" required autocomplete="new-password" placeholder="Tối thiểu 6 ký tự" />
                         </div>
-                        <button type="submit" class="button button-block"><i class="fa fa-user-plus"></i> Tạo tài khoản</button>
+                        <button type="submit" class="button button-block button-signup">Tạo tài khoản</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>`);
 }
+function getMenuMemberInitials(u) {
+    if (!u) return 'U';
+    var name = ((u.ho || '') + ' ' + (u.ten || '')).trim();
+    if (name) {
+        var parts = name.split(' ').filter(Boolean);
+        var a = parts[0] ? parts[0][0] : 'U';
+        var b = parts.length > 1 ? parts[parts.length - 1][0] : '';
+        return (a + b).toUpperCase();
+    }
+    return (u.username || 'U').slice(0, 1).toUpperCase();
+}
+
 function capNhat_ThongTin_CurrentUser() {
     var u = getCurrentUser();
     var cartNumber = document.querySelector('.cart-number');
-    var memberLink = document.querySelector('.member > a');
+    var memberLabel = document.querySelector('.member-label');
     var menuMember = document.querySelector('.menuMember');
+    var menuAvatar = document.getElementById('menuMemberAvatar');
+    var menuName = document.getElementById('menuMemberName');
 
     if (u) {
         var totalQty = 0;
@@ -147,15 +183,13 @@ function capNhat_ThongTin_CurrentUser() {
         }
         if (cartNumber) cartNumber.innerHTML = totalQty;
 
-        if (memberLink && memberLink.childNodes[2]) {
-            memberLink.childNodes[2].nodeValue = ' ' + u.username;
-        }
+        if (memberLabel) memberLabel.textContent = u.username;
+        if (menuAvatar) menuAvatar.textContent = getMenuMemberInitials(u);
+        if (menuName) menuName.textContent = u.username;
         if (menuMember) menuMember.classList.remove('hide');
     } else {
         if (cartNumber) cartNumber.innerHTML = '0';
-        if (memberLink && memberLink.childNodes[2]) {
-            memberLink.childNodes[2].nodeValue = ' Tài khoản';
-        }
+        if (memberLabel) memberLabel.textContent = 'Tài khoản';
         if (menuMember) menuMember.classList.add('hide');
     }
 }

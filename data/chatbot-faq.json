@@ -17,7 +17,7 @@
   "rules": [
     {
       "keywords": ["mua hang", "huong dan mua", "cach mua", "dat hang", "quy trinh mua", "mua dien thoai", "mua nhu the nao"],
-      "answer": "Quy trình mua hàng trên EAUT PHONE:\n1) Vào Trang chủ, tìm hoặc lọc sản phẩm.\n2) Mở Chi tiết sản phẩm, chọn màu (bắt buộc) rồi Thêm vào giỏ.\n3) Đăng nhập tài khoản (khách vãng lai chưa mua được).\n4) Vào Giỏ hàng → Xác nhận thanh toán → nhập địa chỉ → chọn COD hoặc VNPay Sandbox.\n5) Theo dõi đơn tại Trang người dùng.",
+      "answer": "Quy trình mua hàng trên EAUT PHONE:\n1) Vào Trang chủ, tìm hoặc lọc sản phẩm.\n2) Mở Chi tiết sản phẩm, chọn màu (bắt buộc) rồi Thêm vào giỏ.\n3) Đăng nhập tài khoản (khách vãng lai chưa mua được).\n4) Vào Giỏ hàng → Xác nhận thanh toán → nhập địa chỉ → chọn COD hoặc VNPay Sandbox.\n5) Theo dõi đơn tại Tài khoản → Đơn hàng của tôi.",
       "actions": [
         { "label": "Trang chủ", "url": "index.html" },
         { "label": "Giỏ hàng", "url": "giohang.html" }
@@ -48,18 +48,21 @@
     },
     {
       "keywords": ["don hang", "lich su don", "xem don", "trang thai don", "theo doi don", "ma don"],
-      "answer": "Xem đơn hàng:\n• Đăng nhập → Trang người dùng (Tài khoản → Trang người dùng).\n• Xem danh sách đơn, trạng thái (Chờ xử lý, Hoàn thành, Đã hủy…), phương thức thanh toán và tổng tiền.\n• Khi đơn đang giao, bạn có thể Xác nhận đã nhận hàng nếu shop đã xử lý.",
-      "actions": [{ "label": "Trang người dùng", "url": "nguoidung.html" }]
+      "answer": "Xem đơn hàng:\n• Đăng nhập → Tài khoản → Đơn hàng của tôi.\n• Xem danh sách đơn, trạng thái (Chờ xử lý, Hoàn thành, Đã hủy…), phương thức thanh toán và tổng tiền.\n• Khi đơn đang giao, bạn có thể Xác nhận đã nhận hàng nếu shop đã xử lý.",
+      "actions": [{ "label": "Đơn hàng của tôi", "url": "donhang-cua-toi.html" }]
     },
     {
       "keywords": ["huy don", "huy don hang", "huy don hang", "da huy", "huy mua"],
-      "answer": "Hủy đơn hàng:\n• Vào Trang người dùng → chọn đơn còn trạng thái cho phép (ví dụ Chờ xử lý).\n• Bấm Hủy đơn — hệ thống cập nhật trạng thái Đã hủy bởi Khách.\n• Đơn đã hoàn thành hoặc đã thanh toán VNPay thành công có thể không hủy được.",
-      "actions": [{ "label": "Trang người dùng", "url": "nguoidung.html" }]
+      "answer": "Hủy đơn hàng:\n• Vào Tài khoản → Đơn hàng của tôi → chọn đơn còn trạng thái cho phép (ví dụ Chờ xử lý).\n• Bấm Hủy đơn — hệ thống cập nhật trạng thái Đã hủy bởi Khách.\n• Đơn đã hoàn thành hoặc đã thanh toán VNPay thành công có thể không hủy được.",
+      "actions": [{ "label": "Đơn hàng của tôi", "url": "donhang-cua-toi.html" }]
     },
     {
       "keywords": ["danh gia", "binh luan", "sao", "review", "nhan xet", "gom y"],
-      "answer": "Đánh giá sản phẩm:\n• Chỉ khách đã mua và đơn phù hợp mới đánh giá được (theo quy tắc hệ thống).\n• Vào Trang người dùng hoặc Chi tiết sản phẩm → nhập số sao và nội dung bình luận.\n• Đánh giá giúp người mua khác tham khảo chất lượng máy.",
-      "actions": [{ "label": "Trang người dùng", "url": "nguoidung.html" }]
+      "answer": "Đánh giá sản phẩm:\n• Chỉ khách đã mua và đơn phù hợp mới đánh giá được (theo quy tắc hệ thống).\n• Vào Đơn hàng của tôi hoặc Chi tiết sản phẩm → nhập số sao và nội dung bình luận.\n• Đánh giá giúp người mua khác tham khảo chất lượng máy.",
+      "actions": [
+        { "label": "Đơn hàng của tôi", "url": "donhang-cua-toi.html" },
+        { "label": "Trang chủ", "url": "index.html" }
+      ]
     },
     {
       "keywords": ["bao hanh", "sua chua", "trung tam bao hanh", "doi tra", "bao hanh chinh hang"],
@@ -98,13 +101,13 @@
     },
     {
       "keywords": ["thanh toan that bai", "huy thanh toan", "failed", "loi vnpay", "khong thanh toan duoc"],
-      "answer": "Thanh toán VNPay thất bại / hủy:\n• Đơn có thể ở trạng thái Đã hủy thanh toán hoặc Failed.\n• Bạn có thể đặt lại đơn mới hoặc chọn COD nếu muốn thanh toán khi nhận.\n• Kiểm tra lại trong Trang người dùng.",
-      "actions": [{ "label": "Trang người dùng", "url": "nguoidung.html" }]
+      "answer": "Thanh toán VNPay thất bại / hủy:\n• Đơn có thể ở trạng thái Đã hủy thanh toán hoặc Failed.\n• Bạn có thể đặt lại đơn mới hoặc chọn COD nếu muốn thanh toán khi nhận.\n• Kiểm tra lại trong Đơn hàng của tôi.",
+      "actions": [{ "label": "Đơn hàng của tôi", "url": "donhang-cua-toi.html" }]
     },
     {
       "keywords": ["da nhan hang", "xac nhan nhan", "hoan thanh don", "nhan hang roi"],
-      "answer": "Xác nhận đã nhận hàng:\n• Trên Trang người dùng, với đơn shop đã giao, bấm xác nhận đã nhận.\n• Trạng thái đơn chuyển Hoàn thành — sau đó bạn có thể đánh giá sản phẩm tương ứng.",
-      "actions": [{ "label": "Trang người dùng", "url": "nguoidung.html" }]
+      "answer": "Xác nhận đã nhận hàng:\n• Trong Đơn hàng của tôi, với đơn shop đã giao, bấm xác nhận đã nhận.\n• Trạng thái đơn chuyển Hoàn thành — sau đó bạn có thể đánh giá sản phẩm tương ứng.",
+      "actions": [{ "label": "Đơn hàng của tôi", "url": "donhang-cua-toi.html" }]
     },
     {
       "keywords": ["ton kho", "het hang", "con hang", "so luong"],

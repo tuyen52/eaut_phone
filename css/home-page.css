@@ -1,0 +1,196 @@
+/* Trang chủ — polish UI */
+
+.homePage {
+	padding-bottom: 24px;
+}
+
+/* Promo banner dưới carousel */
+.homePromoStrip {
+	margin: 16px 0 20px;
+	border-radius: 16px;
+	overflow: hidden;
+	border: 1px solid rgba(15, 23, 42, 0.06);
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.homePromoStrip img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+/* Hàng logo hãng */
+.homePage .companyMenu {
+	margin: 0 0 20px;
+}
+
+/* Thanh bộ lọc */
+.homeFiltersWrap {
+	margin-bottom: 8px;
+	padding: 14px 16px 12px;
+	border-radius: 16px;
+	background: rgba(255, 255, 255, 0.85);
+	border: 1px solid rgba(15, 23, 42, 0.07);
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.homeFiltersLabel {
+	margin: 0 0 10px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+.homeFiltersBar {
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.homeFiltersBar .dropdown {
+	margin: 0;
+}
+
+.homePage .dropbtn {
+	border-radius: 10px;
+	padding: 10px 16px;
+	font-size: 14px;
+}
+
+.homePage .dropbtn:after {
+	content: ' \25BE';
+	opacity: 0.6;
+}
+
+.homePage .dropdown:hover .dropbtn:after {
+	content: ' \25BE';
+}
+
+.homeChoosedFilter {
+	margin: 12px 0 16px;
+	min-height: 0;
+}
+
+.homePage hr {
+	border: none;
+	border-top: 1px solid rgba(15, 23, 42, 0.06);
+	margin: 16px 0;
+}
+
+/* Khung sản phẩm — theme */
+.contain-khungSanPham {
+	display: flex;
+	flex-direction: column;
+	gap: 28px;
+}
+
+.homePage .khungSanPham {
+	width: 100%;
+	margin: 0;
+	padding: 0 0 18px;
+	border-radius: 20px;
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	background: #fff;
+	box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+	overflow: hidden;
+}
+
+.khungSanPham-head {
+	padding: 16px 20px;
+	border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.homePage .khungSanPham h3.tenKhung {
+	margin: 0;
+	padding: 0;
+	transform: none;
+	border-radius: 0;
+	border: none;
+	box-shadow: none;
+	background: none !important;
+	text-align: left;
+	font-size: 17px;
+	font-weight: 800;
+	color: #101828;
+	letter-spacing: -0.01em;
+	line-height: 1.3;
+}
+
+.khungSanPham--hot .khungSanPham-head {
+	background: linear-gradient(90deg, rgba(255, 156, 0, 0.12) 0%, transparent 100%);
+	border-left: 4px solid #ff9c00;
+}
+
+.khungSanPham--new .khungSanPham-head {
+	background: linear-gradient(90deg, rgba(66, 188, 244, 0.12) 0%, transparent 100%);
+	border-left: 4px solid #42bcf4;
+}
+
+.khungSanPham--deal .khungSanPham-head {
+	background: linear-gradient(90deg, rgba(93, 226, 114, 0.14) 0%, transparent 100%);
+	border-left: 4px solid #22c55e;
+}
+
+.homePage .listSpTrongKhung {
+	padding: 16px 14px 8px;
+	gap: 12px;
+}
+
+.homePage .xemTatCa {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	width: auto;
+	min-width: 160px;
+	margin: 4px auto 0;
+	padding: 10px 24px;
+	transform: none;
+	font-size: 14px;
+	font-weight: 700;
+	border: none;
+}
+
+.homePage .xemTatCa .fa {
+	font-size: 16px;
+	transition: transform 0.15s ease;
+}
+
+.homePage .xemTatCa:hover .fa {
+	transform: translateX(3px);
+}
+
+/* Danh sách lọc / sản phẩm */
+.homePage .contain-products {
+	margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+	.homeFiltersWrap {
+		padding: 12px;
+	}
+
+	.homeFiltersBar .dropdown {
+		flex: 1 1 calc(50% - 8px);
+	}
+
+	.homeFiltersBar .dropbtn {
+		width: 100%;
+		text-align: left;
+	}
+
+	.khungSanPham-head {
+		padding: 14px 16px;
+	}
+
+	.homePage .listSpTrongKhung {
+		padding: 12px 10px 6px;
+	}
+}
+
+@media (max-width: 520px) {
+	.homeFiltersBar .dropdown {
+		flex: 1 1 100%;
+	}
+}

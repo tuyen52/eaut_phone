@@ -42,24 +42,87 @@
 <script src="js/pages/product-detail.js"></script>
 
     <style>
-        /* --- Color variant picker (đồ án) --- */
-        .variant_picker { margin: 12px 0; }
-        .variant_picker strong { display: block; margin-bottom: 6px; }
-        .variant_options { display: flex; flex-wrap: wrap; gap: 10px; }
+        /* ===== VARIANT PICKER ===== */
+        .variant_picker {
+            margin: 16px 0;
+            padding: 14px 16px;
+            background: #f8f9fb;
+            border: 1px solid #e4e8ef;
+            border-radius: 12px;
+        }
+
+        /* Section: Màu / RAM / ROM */
+        .variant_section { margin-bottom: 14px; }
+        .variant_section:last-child { margin-bottom: 0; }
+        .variant_section_label {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 12px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: #495057; margin-bottom: 9px;
+        }
+        .variant_section_label::before {
+            content: ''; display: inline-block;
+            width: 3px; height: 14px;
+            background: #0a58ca; border-radius: 2px; flex-shrink: 0;
+        }
+
+        /* Color buttons */
+        .variant_options { display: flex; flex-wrap: wrap; gap: 8px; }
         .variant_btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px;
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 7px 13px; border: 1.5px solid #dee2e6; border-radius: 8px;
             background: #fff; cursor: pointer; user-select: none;
-            font-size: 14px;
+            font-size: 13px; color: #212529;
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
         }
+        .variant_btn:hover:not(.disabled) { border-color: #0a58ca; }
         .variant_btn .swatch {
-            width: 16px; height: 16px; border-radius: 50%;
-            border: 1px solid #ccc;
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0;
         }
-        .variant_btn.active { border-color: #0a58ca; box-shadow: 0 0 0 2px rgba(10,88,202,0.15); }
-        .variant_btn.disabled { opacity: 0.5; cursor: not-allowed; }
-        .variant_hint { margin-top: 6px; font-size: 13px; color: #e10c00; }
-        .variant_hint.ok { color: #198754; }
+        .variant_btn.active {
+            border-color: #0a58ca;
+            box-shadow: 0 0 0 2.5px rgba(10,88,202,0.18);
+            background: #eef3ff; color: #0a58ca; font-weight: 600;
+        }
+        .variant_btn.disabled { opacity: 0.42; cursor: not-allowed; }
+
+        /* RAM / ROM choice buttons */
+        .variant_choice_group { display: flex; flex-wrap: wrap; gap: 8px; }
+        .variant_choice {
+            padding: 6px 16px; border: 1.5px solid #dee2e6; border-radius: 8px;
+            background: #fff; cursor: pointer; font-size: 13px; color: #212529;
+            font-family: inherit;
+            transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+        }
+        .variant_choice:hover { border-color: #0a58ca; }
+        .variant_choice.active {
+            border-color: #0a58ca; background: #eef3ff;
+            font-weight: 600; color: #0a58ca;
+            box-shadow: 0 0 0 2.5px rgba(10,88,202,0.18);
+        }
+        .variant_choice:disabled { opacity: 0.42; cursor: not-allowed; }
+
+        /* Divider giữa các section */
+        .variant_divider {
+            border: none; border-top: 1px dashed #dee2e6;
+            margin: 12px 0;
+        }
+
+        /* Hint bar */
+        .variant_hint {
+            margin-top: 12px; padding: 8px 12px;
+            border-radius: 8px; font-size: 13px;
+            background: #fff8e1; color: #7c5a00;
+            border: 1px solid rgba(255,193,7,0.3);
+            display: flex; align-items: center; gap: 7px;
+        }
+        .variant_hint::before { content: '\26A0'; font-size: 13px; flex-shrink: 0; }
+        .variant_hint.ok {
+            background: #e8f5e9; color: #1b5e20;
+            border-color: rgba(76,175,80,0.3);
+        }
+        .variant_hint.ok::before { content: '\2714'; }
     </style>
 
 </head>
@@ -81,41 +144,58 @@
         <div class="chitietSanpham" style="margin-bottom: 100px">
             <h1>Điện thoại </h1> <div class="rating"></div> <div class="rowdetail group">
                 <div class="picture">
-                    <img src="" onclick="opencertain()"> </div>
+                    <div class="picture-img-wrap">
+                        <img id="mainProductImg" src="" alt="" onclick="opencertain()">
+                    </div>
+                </div>
                 <div class="price_sale">
-                    <div class="area_price"> </div> <div class="ship" style="display: none;"> <img src="img/chitietsanpham/clock-152067_960_720.png">
+                    <div class="area_price area_price_top" aria-hidden="true"></div>
+                    <div class="ship" style="display: none;"> <img src="img/chitietsanpham/clock-152067_960_720.png">
                         <div>NHẬN HÀNG TRONG 1 GIỜ</div>
                     </div>
                     <div class="area_promo">
-                        <strong>khuyến mãi</strong>
+                        <div class="area_promo_label">Khuyến mãi</div>
                         <div class="promo">
-                            <img src="img/chitietsanpham/icon-tick.png">
-                            <div id="detailPromo"> </div> </div>
+                            <i class="fa fa-check-circle"></i>
+                            <div id="detailPromo"></div>
+                        </div>
                     </div>
                     <div class="policy">
                         <div>
-                            <img src="img/chitietsanpham/box.png">
-                            <p>Trong hộp có: Sạc, Tai nghe, Sách hướng dẫn, Cây lấy sim, Ốp lưng </p>
+                            <i class="fa fa-gift policy_icon"></i>
+                            <p>Trong hộp có: Sạc, Tai nghe, Sách hướng dẫn, Cây lấy sim, Ốp lưng</p>
                         </div>
                         <div>
-                            <img src="img/chitietsanpham/icon-baohanh.png">
+                            <i class="fa fa-shield policy_icon"></i>
                             <p>Bảo hành chính hãng 12 tháng.</p>
                         </div>
                         <div class="last">
-                            <img src="img/chitietsanpham/1-1.jpg">
+                            <i class="fa fa-refresh policy_icon"></i>
                             <p>1 đổi 1 trong 1 tháng nếu lỗi, đổi sản phẩm tại nhà trong 1 ngày.</p>
                         </div>
                     </div>
 
-                    <!-- [MỚI] Chọn màu (variant) -->
+                    <!-- Chọn màu / RAM / ROM -->
                     <div class="variant_picker" id="variantPicker" style="display:none;">
-                        <strong>Chọn màu:</strong>
-                        <div class="variant_options" id="variantOptions"></div>
-                        <div class="variant_hint" id="variantHint">Vui lòng chọn màu trước khi mua.</div>
+                        <div class="variant_section">
+                            <div class="variant_section_label">Màu sắc</div>
+                            <div class="variant_options" id="variantOptions"></div>
+                        </div>
+                        <div id="variantComboArea"></div>
+                        <div class="variant_hint" id="variantHint">Vui lòng chọn màu, RAM và bộ nhớ trước khi mua.</div>
                     </div>
 
-                    <div class="stock_status">
+                    <div class="detail_price_box" id="detailPriceBox">
+                        <div class="detail_price_header">
+                            <span class="detail_price_label" id="detailPriceLabel">Giá sản phẩm</span>
                         </div>
+                        <div class="detail_price_main" id="detailPriceMain">
+                            <span class="detail_price_amount">—</span>
+                        </div>
+                        <div class="detail_price_meta" id="detailPriceMeta"></div>
+                        <div class="stock_status" id="detailStockStatus"></div>
+                    </div>
+
                     <div class="area_order">
                         <a id="buyButton" class="buy_now" href="javascript:void(0)">
                             <b><i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng</b>
@@ -129,6 +209,12 @@
                         </ul>
                 </div>
             </div>
+
+            <div class="product_intro" id="productIntro" style="display:none;">
+                <h2>Giới thiệu sản phẩm</h2>
+                <div id="productIntroContent"></div>
+            </div>
+
             <div id="overlaycertainimg" class="overlaycertainimg">
                 <div class="close" onclick="closecertain()">&times;</div>
                 <div class="overlaycertainimg-content">
@@ -136,31 +222,50 @@
                         </div>
                 </div>
             </div>
-        </div> <div class="reviews-section">
-            <h2 id="review-product-name">Đánh giá & Nhận xét về [Tên Sản Phẩm]</h2>
+        </div>         <div class="reviews-section">
+            <h2 id="review-product-name">Đánh giá &amp; Nhận xét về [Tên Sản Phẩm]</h2>
 
             <div id="reviews-list">
                 <p id="no-reviews" style="display: none;">Chưa có đánh giá nào cho sản phẩm này.</p>
             </div>
 
             <div id="review-form-section">
+                <div id="my-review-panel" class="my-review-panel" style="display: none;">
+                    <div class="my-review-panel__head">
+                        <h3><i class="fa fa-check-circle"></i> Đánh giá của bạn</h3>
+                        <button type="button" class="my-review-edit-btn" onclick="openReviewEditor()">
+                            <i class="fa fa-pencil"></i> Sửa đánh giá
+                        </button>
+                    </div>
+                    <div id="myReviewStars" class="my-review-panel__stars"></div>
+                    <p id="myReviewComment" class="my-review-panel__comment"></p>
+                    <p id="myReviewDate" class="my-review-panel__date"></p>
+                </div>
+
                 <div id="write-review" style="display: none;">
-                    <h3>Viết đánh giá của bạn</h3>
+                    <h3 id="reviewFormTitle"><i class="fa fa-pencil-square-o"></i> Viết đánh giá của bạn</h3>
+                    <p id="reviewFormHint" style="display:none; margin:0 0 10px; color:#64748b; font-size:13px;"></p>
                     <div class="star-rating">
                         <i class="fa fa-star-o" data-value="1" onclick="selectStar(1)"></i>
                         <i class="fa fa-star-o" data-value="2" onclick="selectStar(2)"></i>
                         <i class="fa fa-star-o" data-value="3" onclick="selectStar(3)"></i>
                         <i class="fa fa-star-o" data-value="4" onclick="selectStar(4)"></i>
                         <i class="fa fa-star-o" data-value="5" onclick="selectStar(5)"></i>
-                        <input type="hidden" id="starRatingInput" value="0"> </div>
-                    <br>
-                    <textarea id="commentText" rows="4" placeholder="Nhập nhận xét của bạn..." style="width:100%"></textarea>
-                    <br><br>
-                    <button onclick="submitReview()">Gửi đánh giá</button>
+                        <input type="hidden" id="starRatingInput" value="0">
+                    </div>
+                    <textarea id="commentText" rows="4" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."></textarea>
+                    <div class="review-form-actions">
+                        <button id="reviewSubmitBtn" class="review-submit-btn" type="button" onclick="submitReview()">
+                            <i class="fa fa-paper-plane"></i> Gửi đánh giá
+                        </button>
+                        <button id="reviewCancelBtn" class="review-cancel-btn" type="button" style="display:none;" onclick="closeReviewEditor()">
+                            Hủy
+                        </button>
+                    </div>
                 </div>
 
-                <p id="loginToReview" style="display: none; text-align: center;">
-                    Bạn cần <a href="dangnhap.html">đăng nhập</a> để viết đánh giá.
+                <p id="loginToReview" style="display: none;">
+                    <i class="fa fa-lock"></i> Bạn cần <a href="dangnhap.html">đăng nhập</a> để viết đánh giá.
                 </p>
             </div>
         </div>

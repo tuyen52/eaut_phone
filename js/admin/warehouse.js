@@ -3,23 +3,95 @@
 var currentStockList = [];
 var __warehouseKeyword = '';
 var __warehouseStockFilter = 'all';
+var __whModalState = { masp: '', variants: [], mode: 'view' };
 
-// Hàm được gọi từ main.js khi bấm tab "Kho Hàng"
+function formatVariantStockLabel(v) {
+    if (!v) return '';
+    var color = (v.ten_mau || '').trim();
+    var ram = (v.ram || '').trim();
+    var rom = (v.rom || '').trim();
+    var parts = [color, ram, rom].filter(Boolean);
+    if (parts.length) return parts.join(' | ');
+    if (v.variant_id) return 'Variant #' + v.variant_id;
+    return 'Không rõ';
+}
+
+function getStockLevelClass(qty) {
+    qty = parseInt(qty || 0);
+    if (qty <= 0) return 'out';
+    if (qty <= 10) return 'low';
+    return 'ok';
+}
+
+function getStockLevelText(qty) {
+    qty = parseInt(qty || 0);
+    if (qty <= 0) return 'Hết hàng';
+    if (qty <= 10) return 'Sắp hết';
+    return 'Còn hàng';
+}
+
+function getProductByMasp(masp) {
+    return currentStockList.find(function (p) { return p.masp === masp; }) || null;
+}
+
+function initWarehouseModal() {
+    var overlay = document.getElementById('warehouseModalOverlay');
+    if (!overlay) return;
+
+    var closeBtn = document.getElementById('warehouseModalClose');
+    if (closeBtn && !closeBtn.__whBound) {
+        closeBtn.__whBound = true;
+        closeBtn.addEventListener('click', closeWarehouseModal);
+    }
+
+    if (!overlay.__whBound) {
+        overlay.__whBound = true;
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeWarehouseModal();
+        });
+    }
+
+    if (!document.__whEscBound) {
+        document.__whEscBound = true;
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeWarehouseModal();
+        });
+    }
+}
+
+function openWarehouseModal() {
+    initWarehouseModal();
+    var overlay = document.getElementById('warehouseModalOverlay');
+    if (overlay) overlay.style.transform = 'scale(1)';
+}
+
+function closeWarehouseModal() {
+    var overlay = document.getElementById('warehouseModalOverlay');
+    if (overlay) overlay.style.transform = 'scale(0)';
+}
+
+function fetchVariantsForProduct(masp) {
+    return fetch('php/get-product-variants.php?masp=' + encodeURIComponent(masp))
+        .then(function (res) { return res.json(); })
+        .then(function (list) { return Array.isArray(list) ? list : []; });
+}
+
 function addTableKhoHang() {
     var tc = document.querySelector('.khohang .table-content');
     if (!tc) return;
 
-    tc.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fa fa-spinner fa-spin"></i> Đang tải dữ liệu kho...</div>';
+    initWarehouseModal();
+    tc.innerHTML = '<div class="wh-loading"><i class="fa fa-spinner fa-spin"></i> Đang tải dữ liệu kho...</div>';
 
     fetch('php/get-products.php')
-        .then(res => res.json())
-        .then(data => {
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
             currentStockList = Array.isArray(data) ? data : [];
             renderWarehousePanel();
         })
-        .catch(err => {
+        .catch(function (err) {
             console.error(err);
-            tc.innerHTML = '<h3 style="color:red; text-align:center">Lỗi kết nối Server!</h3>';
+            tc.innerHTML = '<div class="wh-empty-state"><i class="fa fa-exclamation-triangle"></i>Lỗi kết nối Server!</div>';
         });
 }
 
@@ -29,53 +101,74 @@ function renderWarehousePanel() {
 
     var total = currentStockList.length;
     var lowStock = currentStockList.filter(function (p) {
-        return parseInt(p.inventory || 0) > 0 && parseInt(p.inventory || 0) <= 10;
+        var s = parseInt(p.inventory || 0);
+        return s > 0 && s <= 10;
     }).length;
     var outStock = currentStockList.filter(function (p) {
         return parseInt(p.inventory || 0) <= 0;
     }).length;
 
     var s = `
-        <div class="warehouseToolbar" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:end; margin-bottom:14px;">
-            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:end;">
-                <div>
-                    <label style="display:block; font-size:12px; color:#6b7280; margin-bottom:6px; font-weight:600;">Tìm sản phẩm</label>
-                    <input id="warehouseSearchInput" type="text" placeholder="Nhập mã SP hoặc tên sản phẩm..." value="${escapeHtml(__warehouseKeyword)}"
-                        oninput="filterWarehouseProducts(this.value)"
-                        style="min-width:320px; max-width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; outline:none;">
+        <div class="wh-toolbar">
+            <div class="wh-toolbar-filters">
+                <div class="wh-field">
+                    <label for="warehouseSearchInput">Tìm sản phẩm</label>
+                    <input id="warehouseSearchInput" type="text" placeholder="Mã SP hoặc tên sản phẩm..." value="${escapeHtml(__warehouseKeyword)}">
                 </div>
-                <div>
-                    <label style="display:block; font-size:12px; color:#6b7280; margin-bottom:6px; font-weight:600;">Lọc tồn kho</label>
-                    <select id="warehouseStockFilter" onchange="filterWarehouseByStock(this.value)"
-                        style="min-width:180px; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; background:#fff; outline:none;">
+                <div class="wh-field">
+                    <label for="warehouseStockFilter">Lọc tồn kho</label>
+                    <select id="warehouseStockFilter">
                         <option value="all">Tất cả sản phẩm</option>
                         <option value="instock">Còn hàng</option>
-                        <option value="lowstock">Sắp hết hàng (1-10)</option>
+                        <option value="lowstock">Sắp hết (1–10)</option>
                         <option value="outstock">Hết hàng</option>
                     </select>
                 </div>
-                <button onclick="clearWarehouseSearch()" style="height:40px; padding:0 14px; border:none; border-radius:10px; background:#eef2ff; color:#3730a3; font-weight:700; cursor:pointer;">
+                <button type="button" class="wh-btn-clear" id="warehouseClearBtn">
                     <i class="fa fa-eraser"></i> Xóa lọc
                 </button>
             </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <span style="padding:8px 12px; border-radius:999px; background:#eff6ff; color:#1d4ed8; font-weight:700; font-size:13px;">Tổng: ${total}</span>
-                <span style="padding:8px 12px; border-radius:999px; background:#fef3c7; color:#92400e; font-weight:700; font-size:13px;">Sắp hết: ${lowStock}</span>
-                <span style="padding:8px 12px; border-radius:999px; background:#fee2e2; color:#b91c1c; font-weight:700; font-size:13px;">Hết hàng: ${outStock}</span>
+            <div class="wh-stats">
+                <span class="wh-stat wh-stat-total">Tổng: ${total}</span>
+                <span class="wh-stat wh-stat-low">Sắp hết: ${lowStock}</span>
+                <span class="wh-stat wh-stat-out">Hết hàng: ${outStock}</span>
             </div>
         </div>
     `;
 
-    var filtered = applyWarehouseFilters();
-    s += renderWarehouseTableHTML(filtered);
+    s += renderWarehouseTableHTML(applyWarehouseFilters());
     tc.innerHTML = s;
 
     var sel = document.getElementById('warehouseStockFilter');
-    if (sel) sel.value = __warehouseStockFilter;
+    if (sel) {
+        sel.value = __warehouseStockFilter;
+        sel.addEventListener('change', function () { filterWarehouseByStock(this.value); });
+    }
+
+    var inp = document.getElementById('warehouseSearchInput');
+    if (inp) {
+        inp.addEventListener('input', function () { filterWarehouseProducts(this.value); });
+    }
+
+    var clearBtn = document.getElementById('warehouseClearBtn');
+    if (clearBtn) clearBtn.addEventListener('click', clearWarehouseSearch);
+
+    tc.querySelectorAll('.btn-wh-import').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var masp = btn.getAttribute('data-masp');
+            if (masp) nhapHangTheoMau(masp);
+        });
+    });
+    tc.querySelectorAll('.btn-wh-view').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var masp = btn.getAttribute('data-masp');
+            if (masp) xemChiTietMau(masp);
+        });
+    });
 }
 
 function renderWarehouseTableHTML(list) {
-    var s = `<table class="table-outline">
+    var s = `<table class="table-outline wh-table">
         <thead>
             <tr>
                 <th>STT</th>
@@ -88,28 +181,28 @@ function renderWarehouseTableHTML(list) {
         <tbody>`;
 
     if (!list || list.length === 0) {
-        s += `<tr><td colspan="5" style="text-align:center; padding:16px; color:#6b7280;">Không tìm thấy sản phẩm phù hợp.</td></tr>`;
+        s += `<tr><td colspan="5"><div class="wh-empty-state"><i class="fa fa-inbox"></i>Không tìm thấy sản phẩm phù hợp.</div></td></tr>`;
     } else {
-        list.forEach((p, i) => {
+        list.forEach(function (p, i) {
             var stock = parseInt(p.inventory || 0);
-            var stockColor = stock <= 0 ? '#dc2626' : (stock <= 10 ? '#d97706' : '#16a34a');
+            var stockCls = getStockLevelClass(stock);
 
             s += `<tr>
                 <td>${i + 1}</td>
-                <td>${p.masp}</td>
-                <td style="text-align:left">
-                    <img src="${p.img}" style="width:30px; height:30px; object-fit:cover; margin-right:8px; vertical-align:middle; border-radius:6px;">
-                    ${p.name}
-                </td>
-                <td style="font-weight:bold; color:${stockColor}">${stock}</td>
+                <td><span class="wh-masp">${escapeHtml(p.masp)}</span></td>
                 <td>
-                    <button onclick="nhapHangTheoMau('${p.masp}', '${escapeHtml(p.name)}')" 
-                        style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:6px;">
-                        <i class="fa fa-plus"></i> Nhập theo màu
+                    <div class="wh-product-cell">
+                        <img src="${escapeHtml(p.img)}" alt="">
+                        <span class="wh-product-name">${escapeHtml(p.name)}</span>
+                    </div>
+                </td>
+                <td><span class="wh-stock-num wh-stock-${stockCls}">${stock}</span></td>
+                <td>
+                    <button type="button" class="btn-wh-import" data-masp="${escapeHtml(p.masp)}" title="Nhập kho">
+                        <i class="fa fa-plus"></i> Nhập
                     </button>
-                    <button onclick="xemChiTietMau('${p.masp}', '${escapeHtml(p.name)}')"
-                        style="background:#007bff; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:6px; margin-left:6px;">
-                        <i class="fa fa-eye"></i> Xem màu
+                    <button type="button" class="btn-wh-view" data-masp="${escapeHtml(p.masp)}" title="Xem chi tiết">
+                        <i class="fa fa-eye"></i> Xem
                     </button>
                 </td>
             </tr>`;
@@ -126,7 +219,8 @@ function applyWarehouseFilters() {
 
     if (keyword) {
         list = list.filter(function (p) {
-            return String(p.name || '').toUpperCase().includes(keyword) || String(p.masp || '').toUpperCase().includes(keyword);
+            return String(p.name || '').toUpperCase().includes(keyword) ||
+                String(p.masp || '').toUpperCase().includes(keyword);
         });
     }
 
@@ -160,91 +254,246 @@ function clearWarehouseSearch() {
     renderWarehousePanel();
 }
 
-// ====== Xem chi tiết màu (variant) ======
-function xemChiTietMau(masp, tensp) {
-    fetch('php/get-product-variants.php?masp=' + encodeURIComponent(masp))
-        .then(res => res.json())
-        .then(list => {
-            if (!Array.isArray(list) || list.length === 0) {
-                alert('Sản phẩm này chưa có màu (variant).');
-                return;
-            }
+function renderVariantTableRows(list) {
+    if (!list.length) {
+        return '<div class="wh-empty-state"><i class="fa fa-inbox"></i>Chưa có biến thể nào.</div>';
+    }
 
-            var msg = 'Các màu của: ' + tensp + '\n\n';
-            list.forEach((v, idx) => {
-                msg += `${idx + 1}) ${v.ten_mau} (${v.ma_mau_hex}) - Kho: ${v.so_luong_ton} - VariantID: ${v.variant_id}\n`;
-            });
-            alert(msg);
-        })
-        .catch(() => alert('Lỗi tải danh sách màu!'));
+    var rows = list.map(function (v, i) {
+        var hex = String(v.ma_mau_hex || '');
+        var safeHex = /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : '#cbd5e1';
+        var qty = parseInt(v.so_luong_ton || 0);
+        var lvl = getStockLevelClass(qty);
+
+        return `<tr>
+            <td>${i + 1}</td>
+            <td>
+                <div class="wh-color-cell">
+                    <span class="wh-swatch" style="background:${safeHex}"></span>
+                    <span>${escapeHtml(v.ten_mau || '—')}</span>
+                </div>
+            </td>
+            <td>${escapeHtml(v.ram || '—')}</td>
+            <td>${escapeHtml(v.rom || '—')}</td>
+            <td>
+                <span class="wh-stock-badge ${lvl}">${qty}</span>
+                <div class="wh-stock-subtext">${getStockLevelText(qty)}</div>
+            </td>
+        </tr>`;
+    }).join('');
+
+    return `<table class="warehouse-variant-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Màu</th>
+                <th>RAM</th>
+                <th>ROM</th>
+                <th>Tồn kho</th>
+            </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+    </table>`;
 }
 
-// ====== Nhập kho theo màu ======
-function nhapHangTheoMau(masp, tensp) {
-    fetch('php/get-product-variants.php?masp=' + encodeURIComponent(masp))
-        .then(res => res.json())
-        .then(list => {
-            if (!Array.isArray(list) || list.length === 0) {
-                alert('Sản phẩm này chưa có màu (variant). Vui lòng vào sửa sản phẩm để thêm màu trước.');
-                return;
-            }
+function showWarehouseViewModal(masp, list) {
+    var product = getProductByMasp(masp);
+    var name = product ? product.name : masp;
+    var total = list.reduce(function (sum, v) { return sum + parseInt(v.so_luong_ton || 0); }, 0);
+    var variantCount = list.length;
 
-            // chọn màu
-            var chooseMsg = `Chọn màu để nhập kho cho: ${tensp}\n\n`;
-            list.forEach((v, idx) => {
-                chooseMsg += `${idx + 1}) ${v.ten_mau} (${v.ma_mau_hex}) - Kho hiện tại: ${v.so_luong_ton}\n`;
-            });
-            chooseMsg += `\nNhập số thứ tự (1-${list.length}):`;
+    __whModalState = { masp: masp, variants: list, mode: 'view' };
 
-            var idxStr = prompt(chooseMsg);
-            if (idxStr === null) return;
-            var idx = parseInt(idxStr);
-            if (isNaN(idx) || idx < 1 || idx > list.length) {
-                alert('Bạn chọn không hợp lệ!');
-                return;
-            }
+    document.getElementById('warehouseModalTitle').innerHTML =
+        '<i class="fa fa-eye"></i> Chi tiết tồn kho';
 
-            var vPick = list[idx - 1];
+    document.getElementById('warehouseModalBody').innerHTML = `
+        <p class="warehouse-modal-subtitle">
+            Sản phẩm: <strong>${escapeHtml(name)}</strong> · Mã: <strong>${escapeHtml(masp)}</strong>
+        </p>
+        <div class="wh-summary-row">
+            <div class="wh-summary-card">
+                <span>Tổng tồn kho</span>
+                <b class="wh-stock-${getStockLevelClass(total)}">${total}</b>
+            </div>
+            <div class="wh-summary-card">
+                <span>Số biến thể</span>
+                <b>${variantCount}</b>
+            </div>
+        </div>
+        ${renderVariantTableRows(list)}
+    `;
 
-            // nhập số lượng
-            var slStr = prompt(`Nhập số lượng muốn thêm cho màu "${vPick.ten_mau}" (Kho hiện tại: ${vPick.so_luong_ton})`);
-            if (slStr === null) return;
-            var sl = parseInt(slStr);
-            if (isNaN(sl) || sl <= 0) {
-                alert('Số lượng không hợp lệ!');
-                return;
-            }
+    document.getElementById('warehouseModalFooter').innerHTML = `
+        <button type="button" class="btn-wh-secondary" id="whModalBtnClose">Đóng</button>
+        <button type="button" class="btn-wh-primary" id="whModalBtnGoImport">
+            <i class="fa fa-plus"></i> Nhập kho
+        </button>
+    `;
 
-            // gọi API nhập kho theo variant
-            fetch('php/admin/import-variant-stock.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    variant_id: vPick.variant_id,
-                    so_luong: sl
-                })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status) {
-                        alert(data.message);
-                        addTableKhoHang();
-                    } else {
-                        alert('Lỗi: ' + data.message);
-                    }
-                })
-                .catch(() => alert('Lỗi kết nối Server!'));
-        })
-        .catch(() => alert('Lỗi tải danh sách màu!'));
+    document.getElementById('whModalBtnClose').addEventListener('click', closeWarehouseModal);
+    document.getElementById('whModalBtnGoImport').addEventListener('click', function () {
+        showWarehouseImportModal(masp, list, '');
+    });
+
+    openWarehouseModal();
 }
 
-// Logic Tìm kiếm nhanh (Client-side)
+function showWarehouseImportModal(masp, list, preselectVariantId) {
+    var product = getProductByMasp(masp);
+    var name = product ? product.name : masp;
+
+    __whModalState = { masp: masp, variants: list, mode: 'import' };
+
+    var options = list.map(function (v) {
+        var label = formatVariantStockLabel(v);
+        var selected = String(v.variant_id) === String(preselectVariantId) ? ' selected' : '';
+        return `<option value="${v.variant_id}"${selected}>${escapeHtml(label)} — Kho: ${v.so_luong_ton}</option>`;
+    }).join('');
+
+    document.getElementById('warehouseModalTitle').innerHTML =
+        '<i class="fa fa-plus-circle"></i> Nhập kho biến thể';
+
+    document.getElementById('warehouseModalBody').innerHTML = `
+        <p class="warehouse-modal-subtitle">
+            Sản phẩm: <strong>${escapeHtml(name)}</strong> · Mã: <strong>${escapeHtml(masp)}</strong>
+        </p>
+        <div class="wh-import-form">
+            <div class="wh-form-group">
+                <label for="whImportVariant">Chọn biến thể (Màu / RAM / ROM)</label>
+                <select id="whImportVariant">${options}</select>
+            </div>
+            <div class="wh-form-group">
+                <label for="whImportQty">Số lượng nhập thêm</label>
+                <input id="whImportQty" type="number" min="1" step="1" value="1" placeholder="VD: 10">
+            </div>
+            <div class="wh-import-preview" id="whImportPreview"></div>
+        </div>
+    `;
+
+    document.getElementById('warehouseModalFooter').innerHTML = `
+        <button type="button" class="btn-wh-secondary" id="whModalBtnBack">
+            <i class="fa fa-arrow-left"></i> Xem tồn kho
+        </button>
+        <button type="button" class="btn-wh-secondary" id="whModalBtnClose2">Hủy</button>
+        <button type="button" class="btn-wh-primary" id="whModalBtnSubmit">
+            <i class="fa fa-check"></i> Xác nhận nhập
+        </button>
+    `;
+
+    var sel = document.getElementById('whImportVariant');
+    var qtyInp = document.getElementById('whImportQty');
+    var preview = document.getElementById('whImportPreview');
+
+    function updatePreview() {
+        var vid = parseInt(sel.value, 10);
+        var v = list.find(function (x) { return parseInt(x.variant_id) === vid; });
+        var add = parseInt(qtyInp.value, 10);
+        if (!v || isNaN(add) || add <= 0) {
+            preview.className = 'wh-import-preview empty';
+            preview.textContent = 'Chọn biến thể và nhập số lượng hợp lệ.';
+            return;
+        }
+        var after = parseInt(v.so_luong_ton || 0) + add;
+        preview.className = 'wh-import-preview';
+        preview.innerHTML = '<i class="fa fa-info-circle"></i> ' +
+            escapeHtml(formatVariantStockLabel(v)) +
+            ': <strong>' + v.so_luong_ton + '</strong> → <strong>' + after + '</strong> (+' + add + ')';
+    }
+
+    sel.addEventListener('change', updatePreview);
+    qtyInp.addEventListener('input', updatePreview);
+    updatePreview();
+
+    document.getElementById('whModalBtnBack').addEventListener('click', function () {
+        showWarehouseViewModal(masp, list);
+    });
+    document.getElementById('whModalBtnClose2').addEventListener('click', closeWarehouseModal);
+    document.getElementById('whModalBtnSubmit').addEventListener('click', function () {
+        submitWarehouseImport(masp, list);
+    });
+
+    openWarehouseModal();
+}
+
+function submitWarehouseImport(masp, list) {
+    var sel = document.getElementById('whImportVariant');
+    var qtyInp = document.getElementById('whImportQty');
+    var btn = document.getElementById('whModalBtnSubmit');
+
+    if (!sel || !qtyInp) return;
+
+    var variantId = parseInt(sel.value, 10);
+    var qty = parseInt(qtyInp.value, 10);
+
+    if (isNaN(variantId) || variantId <= 0) {
+        alert('Vui lòng chọn biến thể.');
+        return;
+    }
+    if (isNaN(qty) || qty <= 0) {
+        alert('Số lượng nhập phải lớn hơn 0.');
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang lưu...';
+    }
+
+    fetch('php/admin/import-variant-stock.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variant_id: variantId, so_luong: qty })
+    })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (data.status) {
+                closeWarehouseModal();
+                addTableKhoHang();
+            } else {
+                alert('Lỗi: ' + (data.message || 'Không thể nhập kho'));
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-check"></i> Xác nhận nhập';
+                }
+            }
+        })
+        .catch(function () {
+            alert('Lỗi kết nối Server!');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-check"></i> Xác nhận nhập';
+            }
+        });
+}
+
+function xemChiTietMau(masp) {
+    fetchVariantsForProduct(masp)
+        .then(function (list) {
+            if (!list.length) {
+                alert('Sản phẩm này chưa có biến thể (màu/RAM/ROM). Vui lòng thêm trong Sửa sản phẩm.');
+                return;
+            }
+            showWarehouseViewModal(masp, list);
+        })
+        .catch(function () { alert('Lỗi tải danh sách biến thể!'); });
+}
+
+function nhapHangTheoMau(masp) {
+    fetchVariantsForProduct(masp)
+        .then(function (list) {
+            if (!list.length) {
+                alert('Sản phẩm này chưa có biến thể. Vui lòng thêm màu + RAM/ROM trong Sửa sản phẩm.');
+                return;
+            }
+            showWarehouseImportModal(masp, list, '');
+        })
+        .catch(function () { alert('Lỗi tải danh sách biến thể!'); });
+}
+
 function timKiemKhoHang(inp) {
-    var txt = (inp.value || '').toUpperCase();
-    var filtered = currentStockList.filter(p =>
-        (p.name || '').toUpperCase().includes(txt) || (p.masp || '').toUpperCase().includes(txt)
-    );
-    renderWarehouseTable(filtered);
+    __warehouseKeyword = (inp && inp.value) ? inp.value : '';
+    renderWarehousePanel();
 }
 
 function escapeHtml(str) {
@@ -255,3 +504,5 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 }
+
+document.addEventListener('DOMContentLoaded', initWarehouseModal);

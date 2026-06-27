@@ -25,13 +25,15 @@ function Promo(name, value) { // khuyen mai
 		var contentLabel = "";
 		switch (this.name) {
 			case "giamgia":
-				contentLabel = `<i class="fa fa-bolt"></i> Giảm ` + this.value + `&#8363;`;
+				contentLabel = `<i class="fa fa-bolt"></i> Giảm ` + this.value + `&#8363; tại CH`;
 				break;
 			case "tragop":
 				contentLabel = `Trả góp ` + this.value + `%`;
 				break;
 			case "giareonline":
-				contentLabel = `Giá rẻ online`;
+				contentLabel = this.value
+					? `Giảm ` + this.value + `&#8363; online`
+					: `Giá rẻ online`;
 				break;
 			case "moiramat":
 				contentLabel = "Mới ra mắt";

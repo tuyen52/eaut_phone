@@ -34,6 +34,7 @@
 	<link rel="stylesheet" href="css/pagination_phantrang.css">
 	<link rel="stylesheet" href="css/footer.css">
 	<link rel="stylesheet" href="css/premium-home.css">
+	<link rel="stylesheet" href="css/home-page.css">
 	<!-- js -->
     <script src="data/products.js"></script>
 <script src="js/core/utils.js"></script>
@@ -52,19 +53,22 @@
 <body>
 	<script> addTopNav(); </script>
 
-	<section>
+	<section class="homePage">
 		<script> addHeader(); </script>
 
 		<div class="banner">
 			<div class="owl-carousel owl-theme"></div>
-		</div> <!-- End Banner -->
+		</div>
 
-		<img src="img/banners/blackFriday.gif" alt="" style="width: 100%;">
+		<div class="homePromoStrip">
+			<img src="img/banners/blackFriday.gif" alt="Khuyến mãi">
+		</div>
 
-		<br>
 		<div class="companyMenu group flexContain"></div>
 
-		<div class="flexContain">
+		<div class="homeFiltersWrap">
+			<p class="homeFiltersLabel">Lọc sản phẩm</p>
+			<div class="flexContain homeFiltersBar">
 
 			<div class="pricesRangeFilter dropdown">
 				<button class="dropbtn">Giá tiền</button>
@@ -86,9 +90,10 @@
 				<div class="dropdown-content"></div>
 			</div>
 
-		</div> <!-- End khung chọn bộ lọc -->
+			</div>
+		</div>
 
-		<div class="choosedFilter flexContain">
+		<div class="choosedFilter flexContain homeChoosedFilter">
 			<a id="deleteAllFilter" style="display: none;">
 				<h3>Xóa bộ lọc</h3>
 			</a>

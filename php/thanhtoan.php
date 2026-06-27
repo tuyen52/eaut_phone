@@ -15,60 +15,16 @@ require_once(__DIR__ . '/auth_session.php');
 require_once('../connect.php');
 require_once(__DIR__ . '/vnpay_config.php');
 require_once(__DIR__ . '/order_helpers.php');
+require_once(__DIR__ . '/price_helpers.php');
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-function parse_money_value($value)
-{
-    if (is_int($value) || is_float($value)) {
-        return (int)$value;
-    }
-
-    $num = preg_replace('/[^\d]/', '', (string)$value);
-    return (int)$num;
-}
-
-function get_server_product_price(mysqli $conn, string $masp): int
-{
-    $stmt = $conn->prepare("
-        SELECT gia, khuyen_mai_loai, khuyen_mai_gia_tri
-        FROM products
-        WHERE masp = ?
-        LIMIT 1
-    ");
-    $stmt->bind_param("s", $masp);
-    $stmt->execute();
-
-    $rs = $stmt->get_result();
-
-    if ($rs->num_rows === 0) {
-        throw new Exception("Không tìm thấy sản phẩm '$masp'.");
-    }
-
-    $row = $rs->fetch_assoc();
-    $stmt->close();
-
-    $basePrice = parse_money_value($row['gia']);
-    $promoType = trim((string)($row['khuyen_mai_loai'] ?? ''));
-    $promoValue = parse_money_value($row['khuyen_mai_gia_tri'] ?? 0);
-
-    /*
-        Theo frontend hiện tại, chỉ promo "giareonline" được coi là giá bán thay thế.
-        Các loại "giamgia", "tragop", "moiramat" giữ nguyên cách xử lý hiện tại.
-    */
-    if ($promoType === 'giareonline' && $promoValue > 0) {
-        return $promoValue;
-    }
-
-    return $basePrice;
-}
-
-function get_variant_color_name(mysqli $conn, int $variantId, string $masp): ?string
+function get_variant_info(mysqli $conn, int $variantId, string $masp): ?array
 {
     if ($variantId <= 0) return null;
 
     $stmt = $conn->prepare("
-        SELECT ten_mau
+        SELECT ten_mau, ma_mau_hex, ram, rom, gia_ban
         FROM product_variants
         WHERE variant_id = ? AND masp = ?
         LIMIT 1
@@ -86,7 +42,13 @@ function get_variant_color_name(mysqli $conn, int $variantId, string $masp): ?st
     $row = $rs->fetch_assoc();
     $stmt->close();
 
-    return $row['ten_mau'] ?? null;
+    return [
+        'ten_mau' => $row['ten_mau'] ?? null,
+        'ma_mau_hex' => $row['ma_mau_hex'] ?? null,
+        'ram' => $row['ram'] ?? null,
+        'rom' => $row['rom'] ?? null,
+        'gia_ban' => parse_money_value($row['gia_ban'] ?? 0)
+    ];
 }
 
 function build_server_cart_items(mysqli $conn, array $items): array
@@ -114,24 +76,26 @@ function build_server_cart_items(mysqli $conn, array $items): array
             throw new Exception("Số lượng mua không hợp lệ.");
         }
 
-        $serverPrice = get_server_product_price($conn, $masp);
+        $serverPrice = get_server_item_price($conn, $masp, $variantId);
         if ($serverPrice <= 0) {
             throw new Exception("Giá sản phẩm '$masp' không hợp lệ.");
         }
 
         /*
-            Nếu có variant_id thì lấy tên màu thật từ DB.
-            Không tin mau_sac do client gửi để tránh giả màu/variant.
+            Nếu có variant_id thì lấy thông tin thật từ DB.
+            Không tin mau_sac/ram/rom do client gửi để tránh giả cấu hình.
         */
-        $mauSac = null;
+        $variantInfo = null;
         if ($variantId > 0) {
-            $mauSac = get_variant_color_name($conn, $variantId, $masp);
+            $variantInfo = get_variant_info($conn, $variantId, $masp);
         }
 
         $result[] = [
             'masp' => $masp,
             'variant_id' => $variantId > 0 ? $variantId : null,
-            'mau_sac' => $mauSac,
+            'mau_sac' => $variantInfo['ten_mau'] ?? null,
+            'ram' => $variantInfo['ram'] ?? null,
+            'rom' => $variantInfo['rom'] ?? null,
             'so_luong' => $soLuong,
             'gia' => $serverPrice
         ];

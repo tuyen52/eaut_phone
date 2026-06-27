@@ -150,180 +150,89 @@
         <!-- ===== CÁC TAB CŨ GIỮ NGUYÊN ===== -->
 
        <div class="sanpham" style="display: none;">
-    <table class="table-header">
-        <tr>
-            <th title="Sắp xếp" style="width: 5%" onclick="sortProductsTable('stt')">
-                Stt <i class="fa fa-sort"></i>
-            </th>
-            <th title="Sắp xếp" style="width: 10%" onclick="sortProductsTable('masp')">
-                Mã <i class="fa fa-sort"></i>
-            </th>
-            <th title="Sắp xếp" style="width: 40%" onclick="sortProductsTable('ten')">
-                Tên <i class="fa fa-sort"></i>
-            </th>
-            <th title="Sắp xếp" style="width: 15%" onclick="sortProductsTable('gia')">
-                Giá <i class="fa fa-sort"></i>
-            </th>
-            <th title="Sắp xếp" style="width: 15%" onclick="sortProductsTable('khuyenmai')">
-                Khuyến mãi <i class="fa fa-sort"></i>
-            </th>
-            <th style="width: 15%">Hành động</th>
-        </tr>
-    </table>
-
     <div class="table-content"></div>
-
-    <div class="table-footer">
-        <select name="kieuTimSanPham">
-            <option value="ma">Tìm theo mã</option>
-            <option value="ten">Tìm theo tên</option>
-        </select>
-
-        <input type="text" placeholder="Tìm kiếm sản phẩm..." onkeyup="timKiemSanPham(this)">
-
-        <button onclick="document.getElementById('khungThemSanPham').style.transform = 'scale(1)'; ensureVariantSection('khungThemSanPham'); autoMaSanPham();">
-            <i class="fa fa-plus-square"></i>
-            Thêm sản phẩm
-        </button>
-    </div>
 
     <!-- KHUNG THÊM SẢN PHẨM -->
     <div id="khungThemSanPham" class="overlay">
-        <span class="close" onclick="this.parentElement.style.transform = 'scale(0)';">&times;</span>
+        <div class="product-form-panel">
+            <div class="product-form-header">
+                <h2><i class="fa fa-plus-square"></i> Thêm sản phẩm mới</h2>
+                <span class="close close-modal" onclick="this.closest('.overlay').style.transform='scale(0)';">&times;</span>
+            </div>
+            <div class="product-form-tabs">
+                <button type="button" class="pf-tab-btn active" data-tab="basic"><i class="fa fa-info-circle"></i> Thông tin</button>
+                <button type="button" class="pf-tab-btn" data-tab="variants"><i class="fa fa-th-large"></i> Biến thể</button>
+                <button type="button" class="pf-tab-btn" data-tab="specs"><i class="fa fa-list-ul"></i> Thông số</button>
+            </div>
+            <div class="product-form-body">
+                <form>
+                    <table class="overlayTable product-form-table table-outline table-content table-header">
+                        <tr class="pf-tab pf-tab-basic"><td>Mã sản phẩm:</td><td><input type="text" id="maspThem" required></td></tr>
+                        <tr class="pf-tab pf-tab-basic"><td>Tên sản phẩm:</td><td><input type="text" required></td></tr>
 
-        <form>
-            <table class="overlayTable table-outline table-content table-header">
-                <tr>
-                    <th colspan="2">Thêm Sản Phẩm</th>
-                </tr>
+                        <tr class="pf-tab pf-tab-basic"><td>Hãng:</td><td>
+                            <select name="chonCompany" onchange="autoMaSanPham(this.value)">
+                                <option value="Apple">Apple</option>
+                                <option value="Samsung">Samsung</option>
+                                <option value="Oppo">Oppo</option>
+                                <option value="Nokia">Nokia</option>
+                                <option value="Huawei">Huawei</option>
+                                <option value="Xiaomi">Xiaomi</option>
+                                <option value="Realme">Realme</option>
+                                <option value="Vivo">Vivo</option>
+                            </select>
+                        </td></tr>
 
-                <tr>
-                    <td>Mã sản phẩm:</td>
-                    <td>
-                        <input type="text" id="maspThem" required>
-                    </td>
-                </tr>
+                        <tr class="pf-tab pf-tab-basic"><td>Hình ảnh:</td><td>
+                            <img class="hinhDaiDien" id="anhDaiDienSanPhamThem" src="">
+                            <div class="product-form-upload-row">
+                                <input type="file" accept="image/*" onchange="capNhatAnhSanPham(this.files, 'anhDaiDienSanPhamThem')">
+                            </div>
+                        </td></tr>
 
-                <tr>
-                    <td>Tên sản phẩm:</td>
-                    <td>
-                        <input type="text" required>
-                    </td>
-                </tr>
+                        <tr class="pf-tab pf-tab-basic"><td>Giá tiền:</td><td>
+                            <input type="text" value="0" readonly>
+                            <small class="form-hint">Tự tính = giá thấp nhất các biến thể</small>
+                        </td></tr>
+                        <tr class="pf-tab pf-tab-basic"><td>Giới thiệu sản phẩm:</td><td><textarea rows="4" placeholder="Mô tả ngắn về sản phẩm..."></textarea></td></tr>
 
-                <tr>
-                    <td>Hãng:</td>
-                    <td>
-                        <select name="chonCompany" onchange="autoMaSanPham(this.value)">
-                            <option value="Apple">Apple</option>
-                            <option value="Samsung">Samsung</option>
-                            <option value="Oppo">Oppo</option>
-                            <option value="Nokia">Nokia</option>
-                            <option value="Huawei">Huawei</option>
-                            <option value="Xiaomi">Xiaomi</option>
-                            <option value="Realme">Realme</option>
-                            <option value="Vivo">Vivo</option>
-                        </select>
-                    </td>
-                </tr>
+                        <tr class="pf-tab pf-tab-basic"><td>Tồn kho:</td><td>
+                            <input type="number" min="0" value="0" readonly>
+                            <small class="form-hint">Tự tính = tổng tồn kho các biến thể</small>
+                        </td></tr>
 
-                <tr>
-                    <td>Hình:</td>
-                    <td>
-                        <img class="hinhDaiDien" id="anhDaiDienSanPhamThem" src="">
-                        <input type="file" accept="image/*"
-                               onchange="capNhatAnhSanPham(this.files, 'anhDaiDienSanPhamThem')">
-                    </td>
-                </tr>
+                        <tr class="pf-tab pf-tab-basic"><td>Khuyến mãi:</td><td>
+                            <select>
+                                <option value="">Không</option>
+                                <option value="tragop">Trả góp</option>
+                                <option value="giamgia">Giảm giá</option>
+                                <option value="giareonline">Giá rẻ online</option>
+                                <option value="moiramat">Mới ra mắt</option>
+                            </select>
+                        </td></tr>
 
-                <tr>
-                    <td>Giá tiền:</td>
-                    <td>
-                        <input type="number" min="0" required>
-                    </td>
-                </tr>
+                        <tr class="pf-tab pf-tab-basic"><td>Giá trị KM:</td><td>
+                            <input type="text" class="promo-value-input" placeholder="Số tiền, % hoặc để trống">
+                            <small class="form-hint promo-value-hint">Chọn loại khuyến mãi để xem hướng dẫn nhập.</small>
+                        </td></tr>
 
-                <tr>
-                    <td>Tồn kho:</td>
-                    <td>
-                        <input type="number" min="0" value="0" readonly>
-                        <small style="display:block;color:#aaa;margin-top:4px;">
-                            Tự tính bằng tổng tồn kho theo màu.
-                        </small>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>Khuyến mãi:</td>
-                    <td>
-                        <select>
-                            <option value="">Không</option>
-                            <option value="tragop">Trả góp</option>
-                            <option value="giamgia">Giảm giá</option>
-                            <option value="giareonline">Giá rẻ online</option>
-                            <option value="moiramat">Mới ra mắt</option>
-                        </select>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>Giá trị KM:</td>
-                    <td>
-                        <input type="text" placeholder="Số tiền, % hoặc để trống">
-                    </td>
-                </tr>
-
-                <tr>
-                    <th colspan="2">Thông số kĩ thuật</th>
-                </tr>
-
-                <tr>
-                    <td>Màn hình:</td>
-                    <td><input type="text"></td>
-                </tr>
-
-                <tr>
-                    <td>HĐH:</td>
-                    <td><input type="text"></td>
-                </tr>
-
-                <tr>
-                    <td>Cam sau:</td>
-                    <td><input type="text"></td>
-                </tr>
-
-                <tr>
-                    <td>Cam trước:</td>
-                    <td><input type="text"></td>
-                </tr>
-
-                <tr>
-                    <td>CPU:</td>
-                    <td><input type="text"></td>
-                </tr>
-
-                <tr>
-                    <td>RAM:</td>
-                    <td><input type="text"></td>
-                </tr>
-
-                <tr>
-                    <td>ROM:</td>
-                    <td><input type="text"></td>
-                </tr>
-
-                <tr>
-                    <td>Pin:</td>
-                    <td><input type="text"></td>
-                </tr>
-
-                <tr>
-                    <td colspan="2" class="table-footer">
-                        <button type="button" onclick="themSanPham()">THÊM</button>
-                    </td>
-                </tr>
-            </table>
-        </form>
+                        <tr class="pf-tab pf-tab-specs"><td>Màn hình:</td><td><input type="text"></td></tr>
+                        <tr class="pf-tab pf-tab-specs"><td>HĐH:</td><td><input type="text"></td></tr>
+                        <tr class="pf-tab pf-tab-specs"><td>Cam sau:</td><td><input type="text"></td></tr>
+                        <tr class="pf-tab pf-tab-specs"><td>Cam trước:</td><td><input type="text"></td></tr>
+                        <tr class="pf-tab pf-tab-specs"><td>CPU:</td><td><input type="text"></td></tr>
+                        <tr class="pf-tab pf-tab-specs"><td>RAM:</td><td><input type="text"></td></tr>
+                        <tr class="pf-tab pf-tab-specs"><td>ROM:</td><td><input type="text"></td></tr>
+                        <tr class="pf-tab pf-tab-specs"><td>Pin:</td><td><input type="text"></td></tr>
+                    </table>
+                </form>
+            </div>
+            <div class="product-form-footer">
+                <button type="button" onclick="themSanPham()">
+                    <i class="fa fa-check"></i> Thêm sản phẩm
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- KHUNG SỬA SẢN PHẨM: products.js sẽ tự đổ form vào đây -->
@@ -331,37 +240,11 @@
 </div>
 
         <div class="donhang" style="display: none;">
-            <table class="table-header">
-                <tr>
-                    <th>Mã</th>
-                    <th>Khách hàng</th>
-                    <th>Liên hệ</th>
-                    <th>Sản phẩm</th>
-                    <th>Tổng tiền</th>
-                    <th>Ngày giờ</th>
-                    <th>PT thanh toán</th>
-                    <th>TT thanh toán</th>
-                    <th>Trạng thái đơn</th>
-                    <th>Hành động</th>
-                </tr>
-            </table>
             <div class="table-content"></div>
-            <div class="table-footer"></div>
         </div>
 
         <div class="khachhang" style="display: none;">
-            <table class="table-header">
-                <tr>
-                    <th>Stt</th>
-                    <th>Tên đăng nhập</th>
-                    <th>Họ</th>
-                    <th>Tên</th>
-                    <th>Email</th>
-                    <th>Hành động</th>
-                </tr>
-            </table>
             <div class="table-content"></div>
-            <div class="table-footer"></div>
         </div>
 
         <div class="binhluan" style="display: none;">
@@ -372,6 +255,66 @@
             <div class="table-content"></div>
         </div>
 
+    </div>
+
+    <!-- Modal kho hàng (ngoài .main để không bị display:none) -->
+    <div id="warehouseModalOverlay" class="overlay warehouse-overlay">
+        <div class="product-form-panel warehouse-modal-panel" id="warehouseModalPanel" role="dialog" aria-modal="true">
+            <div class="product-form-header warehouse-modal-header">
+                <h2 id="warehouseModalTitle"><i class="fa fa-cubes"></i> Kho hàng</h2>
+                <span class="close close-modal" id="warehouseModalClose" title="Đóng">&times;</span>
+            </div>
+            <div class="product-form-body warehouse-modal-body" id="warehouseModalBody"></div>
+            <div class="product-form-footer warehouse-modal-footer" id="warehouseModalFooter"></div>
+        </div>
+    </div>
+
+    <!-- Modal bình luận (xem chi tiết / xác nhận xóa) -->
+    <div id="reviewModalOverlay" class="overlay review-overlay">
+        <div class="product-form-panel review-modal-panel" id="reviewModalPanel" role="dialog" aria-modal="true">
+            <div class="product-form-header review-modal-header">
+                <h2 id="reviewModalTitle"><i class="fa fa-comments"></i> Bình luận</h2>
+                <span class="close close-modal" id="reviewModalClose" title="Đóng">&times;</span>
+            </div>
+            <div class="product-form-body review-modal-body" id="reviewModalBody"></div>
+            <div class="product-form-footer review-modal-footer" id="reviewModalFooter"></div>
+        </div>
+    </div>
+
+    <!-- Modal khách hàng (xác nhận xóa) -->
+    <div id="userModalOverlay" class="overlay user-overlay">
+        <div class="product-form-panel user-modal-panel" id="userModalPanel" role="dialog" aria-modal="true">
+            <div class="product-form-header user-modal-header">
+                <h2 id="userModalTitle"><i class="fa fa-users"></i> Khách hàng</h2>
+                <span class="close close-modal" id="userModalClose" title="Đóng">&times;</span>
+            </div>
+            <div class="product-form-body user-modal-body" id="userModalBody"></div>
+            <div class="product-form-footer user-modal-footer" id="userModalFooter"></div>
+        </div>
+    </div>
+
+    <!-- Modal sản phẩm (xác nhận xóa) -->
+    <div id="productModalOverlay" class="overlay product-overlay">
+        <div class="product-form-panel product-modal-panel" id="productModalPanel" role="dialog" aria-modal="true">
+            <div class="product-form-header product-modal-header">
+                <h2 id="productModalTitle"><i class="fa fa-mobile"></i> Sản phẩm</h2>
+                <span class="close close-modal" id="productModalClose" title="Đóng">&times;</span>
+            </div>
+            <div class="product-form-body product-modal-body" id="productModalBody"></div>
+            <div class="product-form-footer product-modal-footer" id="productModalFooter"></div>
+        </div>
+    </div>
+
+    <!-- Modal đơn hàng (chi tiết / xác nhận) -->
+    <div id="orderModalOverlay" class="overlay order-overlay">
+        <div class="product-form-panel order-modal-panel" id="orderModalPanel" role="dialog" aria-modal="true">
+            <div class="product-form-header order-modal-header">
+                <h2 id="orderModalTitle"><i class="fa fa-shopping-cart"></i> Đơn hàng</h2>
+                <span class="close close-modal" id="orderModalClose" title="Đóng">&times;</span>
+            </div>
+            <div class="product-form-body order-modal-body" id="orderModalBody"></div>
+            <div class="product-form-footer order-modal-footer" id="orderModalFooter"></div>
+        </div>
     </div>
 </body>
 </html>

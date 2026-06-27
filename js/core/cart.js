@@ -1,7 +1,7 @@
 // js/core/cart.js
 // Thêm vào giỏ theo VARIANT (màu) - lưu theo variant_id
 
-async function themVaoGioHang(masp, tensp, variant_id, mau_sac, ma_mau_hex, soLuong) {
+async function themVaoGioHang(masp, tensp, variant_id, mau_sac, ma_mau_hex, soLuong, ram, rom) {
     soLuong = parseInt(soLuong || 1);
 
     var user = getCurrentUser();
@@ -70,11 +70,15 @@ async function themVaoGioHang(masp, tensp, variant_id, mau_sac, ma_mau_hex, soLu
 
         var finalColorName = mau_sac || v.ten_mau || null;
         var finalHex = ma_mau_hex || v.ma_mau_hex || null;
+        var finalRam = ram || v.ram || null;
+        var finalRom = rom || v.rom || null;
 
         if (item) {
             item.soluong = qtyInCart + soLuong;
             item.mau_sac = finalColorName;
             item.ma_mau_hex = finalHex;
+            item.ram = finalRam;
+            item.rom = finalRom;
         } else {
             user.products.push({
                 ma: masp,
@@ -82,6 +86,8 @@ async function themVaoGioHang(masp, tensp, variant_id, mau_sac, ma_mau_hex, soLu
                 variant_id: variant_id,
                 mau_sac: finalColorName,
                 ma_mau_hex: finalHex,
+                ram: finalRam,
+                rom: finalRom,
                 date: new Date().toISOString()
             });
         }
@@ -91,7 +97,8 @@ async function themVaoGioHang(masp, tensp, variant_id, mau_sac, ma_mau_hex, soLu
         if (typeof animateCartNumber === 'function') animateCartNumber();
         if (typeof capNhat_ThongTin_CurrentUser === 'function') capNhat_ThongTin_CurrentUser();
 
-        alert(`Đã thêm '${tensp}' - ${finalColorName || 'màu'} vào giỏ hàng!`);
+        var variantLabel = [finalColorName, finalRam, finalRom].filter(Boolean).join(' | ');
+        alert(`Đã thêm '${tensp}' - ${variantLabel || 'biến thể'} vào giỏ hàng!`);
     } catch (e) {
         console.error(e);
         alert("Lỗi kết nối Server, vui lòng thử lại!");

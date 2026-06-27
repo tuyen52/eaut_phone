@@ -308,7 +308,7 @@ if (!function_exists('save_order_details_from_cart')) {
     function save_order_details_from_cart($conn, $maDon, $sanPham, $deductStockNow = false)
     {
         $stmtPickVariant = $conn->prepare("
-            SELECT variant_id, ten_mau
+            SELECT variant_id, ten_mau, ram, rom
             FROM product_variants
             WHERE masp = ?
             ORDER BY CASE WHEN ten_mau = 'Mặc định' THEN 0 ELSE 1 END, variant_id ASC
@@ -316,7 +316,7 @@ if (!function_exists('save_order_details_from_cart')) {
         ");
 
         $stmtGetVariantForUpdate = $conn->prepare("
-            SELECT variant_id, masp, ten_mau, so_luong_ton
+            SELECT variant_id, masp, ten_mau, ram, rom, so_luong_ton
             FROM product_variants
             WHERE variant_id = ?
             FOR UPDATE
@@ -344,6 +344,8 @@ if (!function_exists('save_order_details_from_cart')) {
             $donGia     = (float)($sp['gia'] ?? 0);
             $variantId  = (int)($sp['variant_id'] ?? 0);
             $mauSacIn   = trim($sp['mau_sac'] ?? '');
+            $ramIn      = trim($sp['ram'] ?? '');
+            $romIn      = trim($sp['rom'] ?? '');
 
             if ($masp === '') {
                 throw new Exception("Thiếu mã sản phẩm trong giỏ hàng.");
@@ -388,6 +390,8 @@ if (!function_exists('save_order_details_from_cart')) {
             }
 
             $tenMau = $variant['ten_mau'];
+            $ram = $variant['ram'] ?? null;
+            $rom = $variant['rom'] ?? null;
             $stock  = (int)$variant['so_luong_ton'];
 
             if ($deductStockNow) {
@@ -406,12 +410,14 @@ if (!function_exists('save_order_details_from_cart')) {
             }
 
             $mauSacFinal = ($mauSacIn !== '') ? $mauSacIn : $tenMau;
+            if ($ramIn === '') $ramIn = $ram;
+            if ($romIn === '') $romIn = $rom;
             $productNameSnapshot = '';
             $productPriceSnapshot = $donGia;
             $productImageSnapshot = null;
-            $variantNameSnapshot = $tenMau;
+            $variantNameSnapshot = trim($tenMau . ($ram ? ' | ' . $ram : '') . ($rom ? ' | ' . $rom : ''));
 
-            $stmtProductSnapshot = $conn->prepare("SELECT ten_sp, hinh_anh, gia, khuyen_mai_loai, khuyen_mai_gia_tri FROM products WHERE masp = ? LIMIT 1");
+            $stmtProductSnapshot = $conn->prepare("SELECT ten_sp, hinh_anh FROM products WHERE masp = ? LIMIT 1");
             $stmtProductSnapshot->bind_param("s", $masp);
             $stmtProductSnapshot->execute();
             $rsProductSnapshot = $stmtProductSnapshot->get_result();
@@ -419,10 +425,6 @@ if (!function_exists('save_order_details_from_cart')) {
                 $productRow = $rsProductSnapshot->fetch_assoc();
                 $productNameSnapshot = (string)($productRow['ten_sp'] ?? '');
                 $productImageSnapshot = $productRow['hinh_anh'] ?? null;
-                $basePrice = (float)($productRow['gia'] ?? 0);
-                $promoType = trim((string)($productRow['khuyen_mai_loai'] ?? ''));
-                $promoValue = (float)($productRow['khuyen_mai_gia_tri'] ?? 0);
-                $productPriceSnapshot = ($promoType === 'giareonline' && $promoValue > 0) ? $promoValue : $basePrice;
             }
             $rsProductSnapshot->free();
             $stmtProductSnapshot->close();
@@ -752,6 +754,7 @@ if (!function_exists('normalize_order_status')) {
             'đã xác nhận' => 'confirmed',
             'đang xử lý' => 'processing',
             'đang giao hàng' => 'shipping',
+            'đã nhận hàng' => 'completed',
             'hoàn thành' => 'completed',
             'đã hủy' => 'cancelled',
             'đã hủy bởi khách' => 'cancelled',
