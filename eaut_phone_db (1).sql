@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 25, 2026 at 09:48 PM
+-- Generation Time: Jun 26, 2026 at 01:15 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -65,7 +65,7 @@ CREATE TABLE `orders` (
 
 INSERT INTO `orders` (`ma_don`, `user_id`, `username`, `ngay_mua`, `tinh_trang`, `phuong_thuc_tt`, `payment_status`, `vnp_txn_ref`, `vnp_transaction_no`, `vnp_response_code`, `paid_at`, `payment_expired_at`, `dia_chi`, `so_dien_thoai`, `tong_tien`, `updated_at`) VALUES
 (1, 4, 'tuyen', '2026-06-25 20:45:14', 'completed', 'COD', 'paid', NULL, NULL, NULL, NULL, NULL, 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', 18990000, '2026-06-25 20:45:50'),
-(2, 4, 'tuyen', '2026-06-25 21:49:59', 'pending', 'COD', 'unpaid', NULL, NULL, NULL, NULL, NULL, 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', 24990000, '2026-06-25 21:49:59');
+(2, 4, 'tuyen', '2026-06-25 21:49:59', 'cancelled', 'COD', 'failed', NULL, NULL, NULL, NULL, NULL, 'Nguyên Xá, Tay Tuu Ward, Di Trạch, Hà Nội, 10085, Vietnam', '0375615945', 24990000, '2026-06-26 12:35:16');
 
 -- --------------------------------------------------------
 
@@ -117,7 +117,8 @@ INSERT INTO `order_status_logs` (`log_id`, `ma_don`, `status`, `note`, `created_
 (1, 1, 'confirmed', 'updated_by_admin', '2026-06-25 20:45:41'),
 (2, 1, 'processing', 'updated_by_admin', '2026-06-25 20:45:43'),
 (3, 1, 'shipping', 'updated_by_admin', '2026-06-25 20:45:46'),
-(4, 1, 'completed', 'updated_by_admin', '2026-06-25 20:45:50');
+(4, 1, 'completed', 'updated_by_admin', '2026-06-25 20:45:50'),
+(5, 2, 'cancelled', 'updated_by_user', '2026-06-26 12:35:16');
 
 -- --------------------------------------------------------
 
@@ -154,7 +155,7 @@ CREATE TABLE `products` (
 
 INSERT INTO `products` (`masp`, `ten_sp`, `hang_sx`, `hinh_anh`, `gia`, `so_luong_ton`, `so_sao`, `so_danh_gia`, `khuyen_mai_loai`, `khuyen_mai_gia_tri`, `screen`, `os`, `camera`, `camera_front`, `cpu`, `ram`, `rom`, `micro_usb`, `battery`, `gioi_thieu_san_pham`) VALUES
 ('APP16', 'iPhone 16 128GB', 'Apple', 'img/products/uploads/ip16xanhduong-1779440286.jpg', 17990000, 269, 5, 1, 'giamgia', '1000000', 'Super Retina XDR 6.1 inch', 'iOS 26', 'Camera kép 48 MP', 'TrueDepth 12 MP', 'Apple A18', '8 GB', '128 GB', 'Không hỗ trợ thẻ nhớ', 'Pin tốt, sạc nhanh USB-C', 'iPhone 16 là thế hệ iPhone mới với thiết kế tinh tế, hoàn thiện cao cấp và trọng lượng cân bằng, mang đến cảm giác cầm nắm thoải mái cho cả công việc lẫn giải trí hằng ngày.\r\n\r\nMáy được trang bị màn hình Super Retina XDR 6.1 inch sắc nét, hiển thị màu sắc chân thực, độ sáng cao và tần số quét mượt mà. Chip Apple A18 cùng RAM 8 GB mang lại hiệu năng mạnh mẽ, xử lý mượt các tác vụ đa nhiệm, chơi game và quay phim 4K ổn định.\r\n\r\nHệ thống camera kép 48 MP phía sau và camera TrueDepth 12 MP phía trước giúp chụp ảnh chi tiết, quay video sắc nét trong mọi điều kiện ánh sáng. iPhone 16 chạy iOS 26 với hệ sinh thái Apple đồng bộ, bảo mật cao và cập nhật phần mềm lâu dài.\r\n\r\nPin tốt kèm sạc nhanh USB-C đáp ứng nhu cầu sử dụng cả ngày. Đây là lựa chọn lý tưởng cho người dùng yêu thích sự ổn định, thiết kế gọn gàng và trải nghiệm iOS trọn vẹn.'),
-('APP17', 'iPhone 17 256GB', 'Apple', 'img/products/uploads/t---i-xu---ng--2-1779441601.webp', 24990000, 269, 0, 0, 'moiramat', '', 'Super Retina XDR 6.3 inch 120Hz', 'iOS 26', 'Camera kép 48 MP, quay 4K', 'TrueDepth 24 MP', 'Apple A19', '8 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin cả ngày, sạc nhanh USB-C', 'iPhone 17 nâng cấp toàn diện so với thế hệ trước với màn hình Super Retina XDR 6.3 inch 120Hz, mang lại trải nghiệm vuốt chạm mượt mà và hiển thị sống động hơn khi xem phim, chơi game hay lướt mạng xã hội.\r\n\r\nSức mạnh đến từ chip Apple A19 cùng RAM 8 GB và bộ nhớ 256 GB, giúp xử lý nhanh các ứng dụng nặng, chỉnh sửa video và đa nhiệm liên tục mà vẫn giữ độ ổn định cao. Hệ điều hành iOS 26 tối ưu trải nghiệm, bảo mật dữ liệu và đồng bộ liền mạch với Mac, iPad, AirPods.\r\n\r\nCamera kép 48 MP hỗ trợ quay 4K chất lượng cao, chụp ảnh chi tiết trong điều kiện thiếu sáng. Camera TrueDepth 24 MP phía trước cho ảnh selfie và video call rõ nét, tự nhiên.\r\n\r\nVới pin dùng cả ngày và sạc nhanh USB-C, iPhone 17 phù hợp người dùng cần hiệu năng cao, màn hình mượt và trải nghiệm Apple cao cấp trong phân khúc flagship tiêu chuẩn.'),
+('APP17', 'iPhone 17 256GB', 'Apple', 'img/products/uploads/t---i-xu---ng--2-1779441601.webp', 24990000, 270, 0, 0, 'moiramat', '', 'Super Retina XDR 6.3 inch 120Hz', 'iOS 26', 'Camera kép 48 MP, quay 4K', 'TrueDepth 24 MP', 'Apple A19', '8 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin cả ngày, sạc nhanh USB-C', 'iPhone 17 nâng cấp toàn diện so với thế hệ trước với màn hình Super Retina XDR 6.3 inch 120Hz, mang lại trải nghiệm vuốt chạm mượt mà và hiển thị sống động hơn khi xem phim, chơi game hay lướt mạng xã hội.\r\n\r\nSức mạnh đến từ chip Apple A19 cùng RAM 8 GB và bộ nhớ 256 GB, giúp xử lý nhanh các ứng dụng nặng, chỉnh sửa video và đa nhiệm liên tục mà vẫn giữ độ ổn định cao. Hệ điều hành iOS 26 tối ưu trải nghiệm, bảo mật dữ liệu và đồng bộ liền mạch với Mac, iPad, AirPods.\r\n\r\nCamera kép 48 MP hỗ trợ quay 4K chất lượng cao, chụp ảnh chi tiết trong điều kiện thiếu sáng. Camera TrueDepth 24 MP phía trước cho ảnh selfie và video call rõ nét, tự nhiên.\r\n\r\nVới pin dùng cả ngày và sạc nhanh USB-C, iPhone 17 phù hợp người dùng cần hiệu năng cao, màn hình mượt và trải nghiệm Apple cao cấp trong phân khúc flagship tiêu chuẩn.'),
 ('APP17P', 'iPhone 17 Pro 256GB', 'Apple', 'img/products/uploads/shopping-1779441651.webp', 34990000, 180, 0, 0, 'giareonline', '1500000', 'OLED ProMotion 6.3 inch 120Hz', 'iOS 26', 'Camera Pro Fusion 48 MP', 'TrueDepth 24 MP', 'Apple A19 Pro', '12 GB', '256 GB', 'Không hỗ trợ thẻ nhớ', 'Pin Pro, sạc nhanh USB-C', 'iPhone 17 Pro là phiên bản cao cấp dành cho người dùng đòi hỏi hiệu năng và trải nghiệm chuyên nghiệp nhất trong dòng iPhone. Thiết kế sang trọng, khung viền cao cấp và hoàn thiện tinh xảo tạo cảm giác đẳng cấp ngay từ lần cầm đầu tiên.\r\n\r\nMàn hình OLED ProMotion 6.3 inch 120Hz cho độ phản hồi cực nhanh, màu sắc chính xác và độ sáng cao — lý tưởng cho chỉnh sửa ảnh, xem HDR và chơi game đồ họa nặng. Chip Apple A19 Pro cùng RAM 12 GB mang lại sức mạnh xử lý vượt trội, đáp ứng tốt cả công việc sáng tạo lẫn giải trí đỉnh cao.\r\n\r\nHệ camera Pro Fusion 48 MP được tối ưu cho nhiếp ảnh chuyên sâu: chụp đêm tốt hơn, quay video chuyên nghiệp và xử lý ảnh nhanh. Camera TrueDepth 24 MP hỗ trợ selfie và gọi video chất lượng cao.\r\n\r\nPin Pro bền bỉ, sạc nhanh USB-C và hệ sinh thái iOS 26 giúp iPhone 17 Pro trở thành công cụ toàn diện cho creator, doanh nhân và người dùng yêu công nghệ cao cấp.'),
 ('HMDPULSEP', 'HMD Pulse Pro 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng-1779441784.jpg', 3990000, 180, 5, 1, 'giamgia', '200000', 'LCD 6.65 inch 90Hz', 'Android 15', 'Camera sau 50 MP', 'Camera selfie 50 MP', 'Unisoc T606', '6 GB', '128 GB', 'MicroSD hỗ trợ', '5000 mAh, pin lâu', 'HMD Pulse Pro là smartphone giá tốt với cấu hình cân bằng, phù hợp người dùng cần máy ổn định cho học tập, làm việc và giải trí cơ bản mà không tốn quá nhiều chi phí.\r\n\r\nMàn hình LCD 6.65 inch tần số quét 90Hz cho trải nghiệm vuốt mượt hơn so với màn 60Hz truyền thống. RAM 6 GB và bộ nhớ 128 GB đáp ứng tốt các tác vụ hằng ngày như lướt web, xem video, chat và sử dụng mạng xã hội.\r\n\r\nĐiểm nhấn là camera sau 50 MP và camera selfie 50 MP — hiếm có ở phân khúc giá này — giúp chụp ảnh sắc nét, selfie đẹp và quay video ổn định. Máy chạy Android 15 với giao diện thân thiện, dễ làm quen.\r\n\r\nPin 5000 mAh cho thời lượng sử dụng dài, hỗ trợ thẻ nhớ MicroSD để mở rộng dung lượng lưu trữ. HMD Pulse Pro là lựa chọn hợp lý cho học sinh, sinh viên và người dùng lần đầu chuyển sang smartphone.'),
 ('HMDXR21', 'Nokia XR21 5G 6GB/128GB', 'Nokia', 'img/products/uploads/t---i-xu---ng--1-1779441853.jpg', 7490000, 180, 0, 0, 'tragop', '0', 'LCD 6.49 inch 120Hz', 'Android 14', 'Camera kép 64 MP', 'Camera 16 MP', 'Snapdragon 695 5G', '6 GB', '128 GB', 'MicroSD hỗ trợ', '4800 mAh, bền bỉ', 'Nokia XR21 5G được thiết kế dành riêng cho người dùng cần độ bền cao, chống va đập, nước bụi — phù hợp làm việc ngoài trời, công trường hoặc những ai thường xuyên di chuyển.\r\n\r\nMàn hình LCD 6.49 inch 120Hz cho trải nghiệm hiển thị mượt mà, chip Snapdragon 695 5G hỗ trợ kết nối mạng thế hệ mới nhanh và ổn định. RAM 6 GB cùng ROM 128 GB đáp ứng tốt đa nhiệm và lưu trữ ứng dụng, ảnh, video.\r\n\r\nCamera kép 64 MP phía sau và camera 16 MP selfie giúp chụp ảnh chi tiết trong nhiều điều kiện. Android 14 mang đến giao diện sạch, dễ sử dụng và cập nhật bảo mật định kỳ.\r\n\r\nPin 4800 mAh bền bỉ, hỗ trợ thẻ nhớ MicroSD. Nokia XR21 5G kết hợp độ bền quân đội với kết nối 5G hiện đại — lựa chọn đáng tin cậy cho người dùng thực dụng.'),
@@ -229,7 +230,7 @@ INSERT INTO `product_variants` (`variant_id`, `masp`, `ten_mau`, `ram`, `rom`, `
 (25, 'APP16', 'Xanh dương', '8', '128 GB', '#73A9D8', 'img/products/uploads/ip16xanhduong-1779440292.jpg', 10, 19970000, '2026-06-25 15:44:07', '2026-06-26 01:08:32'),
 (26, 'APP16', 'Xanh dương', '8', '256 GB', '#73A9D8', 'img/products/uploads/ip16xanhduong-1779440292.jpg', 10, 23030000, '2026-06-25 15:44:07', '2026-06-26 01:08:32'),
 (27, 'APP16', 'Xanh dương', '8', '64 GB', '#73A9D8', 'img/products/uploads/ip16xanhduong-1779440292.jpg', 10, 17990000, '2026-06-25 15:44:07', '2026-06-26 00:16:43'),
-(28, 'APP17', 'Đen', '16 GB', '128 GB', '#202124', 'img/products/modern/APP17_2.svg', 9, 27740000, '2026-06-25 15:44:07', '2026-06-26 01:08:32'),
+(28, 'APP17', 'Đen', '16 GB', '128 GB', '#202124', 'img/products/modern/APP17_2.svg', 10, 27740000, '2026-06-25 15:44:07', '2026-06-26 12:35:16'),
 (29, 'APP17', 'Đen', '16 GB', '256 GB', '#202124', 'img/products/modern/APP17_2.svg', 10, 31990000, '2026-06-25 15:44:07', '2026-06-26 01:08:32'),
 (30, 'APP17', 'Đen', '16 GB', '64 GB', '#202124', 'img/products/modern/APP17_2.svg', 10, 24990000, '2026-06-25 15:44:07', '2026-06-25 23:49:32'),
 (31, 'APP17', 'Đen', '4 GB', '128 GB', '#202124', 'img/products/modern/APP17_2.svg', 10, 27740000, '2026-06-25 15:44:07', '2026-06-26 01:08:32'),
@@ -923,7 +924,7 @@ ALTER TABLE `order_details`
 -- AUTO_INCREMENT for table `order_status_logs`
 --
 ALTER TABLE `order_status_logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `product_variants`
